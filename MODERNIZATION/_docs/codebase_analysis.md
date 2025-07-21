@@ -1,4 +1,4 @@
-# LAPACK Codebase Structure Analysis
+# LAPACK Codebase Structure Analysis (Revised with AlphaTensor)
 **LAPACK AI Modernization Project - Phase 1B.1 Deliverable**
 
 ## Project Overview
@@ -36,8 +36,8 @@ Organization Pattern:
 - **SB/HB*** - Symmetric/Hermitian band matrices
 
 **Critical Routines for Modernization:**
-- `dgesvd.f` (3,552 lines) - SVD decomposition [**Primary Target**]
-- `dgemm.f` - Matrix multiplication (BLAS Level 3)
+- `dgesvd.f` (3,552 lines) - SVD decomposition [**Primary Target for GPU**]
+- `dgemm.f` - Matrix multiplication [**Target for AlphaTensor 4×4 optimization**]
 - `dgesv.f` - Linear system solver
 - `dgecon.f` - Condition number estimation
 

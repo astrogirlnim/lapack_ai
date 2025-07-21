@@ -1,4 +1,4 @@
-# LAPACK AI Progress Tracking - The "Status"
+# LAPACK AI Progress Tracking - The "Status" (Revised with AlphaTensor)
 
 ## Project Timeline and Milestones
 
@@ -159,18 +159,18 @@ Day 5: Testing, Polish, and Documentation            0% Complete
 - [ ] Add CPU fallback for compatibility
 - [ ] Achieve 5-10x speedup target
 
-#### Batched Matrix Multiplication
+#### AlphaTensor Matrix Multiplication
 **Status**: NOT STARTED ❌  
 **Planned Duration**: 4 hours  
 **Objectives**:
-- [ ] Implement DGEMMB for batched operations
-- [ ] Support 100-1000 matrix batches (32x32 to 256x256)
-- [ ] Achieve 90% of cuBLAS performance target
-- [ ] Memory-efficient batch management
+- [ ] Study AlphaTensor's 4×4 algorithm decomposition
+- [ ] Implement DGEMM_ALPHA with 47 multiplications (vs 64)
+- [ ] Achieve 10-20% speedup for 4×4 matrices
+- [ ] Create CPU and OpenCL implementations
 
 **Success Criteria**:
 - GPU-accelerated SVD functional and fast
-- Batched matrix multiplication operational
+- AlphaTensor matrix multiplication operational with measurable speedup
 - Performance targets met or approached
 
 ### Day 4: Dashboard, Error Handling, and Docker
@@ -265,15 +265,15 @@ Day 5: Testing, Polish, and Documentation            0% Complete
 
 **Target**: <1% Python overhead, seamless NumPy integration
 
-#### 3. Batched GPU-Accelerated Matrix Multiplication
+#### 3. AlphaTensor Matrix Multiplication
 **Overall Progress**: 0% ❌  
 **Components**:
-- [ ] DGEMMB implementation (0%)
-- [ ] Batch management system (0%)
-- [ ] Memory optimization (0%)
-- [ ] Performance tuning (0%)
+- [ ] AlphaTensor algorithm study (0%)
+- [ ] DGEMM_ALPHA implementation (0%)
+- [ ] 4×4 optimization (0%)
+- [ ] Performance validation (0%)
 
-**Target**: 90% of cuBLAS performance for batched operations
+**Target**: 10-20% speedup for 4×4 matrix operations
 
 #### 4. Real-Time Performance Monitoring Dashboard
 **Overall Progress**: 0% ❌  

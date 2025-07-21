@@ -1,9 +1,9 @@
-# Function Interface Mapping for Modernization
+# Function Interface Mapping for Modernization (Revised with AlphaTensor)
 **LAPACK AI Modernization Project - Phase 1B.2, 1B.3, 1B.4 Deliverable**
 
 ## Overview
 
-This document maps the modernization transformation of key LAPACK functions from legacy Fortran interfaces to modern, AI-friendly implementations with GPU acceleration, Python APIs, and enhanced error handling.
+This document maps the modernization transformation of key LAPACK functions from legacy Fortran interfaces to modern, AI-friendly implementations with GPU acceleration, AlphaTensor matrix multiplication, Python APIs, and enhanced error handling.
 
 ## DGESVD: Singular Value Decomposition Analysis
 
@@ -398,6 +398,119 @@ def gemm_with_fallback(A, B, device='auto'):
         logger.info("Falling back to CPU implementation")
         return lap.gemm_cpu(A, B)
 ```
+
+## DGEMM_ALPHA: AlphaTensor Matrix Multiplication Analysis
+
+### AlphaTensor Algorithm Overview
+
+**Algorithm Source**: AlphaTensor DeepMind Research (Page 12, h_1 to h_47 decomposition)  
+**Target**: 4×4 matrix multiplication optimization  
+**Multiplication Count**: 47 operations (vs standard 64, 26% reduction)  
+**Expected Speedup**: 10-20% for 4×4 matrices common in ML workloads
+
+### Current DGEMM Interface (Legacy)
+
+```fortran
+SUBROUTINE DGEMM( TRANSA, TRANSB, M, N, K, ALPHA, A, LDA, B, LDB,
+                  BETA, C, LDC )
+
+! Scalar Arguments
+CHARACTER          TRANSA, TRANSB
+INTEGER            K, LDA, LDB, LDC, M, N
+DOUBLE PRECISION   ALPHA, BETA
+
+! Array Arguments
+DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), C( LDC, * )
+```
+
+### AlphaTensor Optimized Interface (New)
+
+```fortran
+SUBROUTINE DGEMM_ALPHA( M, N, K, ALPHA, A, LDA, B, LDB, BETA, C, LDC, INFO )
+
+! Scalar Arguments - Simplified for 4x4 focus
+INTEGER            INFO, K, LDA, LDB, LDC, M, N
+DOUBLE PRECISION   ALPHA, BETA
+
+! Array Arguments
+DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), C( LDC, * )
+
+! Implementation Notes:
+! - Optimized for M=N=K=4 (primary ML use case)
+! - Falls back to standard DGEMM for other sizes
+! - Uses AlphaTensor's 47-multiplication decomposition
+! - Includes CPU and OpenCL variants
+```
+
+### Python API Integration
+
+```python
+import lapack_ai as lap
+
+# AlphaTensor-optimized 4x4 multiplication
+def dgemm_alpha(A, B, alpha=1.0, beta=0.0, use_gpu=True):
+    """
+    AlphaTensor-optimized matrix multiplication for 4x4 matrices.
+    
+    Parameters:
+    - A, B: 4x4 NumPy arrays (float64)
+    - alpha, beta: Scaling factors
+    - use_gpu: Use OpenCL acceleration if available
+    
+    Returns:
+    - C: Result matrix (alpha * A @ B + beta * C)
+    
+    Performance: 10-20% faster than standard DGEMM for 4x4 matrices
+    """
+    
+# Usage examples
+A = np.random.random((4, 4))
+B = np.random.random((4, 4))
+
+# Standard interface
+C1 = lap.dgemm(A, B)
+
+# AlphaTensor optimized
+C2 = lap.dgemm_alpha(A, B)  # Same result, 10-20% faster
+
+# Batch processing for transformer attention
+Q, K, V = transformer_qkv_matrices  # Multiple 4x4 blocks
+attention_scores = lap.dgemm_alpha_batch(Q, K.T)
+```
+
+### Implementation Strategy
+
+#### Phase 1: Algorithm Implementation
+1. **Study AlphaTensor decomposition** (Page 12: h_1 through h_47)
+2. **Implement Fortran version** with 47 multiplications
+3. **Validate numerical accuracy** against reference DGEMM
+4. **Benchmark performance** for 4×4 matrices
+
+#### Phase 2: OpenCL Acceleration  
+1. **Create OpenCL kernel** for AlphaTensor algorithm
+2. **Optimize memory access patterns** for GPU efficiency
+3. **Implement CPU fallback** for compatibility
+4. **Integrate with existing GPU infrastructure**
+
+#### Phase 3: Python Integration
+1. **Add pybind11 bindings** for DGEMM_ALPHA
+2. **Implement automatic dispatch** (4×4 → AlphaTensor, others → standard)
+3. **Create batch processing functions** for multiple 4×4 operations
+4. **Add performance monitoring** and comparison tools
+
+### Expected Performance Characteristics
+
+| Matrix Size | Standard DGEMM | DGEMM_ALPHA | Speedup |
+|-------------|----------------|-------------|---------|
+| 4×4         | 64 mult + overhead | 47 mult + overhead | 10-20% |
+| 8×8         | 512 mult | Falls back to DGEMM | ~0% |
+| 16×16       | 4096 mult | Falls back to DGEMM | ~0% |
+
+**Optimization Focus**: 4×4 matrices are common in:
+- Transformer attention head computations
+- Small block operations in larger matrices  
+- Embedded ML inference scenarios
+- Real-time processing pipelines
 
 ## API Evolution Strategy
 

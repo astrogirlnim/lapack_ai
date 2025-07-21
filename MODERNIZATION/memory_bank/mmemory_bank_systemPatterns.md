@@ -26,7 +26,7 @@
 │  GPU Acceleration Layer                                    │
 │  ├── OpenCL Dispatch Logic                                │
 │  ├── DGESVDOCL (GPU SVD)                                  │
-│  ├── DGEMMB (Batched Matrix Mult)                         │
+│  ├── DGEMM_ALPHA (AlphaTensor 4×4)                       │
 │  └── CPU Fallback Mechanisms                              │
 ├─────────────────────────────────────────────────────────────┤
 │  Core LAPACK Layer (Unmodified)                           │

@@ -7,7 +7,7 @@
 **Sprint Focus**: Foundation Setup and Architecture Documentation
 
 ### Immediate Context
-The LAPACK AI modernization project is in its initial setup phase. We have comprehensive documentation from the BrainLift directory outlining a 5-day implementation plan to modernize LAPACK for AI/ML use cases. The project aims to add GPU acceleration, Python-friendly APIs, enhanced error handling, real-time monitoring, and containerized deployment to the existing LAPACK 3.12.1 codebase.
+The LAPACK AI modernization project is in its initial setup phase. We have comprehensive documentation from the BrainLift directory outlining a 5-day implementation plan to modernize LAPACK for AI/ML use cases. The project aims to add GPU acceleration, AlphaTensor matrix multiplication, Python-friendly APIs, enhanced error handling, real-time monitoring, and containerized deployment to the existing LAPACK 3.12.1 codebase. AI-driven development (Claude Code, Cursor) will accelerate implementation by generating 80% of code.
 
 ### Project Structure Discovery
 ```
@@ -26,7 +26,7 @@ Current Codebase Analysis:
 Essential Directories:
 ├── SRC/ - Core LAPACK Fortran routines (~1800 files)
 │   ├── dgesvd.f - SVD implementation (target for GPU acceleration)
-│   ├── dgemm.f - Matrix multiplication (target for batching)
+│   ├── dgemm.f - Matrix multiplication (target for AlphaTensor enhancement)
 │   └── VARIANTS/ - Alternative implementations
 ├── BLAS/ - Basic Linear Algebra Subprograms
 ├── CBLAS/ - C interface to BLAS
@@ -151,7 +151,7 @@ Based on the 5-day implementation plan:
 
 **Day 3: GPU Feature Implementation**
 - Implement DGESVDOCL (GPU-accelerated SVD)
-- Implement DGEMMB (batched matrix multiplication)
+- Implement DGEMM_ALPHA (AlphaTensor matrix multiplication)
 - OpenCL kernel development
 - GPU/CPU performance comparison
 

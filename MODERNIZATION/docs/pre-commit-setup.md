@@ -34,6 +34,27 @@ The pre-commit configuration includes comprehensive code quality checks for the 
 - **Docker linting**: Dockerfile quality checks
 - **Security scanning**: Gitleaks for detecting hardcoded secrets and credentials
 
+## Fortran Module Dependencies
+
+### Important Note on CI Validation
+
+The LAPACK codebase contains Fortran modules with dependencies:
+- `la_constants.f90` defines the `LA_CONSTANTS` module
+- 8 other .f90 files depend on this module: `clartg.f90`, `classq.f90`, `zlassq.f90`, `dlassq.f90`, `dlartg.f90`, `zlartg.f90`, `slartg.f90`, `slassq.f90`
+
+When testing individual Fortran files, **always compile required modules first**:
+
+```bash
+# Correct way to test dependent files
+gfortran -c la_constants.f90    # Creates la_constants.mod
+gfortran -fsyntax-only clartg.f90  # Now works correctly
+
+# Cleanup
+rm -f *.mod *.o
+```
+
+The CI system automatically handles this by compiling `la_constants.f90` before testing other files.
+
 ## Installation and Setup
 
 ### Option 1: Automated Setup Script

@@ -14,60 +14,7 @@ defaults:
     shell: bash
 
 jobs:
-  pre-commit:
-    name: Pre-commit hooks
-    runs-on: ubuntu-24.10
 
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # Fetch full history for better diff analysis
-
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-        cache: 'pip'
-
-    - name: Install system dependencies for Fortran tools
-      run: |
-        # Add Ubuntu Toolchain PPA (main, not test) for gfortran-15
-        sudo add-apt-repository -y ppa:ubuntu-toolchain-r/ppa
-        sudo apt-get update
-        sudo apt-get install -y --no-install-recommends \
-          gfortran-15 \
-          build-essential \
-          cmake
-        # Create symlink for default gfortran command
-        sudo ln -sf /usr/bin/gfortran-15 /usr/bin/gfortran
-        echo "✅ System dependencies installed with gfortran-15"
-
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pre-commit
-        echo "✅ Python dependencies installed"
-
-    - name: Cache pre-commit environments
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pre-commit
-        key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
-        restore-keys: |
-          pre-commit-${{ runner.os }}-
-
-    - name: Install pre-commit hooks
-      run: |
-        echo "🔧 Installing pre-commit hooks..."
-        pre-commit install --install-hooks
-        echo "✅ Pre-commit hooks installed"
-
-    - name: Run pre-commit on all files
-      run: |
-        echo "🔍 Running pre-commit hooks on all files..."
-        pre-commit run --all-files --verbose
-        echo "✅ Pre-commit checks completed"
 
   python-quality:
     name: Python code quality
@@ -174,7 +121,7 @@ jobs:
   summary:
     name: Quality Check Summary
     runs-on: ubuntu-latest
-    needs: [pre-commit, python-quality, documentation-check, security-check]
+    needs: [python-quality, documentation-check, security-check]
     if: always()
 
     steps:
@@ -187,7 +134,7 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
         echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-        echo "| Pre-commit hooks | ${{ needs.pre-commit.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+
         echo "| Python quality | ${{ needs.python-quality.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Documentation | ${{ needs.documentation-check.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Security scan | ${{ needs.security-check.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY

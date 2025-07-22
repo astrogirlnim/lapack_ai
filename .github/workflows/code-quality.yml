@@ -152,16 +152,28 @@ jobs:
         echo "  Changed to SRC directory: $(pwd)"
         echo "  Available .f files: $(ls *.f 2>/dev/null | wc -l || echo '0')"
         echo "  Available .f90 files: $(ls *.f90 2>/dev/null | wc -l || echo '0')"
+        echo "  Available .F90 files: $(ls *.F90 2>/dev/null | wc -l || echo '0')"
 
-        # First, compile any required modules to generate .mod files
+        # Compile all required modules before syntax checking
         echo "🔧 Compiling required modules..."
-
+        # Compile LA_XISNAN module if it exists (required by several .f90 files)
+        if [ -f "la_xisnan.F90" ]; then
+          echo "  📦 Compiling LA_XISNAN module..."
+          MODULE_OUTPUT=$(gfortran -c la_xisnan.F90 2>&1)
+          MODULE_EXIT_CODE=$?
+          if [ $MODULE_EXIT_CODE -ne 0 ]; then
+            echo "    ❌ Failed to compile LA_XISNAN module:"
+            echo "$MODULE_OUTPUT"
+            exit 1
+          else
+            echo "    ✅ LA_XISNAN module compiled successfully"
+          fi
+        fi
         # Compile LA_CONSTANTS module if it exists (required by several .f90 files)
         if [ -f "la_constants.f90" ]; then
           echo "  📦 Compiling LA_CONSTANTS module..."
           MODULE_OUTPUT=$(gfortran -c la_constants.f90 2>&1)
           MODULE_EXIT_CODE=$?
-
           if [ $MODULE_EXIT_CODE -ne 0 ]; then
             echo "    ❌ Failed to compile LA_CONSTANTS module:"
             echo "$MODULE_OUTPUT"
@@ -171,8 +183,8 @@ jobs:
           fi
         fi
 
-        # Select test files for validation
-        TEST_FILES=($(ls *.f *.f90 2>/dev/null | head -5))
+        # Select test files for validation (include both .f90 and .F90)
+        TEST_FILES=($(ls *.f *.f90 *.F90 2>/dev/null | head -5))
         echo "  Selected test files: ${TEST_FILES[*]}"
 
         SYNTAX_ERRORS=0

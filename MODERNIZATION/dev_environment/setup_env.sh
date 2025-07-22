@@ -1,6 +1,6 @@
 #!/bin/bash
 # LAPACK AI Modernization Development Environment Setup
-# This script sets up all necessary environment variables and activates the Python virtual environment
+# This script sets up all necessary environment variables for containerized development
 
 echo "🚀 Setting up LAPACK AI Modernization Development Environment..."
 
@@ -8,12 +8,34 @@ echo "🚀 Setting up LAPACK AI Modernization Development Environment..."
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
 
-# Activate Python virtual environment
-echo "📦 Activating Python virtual environment..."
-source "$SCRIPT_DIR/venv/bin/activate"
+# Check if we're in a container (Python dependencies are already available)
+if [ -f /.dockerenv ]; then
+    echo "📦 Running in containerized environment - Python dependencies ready!"
+else
+    echo "🏠 Running on host system"
+    # Try to activate venv if it exists for backward compatibility
+    if [ -f "$SCRIPT_DIR/venv/bin/activate" ]; then
+        echo "📦 Activating Python virtual environment..."
+        source "$SCRIPT_DIR/venv/bin/activate"
+    else
+        echo "⚠️  No virtual environment found - assuming system Python"
+    fi
+fi
 
-# macOS-specific library paths (for Homebrew keg-only packages)
-if [[ "$OSTYPE" == "darwin"* ]]; then
+# Configure build environment based on host vs container
+if [ -f /.dockerenv ]; then
+    echo "🐳 Setting up containerized build environment..."
+    
+    # Container environment uses system packages
+    export CC="gcc"
+    export CXX="g++"
+    export FC="gfortran"
+    export LIBRARY_PATH="/usr/local/lib:/usr/lib/x86_64-linux-gnu"
+    export LD_LIBRARY_PATH="/usr/local/lib:/usr/lib/x86_64-linux-gnu"
+    export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig"
+    
+    echo "✅ Container build environment configured"
+elif [[ "$OSTYPE" == "darwin"* ]]; then
     echo "🍎 Setting up macOS-specific library paths..."
     
     # OpenBLAS (keg-only)
@@ -35,6 +57,12 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     export FC="gfortran-15"
     
     echo "✅ macOS library paths configured"
+else
+    echo "🐧 Setting up Linux build environment..."
+    export CC="gcc"
+    export CXX="g++"
+    export FC="gfortran"
+    echo "✅ Linux build environment configured"
 fi
 
 # CMake configuration for LAPACK AI modernization

@@ -1,26 +1,27 @@
-# LAPACK AI Modernization - Development Environment Setup
+# LAPACK AI Modernization - Containerized Development Environment
 
 ## Overview
 
-This document provides a complete guide for setting up a production-like development environment for the LAPACK AI Modernization project. The environment supports GPU-accelerated linear algebra operations, Python integration, and modern development practices.
+This document provides a complete guide for setting up a containerized development environment for the LAPACK AI Modernization project. The environment supports GPU-accelerated linear algebra operations, Python integration, and modern development practices through Docker containers.
 
 ## Environment Architecture
 
 ```
-LAPACK AI Development Environment
-├── Host System (macOS/Linux)
+LAPACK AI Containerized Development
+├── Host System (macOS/Linux/Windows)
+│   ├── Docker Engine (OrbStack/Docker Desktop)
+│   ├── GPU Runtime (NVIDIA Docker/OpenCL)
+│   └── Container Orchestration
+├── Development Container
 │   ├── Build Tools (CMake, GCC, gfortran)
-│   ├── GPU/OpenCL Support
-│   └── Python 3.11+ Runtime
-├── Python Virtual Environment
 │   ├── Scientific Computing (NumPy, SciPy)
 │   ├── GPU Computing (PyOpenCL)
-│   ├── Web Framework (Flask)
+│   ├── Web Framework (Flask, Jupyter)
 │   └── Development Tools (pytest, black, mypy)
-└── Production Simulation
-    ├── Docker Container Support
-    ├── Performance Monitoring
-    └── Cross-Platform Compatibility
+└── Production Container
+    ├── Minimal Runtime
+    ├── Performance Optimized
+    └── Cloud Ready
 ```
 
 ## Prerequisites
@@ -29,391 +30,549 @@ LAPACK AI Development Environment
 
 **Hardware:**
 - x86_64 or ARM64 processor
-- 8+ GB RAM (16+ GB recommended)
+- 8+ GB RAM (16+ GB recommended for development)
 - GPU with OpenCL 1.2+ support (optional but recommended)
-- 5+ GB free disk space
+- 10+ GB free disk space (for containers and cache)
 
-**Operating System:**
-- macOS 11.0+ (Big Sur or later)
-- Ubuntu 20.04 LTS+ / Debian 11+
-- CentOS 8+ / RHEL 8+
+**Software:**
+- Docker Engine 20.10+ or OrbStack (macOS)
+- Docker Compose 2.0+
+- NVIDIA Container Toolkit (for NVIDIA GPU support)
 
 ## Installation Guide
 
-### Step 1: Install System Dependencies
+### Step 1: Install Docker
 
-#### macOS (using Homebrew)
+#### macOS (OrbStack - Recommended)
 
 ```bash
-# Install Homebrew if not already installed
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+# Install OrbStack (faster, more efficient than Docker Desktop)
+brew install orbstack
 
-# Install development tools and libraries
-brew install cmake gcc gfortran openblas lapack opencl-headers
+# Start OrbStack
+orb
 
-# Verify installations
-cmake --version    # Should be 4.0.3+
-gfortran --version # Should be GNU Fortran 15.1.0+
-gcc --version      # Should show Homebrew GCC
+# Verify Docker is working
+docker --version
+docker run hello-world
 ```
 
-#### Ubuntu/Debian
+#### macOS (Docker Desktop Alternative)
 
 ```bash
-# Update package manager
-sudo apt update
+# Install Docker Desktop
+brew install --cask docker
 
-# Install development tools
-sudo apt install -y \
-    build-essential \
-    gfortran \
-    cmake \
-    python3.11-dev \
-    python3-pip \
-    opencl-headers \
-    ocl-icd-opencl-dev \
-    libblas-dev \
-    liblapack-dev \
-    libopenblas-dev
-
-# Install Python virtual environment tools
-sudo apt install -y python3.11-venv
+# Start Docker Desktop and verify
+docker --version
 ```
 
-### Step 2: Set Up Python Virtual Environment
+#### Linux (Ubuntu/Debian)
 
 ```bash
-# Navigate to the project directory
+# Install Docker Engine
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+
+# Add user to docker group
+sudo usermod -aG docker $USER
+newgrp docker
+
+# Install Docker Compose
+sudo apt install docker-compose-plugin
+
+# Verify installation
+docker --version
+docker compose version
+```
+
+### Step 2: Install GPU Support (Optional)
+
+#### NVIDIA GPU Support
+
+```bash
+# Linux: Install NVIDIA Container Toolkit
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
+   && curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add - \
+   && curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+
+sudo apt-get update
+sudo apt-get install -y nvidia-docker2
+sudo systemctl restart docker
+
+# Test GPU access
+docker run --rm --gpus all nvidia/cuda:11.8-runtime-ubuntu20.04 nvidia-smi
+```
+
+#### macOS/Windows GPU Support
+
+```bash
+# OpenCL support is built into the containers
+# No additional installation required
+```
+
+### Step 3: Build Development Environment
+
+```bash
+# Clone/navigate to project directory
 cd /path/to/lapack_ai
 
-# Create virtual environment in the dev_environment folder
-cd MODERNIZATION/dev_environment
-python3 -m venv venv
+# Build base container
+docker build -f MODERNIZATION/_docs/Dockerfile.base -t lapack-ai-base:latest .
 
-# Activate the virtual environment
-source venv/bin/activate
+# Build development container
+docker build -f MODERNIZATION/dev_environment/Dockerfile.dev -t lapack-ai-dev:latest .
 
-# Upgrade pip and install dependencies
-pip install --upgrade pip
-pip install -r requirements.txt
+# Verify build
+docker images | grep lapack-ai
 ```
 
-### Step 3: Configure Environment Variables
-
-The project includes an automated setup script that configures all necessary environment variables:
+### Step 4: Start Development Environment
 
 ```bash
-# Make the setup script executable
-chmod +x MODERNIZATION/dev_environment/setup_env.sh
+# Quick start - interactive development
+docker run -it --rm \
+  --name lapack-dev \
+  -v $(pwd):/opt/lapack-ai \
+  -p 8888:8888 \
+  -p 5000:5000 \
+  --gpus all \
+  lapack-ai-dev:latest
 
-# Source the environment setup (run from project root)
-source MODERNIZATION/dev_environment/setup_env.sh
+# Or start specific services
+docker run -d --name lapack-jupyter \
+  -v $(pwd):/opt/lapack-ai \
+  -p 8888:8888 \
+  --gpus all \
+  lapack-ai-dev:latest jupyter
 ```
 
-### Step 4: Verify Installation
+## Development Workflow
+
+### 1. Container Management
 
 ```bash
-# Test Python dependencies
-python -c "import pyopencl; print('✅ OpenCL available!')"
-python -c "import numpy; print('✅ NumPy:', numpy.__version__)"
-python -c "import pybind11; print('✅ pybind11:', pybind11.__version__)"
+# Start development environment
+docker run -it --rm \
+  --name lapack-dev \
+  -v $(pwd):/opt/lapack-ai \
+  -p 8888:8888 \
+  -p 5000:5000 \
+  -p 5001:5001 \
+  --gpus all \
+  lapack-ai-dev:latest
 
-# Test LAPACK build system
-mkdir -p build_test
-cd build_test
-cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=OFF
-cd .. && rm -rf build_test
+# Available commands in container:
+# jupyter  - Start Jupyter Lab (access: http://localhost:8888)
+# flask    - Start Flask development server (access: http://localhost:5000)
+# test     - Run test suite
+# build    - Build LAPACK with custom features
 ```
 
-## Environment Configuration Details
+### 2. Development Services
 
-### Python Dependencies
-
-The development environment includes:
-
-**Core Libraries:**
-- `pybind11>=2.10.0` - C++/Python bindings
-- `numpy>=1.24.0` - Array operations
-- `scipy>=1.10.0` - Scientific computing
-- `pyopencl>=2022.2` - GPU computing
-
-**Web Framework:**
-- `flask>=2.3.0` - Web dashboard
-- `flask-socketio>=5.3.0` - Real-time communication
-- `gunicorn>=20.1.0` - Production WSGI server
-
-**Development Tools:**
-- `pytest>=7.0.0` - Testing framework
-- `black>=23.0.0` - Code formatter
-- `mypy>=1.0.0` - Type checker
-- `flake8>=6.0.0` - Linting
-
-**Monitoring & Debugging:**
-- `psutil>=5.9.0` - System monitoring
-- `jupyter>=1.0.0` - Interactive development
-- `matplotlib>=3.6.0` - Visualization
-
-### Environment Variables
-
-The setup script automatically configures:
-
-**Build Configuration:**
+#### Jupyter Lab Development
 ```bash
-export CC="gcc-15"                    # C compiler
-export CXX="g++-15"                   # C++ compiler  
-export FC="gfortran-15"               # Fortran compiler
-export CMAKE_BUILD_TYPE="Debug"       # Build type
+# Start Jupyter Lab
+docker run -d --name lapack-jupyter \
+  -v $(pwd):/opt/lapack-ai \
+  -p 8888:8888 \
+  --gpus all \
+  lapack-ai-dev:latest jupyter
+
+# Access at: http://localhost:8888
+# No password required in development mode
 ```
 
-**Library Paths (macOS):**
+#### Flask Development Server
 ```bash
-export LDFLAGS="-L/opt/homebrew/opt/openblas/lib -L/opt/homebrew/opt/lapack/lib"
-export CPPFLAGS="-I/opt/homebrew/opt/openblas/include -I/opt/homebrew/opt/lapack/include"
-export PKG_CONFIG_PATH="/opt/homebrew/opt/openblas/lib/pkgconfig:/opt/homebrew/opt/lapack/lib/pkgconfig"
+# Start Flask development server
+docker run -d --name lapack-flask \
+  -v $(pwd):/opt/lapack-ai \
+  -p 5000:5000 \
+  --gpus all \
+  lapack-ai-dev:latest flask
+
+# Access at: http://localhost:5000
+# Hot-reload enabled for development
 ```
 
-**Development Settings:**
+#### Interactive Development Shell
 ```bash
-export PYTHONPATH="${PROJECT_ROOT}/src:${PYTHONPATH}"
-export OCL_ENABLE_DEBUG=1
-export OCL_DEBUG_LEVEL=2
-export PYTEST_ADDOPTS="--tb=short --strict-markers"
+# Get shell access to running container
+docker exec -it lapack-dev bash
+
+# Or start new container with shell
+docker run -it --rm \
+  -v $(pwd):/opt/lapack-ai \
+  --gpus all \
+  lapack-ai-dev:latest bash
 ```
 
-## Daily Development Workflow
-
-### 1. Activate Environment
+### 3. Build and Test Commands
 
 ```bash
-# From project root
-source MODERNIZATION/dev_environment/setup_env.sh
-```
-
-### 2. Development Commands
-
-```bash
-# Run tests
-pytest
-
-# Format code
-black src/
-isort src/
-
-# Type checking
-mypy src/
+# Run tests in container
+docker run --rm \
+  -v $(pwd):/opt/lapack-ai \
+  --gpus all \
+  lapack-ai-dev:latest test
 
 # Build LAPACK with custom features
-mkdir build && cd build
-cmake .. -DCMAKE_BUILD_TYPE=Debug \
-         -DWITH_GPU_SUPPORT=ON \
-         -DWITH_PYTHON_BINDINGS=ON \
-         -DWITH_DASHBOARD=ON
-make -j$(nproc)
+docker run --rm \
+  -v $(pwd):/opt/lapack-ai \
+  --gpus all \
+  lapack-ai-dev:latest build
+
+# Format code
+docker run --rm \
+  -v $(pwd):/opt/lapack-ai \
+  lapack-ai-dev:latest python -m black src/
+
+# Type checking
+docker run --rm \
+  -v $(pwd):/opt/lapack-ai \
+  lapack-ai-dev:latest python -m mypy src/
 ```
 
-### 3. GPU Development
+## Docker Compose for Development
+
+Create `docker-compose.dev.yml` for easier management:
+
+```yaml
+version: '3.8'
+
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: MODERNIZATION/dev_environment/Dockerfile.dev
+    volumes:
+      - .:/opt/lapack-ai
+    ports:
+      - "8888:8888"
+      - "5000:5000"
+      - "5001:5001"
+    stdin_open: true
+    tty: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+
+  jupyter:
+    extends: dev
+    command: jupyter
+    ports:
+      - "8888:8888"
+
+  flask:
+    extends: dev
+    command: flask
+    ports:
+      - "5000:5000"
+```
+
+Usage:
+```bash
+# Start all services
+docker compose -f docker-compose.dev.yml up -d
+
+# Start specific service
+docker compose -f docker-compose.dev.yml up jupyter
+
+# Scale services
+docker compose -f docker-compose.dev.yml up --scale flask=2
+
+# View logs
+docker compose -f docker-compose.dev.yml logs -f
+
+# Stop all services
+docker compose -f docker-compose.dev.yml down
+```
+
+## GPU Development
+
+### Testing GPU Access
 
 ```bash
-# Test OpenCL availability
-python -c "
+# Test OpenCL availability in container
+docker run --rm --gpus all lapack-ai-dev:latest python -c "
 import pyopencl as cl
 platforms = cl.get_platforms()
 print(f'Found {len(platforms)} OpenCL platforms')
 for platform in platforms:
     devices = platform.get_devices()
     print(f'Platform: {platform.name}, Devices: {len(devices)}')
+    for device in devices:
+        print(f'  Device: {device.name}')
 "
 
+# Check GPU memory and capabilities
+docker run --rm --gpus all lapack-ai-dev:latest python -c "
+import pyopencl as cl
+ctx = cl.create_some_context()
+for device in ctx.devices:
+    print(f'Device: {device.name}')
+    print(f'Global Memory: {device.global_mem_size // 1024**3} GB')
+    print(f'Compute Units: {device.max_compute_units}')
+    print(f'Max Work Group Size: {device.max_work_group_size}')
+"
+```
+
+### GPU Debugging
+
+```bash
 # Enable detailed GPU debugging
-export OCL_ENABLE_DEBUG=1
-export OCL_DEBUG_LEVEL=3
+docker run -it --rm \
+  -v $(pwd):/opt/lapack-ai \
+  --gpus all \
+  -e OCL_ENABLE_DEBUG=1 \
+  -e OCL_DEBUG_LEVEL=3 \
+  -e PYOPENCL_COMPILER_OUTPUT=1 \
+  lapack-ai-dev:latest bash
+```
+
+## Performance Optimization
+
+### Container Resource Limits
+
+```bash
+# Run with specific resource limits
+docker run -it --rm \
+  --memory=4g \
+  --cpus=2 \
+  --shm-size=1g \
+  -v $(pwd):/opt/lapack-ai \
+  --gpus all \
+  lapack-ai-dev:latest
+```
+
+### Build Cache Optimization
+
+```bash
+# Use BuildKit for faster builds
+export DOCKER_BUILDKIT=1
+
+# Build with cache mount
+docker build \
+  --mount=type=cache,target=/var/cache/apt \
+  --mount=type=cache,target=/root/.cache/pip \
+  -f MODERNIZATION/_docs/Dockerfile.base \
+  -t lapack-ai-base:latest .
+```
+
+## Production Container
+
+### Build Production Image
+
+```bash
+# Build optimized production image
+docker build -f MODERNIZATION/_docs/Dockerfile.prod -t lapack-ai-prod:latest .
+
+# Check image size (should be <500MB)
+docker images lapack-ai-prod:latest
+
+# Test production container
+docker run --rm lapack-ai-prod:latest health
+```
+
+### Production Deployment
+
+```bash
+# Run production web server
+docker run -d \
+  --name lapack-ai-web \
+  -p 5000:5000 \
+  --restart unless-stopped \
+  --gpus all \
+  lapack-ai-prod:latest web
+
+# Run background worker
+docker run -d \
+  --name lapack-ai-worker \
+  --restart unless-stopped \
+  --gpus all \
+  lapack-ai-prod:latest worker
 ```
 
 ## Troubleshooting
 
 ### Common Issues
 
-**1. OpenCL not found**
+#### Container Build Failures
 ```bash
-# macOS: Install OpenCL headers
-brew install opencl-headers
+# Check build context size
+du -sh .
 
-# Linux: Install OpenCL development packages
-sudo apt install opencl-headers ocl-icd-opencl-dev
+# Build with verbose output
+docker build --progress=plain -f MODERNIZATION/_docs/Dockerfile.base .
+
+# Clear build cache
+docker builder prune -a
 ```
 
-**2. LAPACK libraries not found**
+#### GPU Access Issues
 ```bash
-# Check library paths
-pkg-config --libs lapack
-pkg-config --libs openblas
+# Verify GPU runtime
+docker run --rm --gpus all nvidia/cuda:11.8-runtime-ubuntu20.04 nvidia-smi
 
-# Add to environment if needed
-export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
+# Check container GPU access
+docker run --rm --gpus all lapack-ai-dev:latest python -c "import pyopencl; print('GPU OK')"
+
+# Debug GPU permissions
+docker run -it --gpus all --privileged lapack-ai-dev:latest bash
 ```
 
-**3. Fortran compiler issues**
+#### Performance Issues
 ```bash
-# Verify Fortran compiler
-gfortran --version
+# Monitor container resources
+docker stats
 
-# Test simple compilation
-echo "program hello; print *, 'Hello'; end program" > test.f90
-gfortran test.f90 -o test && ./test && rm test test.f90
+# Check container logs
+docker logs -f container-name
+
+# Profile application in container
+docker exec -it container-name python -m cProfile script.py
 ```
 
-**4. Python import errors**
+#### Volume Mount Issues
 ```bash
-# Reinstall dependencies
-pip install --force-reinstall -r requirements.txt
+# Check file permissions
+ls -la $(pwd)
 
-# Check virtual environment
-which python
-python -c "import sys; print(sys.path)"
+# Fix ownership if needed (Linux)
+sudo chown -R $USER:$USER .
+
+# Alternative: run container as current user
+docker run --user $(id -u):$(id -g) ...
 ```
 
-### Performance Optimization
+## Development Best Practices
 
-**CMake Build Options:**
+### Code Quality in Containers
+
 ```bash
-# Release build for performance testing
-cmake .. -DCMAKE_BUILD_TYPE=Release \
-         -DWITH_OPENMP=ON \
-         -DWITH_VECTORIZATION=ON
-
-# Debug build for development
-cmake .. -DCMAKE_BUILD_TYPE=Debug \
-         -DWITH_ASSERTIONS=ON \
-         -DWITH_PROFILING=ON
-```
-
-**GPU Memory Management:**
-```bash
-# Monitor GPU memory usage
-python -c "
-import pyopencl as cl
-ctx = cl.create_some_context()
-print(f'GPU Memory: {ctx.devices[0].global_mem_size // 1024**3} GB')
+# Run full quality check
+docker run --rm -v $(pwd):/opt/lapack-ai lapack-ai-dev:latest bash -c "
+cd /opt/lapack-ai
+python -m black --check src/
+python -m isort --check-only src/
+python -m flake8 src/
+python -m mypy src/
+python -m pytest tests/
 "
 ```
 
-## Testing the Environment
-
-### Unit Tests
+### Debugging in Containers
 
 ```bash
-# Run all tests
-pytest
+# Debug with debugger
+docker run -it --rm \
+  -v $(pwd):/opt/lapack-ai \
+  --gpus all \
+  lapack-ai-dev:latest python -m pdb script.py
 
-# Run specific test categories
-pytest tests/unit/           # Unit tests
-pytest tests/integration/    # Integration tests
-pytest tests/performance/    # Performance benchmarks
+# Debug with IPython
+docker run -it --rm \
+  -v $(pwd):/opt/lapack-ai \
+  --gpus all \
+  lapack-ai-dev:latest ipython
 ```
 
-### Performance Benchmarks
+### Environment Consistency
 
 ```bash
-# GPU vs CPU SVD benchmark
-python benchmarks/svd_performance.py --matrix-size 1024 --iterations 100
-
-# Memory usage profiling
-python -m memory_profiler scripts/profile_memory.py
+# Ensure consistent environment
+docker run --rm lapack-ai-dev:latest python -c "
+import sys, platform
+print(f'Python: {sys.version}')
+print(f'Platform: {platform.platform()}')
+print('Dependencies:')
+import numpy, scipy, pyopencl, flask
+print(f'  NumPy: {numpy.__version__}')
+print(f'  SciPy: {scipy.__version__}')
+print(f'  PyOpenCL: {pyopencl.VERSION_TEXT}')
+print(f'  Flask: {flask.__version__}')
+"
 ```
 
-### Code Quality Checks
+## Container Management
+
+### Cleanup Commands
 
 ```bash
-# Full quality check pipeline
-black --check src/
-isort --check-only src/
-flake8 src/
-mypy src/
+# Remove stopped containers
+docker container prune
+
+# Remove unused images
+docker image prune
+
+# Remove everything
+docker system prune -a
+
+# Clean up volumes
+docker volume prune
 ```
 
-## Production Simulation
-
-### Docker Development
+### Container Backup
 
 ```bash
-# Build development Docker image
-docker build -f MODERNIZATION/dev_environment/Dockerfile.dev -t lapack-ai-dev .
+# Export container state
+docker commit lapack-dev lapack-ai-dev:backup
+docker save lapack-ai-dev:backup | gzip > lapack-dev-backup.tar.gz
 
-# Run in container
-docker run -it --gpus all -v $(pwd):/workspace lapack-ai-dev
-```
-
-### Cloud Deployment Testing
-
-```bash
-# AWS ECS simulation
-docker run --platform linux/amd64 lapack-ai-dev
-
-# Kubernetes resource limits
-docker run --memory=2g --cpus=2 lapack-ai-dev
-```
-
-## Environment Maintenance
-
-### Dependency Updates
-
-```bash
-# Update Python packages
-pip list --outdated
-pip install --upgrade pip
-pip install --upgrade -r requirements.txt
-
-# Update system packages (macOS)
-brew update && brew upgrade
-
-# Update system packages (Ubuntu)
-sudo apt update && sudo apt upgrade
-```
-
-### Environment Reset
-
-```bash
-# Complete environment reset
-rm -rf MODERNIZATION/dev_environment/venv
-python3 -m venv MODERNIZATION/dev_environment/venv
-source MODERNIZATION/dev_environment/venv/bin/activate
-pip install -r MODERNIZATION/dev_environment/requirements.txt
-```
-
-## File Structure
-
-```
-MODERNIZATION/dev_environment/
-├── venv/                          # Python virtual environment
-├── requirements.txt               # Python dependencies
-├── setup_env.sh                   # Environment setup script
-├── Dockerfile.dev                 # Development container
-├── .env.example                   # Environment template
-└── scripts/
-    ├── install_opencl.sh          # OpenCL setup script
-    ├── test_gpu.py                # GPU functionality test
-    └── benchmark.py               # Performance benchmarks
+# Import container state
+gunzip -c lapack-dev-backup.tar.gz | docker load
 ```
 
 ## Next Steps
 
-1. **Start Development**: Activate environment and begin implementing features
-2. **GPU Programming**: Develop OpenCL kernels for SVD and matrix operations
-3. **Python Integration**: Create pybind11 wrappers for LAPACK functions
-4. **Dashboard Development**: Build Flask-based monitoring interface
-5. **Containerization**: Package complete solution in Docker
+1. **Start Development**: Run development container and access Jupyter/Flask
+2. **GPU Programming**: Develop OpenCL kernels within container environment
+3. **Python Integration**: Create pybind11 wrappers using container build tools
+4. **Dashboard Development**: Build Flask interface accessible via container ports
+5. **Production Deployment**: Use production container for cloud deployment
+
+## Container Structure
+
+```
+Container File System:
+/opt/lapack-ai/                    # Working directory
+├── src/                           # Source code (mounted from host)
+├── build/                         # Build artifacts
+├── tests/                         # Test files (mounted from host)
+├── notebooks/                     # Jupyter notebooks
+├── logs/                          # Application logs
+└── data/                          # Data files
+
+Container Services:
+├── Jupyter Lab                    # Port 8888
+├── Flask Development             # Port 5000
+├── Monitoring Dashboard          # Port 5001
+└── SSH (optional)                # Port 22
+```
 
 ## Support
 
-For environment setup issues:
-1. Check system requirements and dependencies
-2. Verify all installation steps were completed
-3. Review troubleshooting section for common issues
-4. Test individual components (Python, CMake, OpenCL) separately
+For containerized environment issues:
+1. Verify Docker installation and GPU support
+2. Check container build logs for dependency issues
+3. Test GPU access in container environment
+4. Review container resource limits and permissions
+5. Use container debugging tools and verbose logging
 
 ---
 
-**Environment Status**: ✅ Production-Ready  
+**Environment Status**: ✅ Fully Containerized  
 **Last Updated**: January 2025  
-**Version**: 1.0.0  
-**Compatibility**: macOS 11+, Ubuntu 20.04+, Python 3.11+ 
+**Version**: 2.0.0 (Containerized)  
+**Compatibility**: Docker 20.10+, OrbStack, GPU Runtime  
+**Container Base**: python:3.11-slim  
+**Production Ready**: ✅ 

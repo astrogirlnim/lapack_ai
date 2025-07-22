@@ -1,0 +1,149 @@
+# LAPACK AI Modernization - Docker Ignore Rules
+# Optimizes build context and reduces image size
+
+# Version control
+.git/
+.gitignore
+.gitmodules
+.gitattributes
+
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+pip-wheel-metadata/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.vs/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+CTestTestfile.cmake
+Testing/
+
+# LAPACK specific build artifacts
+*.o
+*.mod
+*.a
+*.so.*
+*.dylib
+*.dll
+testing_results.txt
+lapack_testing.out
+
+# Documentation build
+docs/_build/
+docs/site/
+*.pdf
+*.ps
+*.dvi
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.bak
+*.swp
+*.swo
+*~
+
+# Data files (can be large)
+*.csv
+*.dat
+*.h5
+*.hdf5
+*.nc
+*.mat
+
+# Archives
+*.tar
+*.tar.gz
+*.zip
+*.7z
+*.rar
+
+# Virtual environments (host-specific)
+MODERNIZATION/dev_environment/venv/
+
+# Local configuration
+.env
+.env.local
+.env.*.local
+.secrets
+config.local.*
+
+# Node modules (if any)
+node_modules/
+npm-debug.log*
+
+# Docker files themselves (avoid recursion)
+.dockerignore
+docker-compose.override.yml
+docker-compose.local.yml
+
+# Large directories that aren't needed in container
+DOCS/
+TESTING/LIN/
+TESTING/EIG/
+TESTING/MATGEN/
+
+# Memory bank (not needed in production)
+MODERNIZATION/memory_bank/
+MODERNIZATION/BRAINLIFT/
+
+# Research and planning docs (development only)
+MODERNIZATION/codebase-research/
+
+# Example and test data
+examples/data/
+test_data/
+benchmarks/
+
+# Backup files
+*.backup
+*.orig
+*.rej 

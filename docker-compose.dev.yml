@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+  # Base development service
+  dev:
+    build:
+      context: .
+      dockerfile: MODERNIZATION/dev_environment/Dockerfile.dev
+    volumes:
+      - .:/opt/lapack-ai
+      - lapack_build_cache:/opt/lapack-ai/build
+      - lapack_cache:/tmp/lapack_cache
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - PYTHONPATH=/opt/lapack-ai/src:/opt/lapack-ai/MODERNIZATION
+      - OCL_ENABLE_DEBUG=1
+      - LOG_LEVEL=DEBUG
+    stdin_open: true
+    tty: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # Interactive development shell
+  shell:
+    extends: dev
+    command: bash
+    ports:
+      - "8888:8888"  # Jupyter
+      - "5000:5000"  # Flask
+      - "5001:5001"  # Monitoring
+    profiles:
+      - interactive
+
+  # Jupyter Lab service
+  jupyter:
+    extends: dev
+    command: jupyter
+    ports:
+      - "8888:8888"
+    profiles:
+      - jupyter
+
+  # Flask development server
+  flask:
+    extends: dev
+    command: flask
+    ports:
+      - "5000:5000"
+    profiles:
+      - flask
+
+  # Test runner service
+  test:
+    extends: dev
+    command: test
+    profiles:
+      - test
+
+  # Build service
+  build:
+    extends: dev
+    command: build
+    volumes:
+      - .:/opt/lapack-ai
+      - lapack_build_cache:/opt/lapack-ai/build
+    profiles:
+      - build
+
+  # Production-like testing
+  prod-test:
+    build:
+      context: .
+      dockerfile: MODERNIZATION/_docs/Dockerfile.prod
+    ports:
+      - "5002:5000"
+    command: web
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    profiles:
+      - production
+
+volumes:
+  lapack_build_cache:
+    driver: local
+  lapack_cache:
+    driver: local
+
+# Usage examples:
+# docker compose -f docker-compose.dev.yml --profile interactive up -d shell
+# docker compose -f docker-compose.dev.yml --profile jupyter up -d
+# docker compose -f docker-compose.dev.yml --profile flask up -d
+# docker compose -f docker-compose.dev.yml --profile test run --rm test
+# docker compose -f docker-compose.dev.yml --profile build run --rm build
+# docker compose -f docker-compose.dev.yml --profile production up -d prod-test 

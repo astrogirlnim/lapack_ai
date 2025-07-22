@@ -1,0 +1,107 @@
+# LAPACK AI Modernization Project - Base Docker Image
+# Multi-stage build for optimized development environment
+
+# Build stage: System dependencies and compilers
+FROM python:3.11-slim as base
+
+# Metadata
+LABEL maintainer="LAPACK AI Modernization Team"
+LABEL description="Base development environment for LAPACK AI with OpenCL support"
+LABEL version="1.0.0"
+
+# Environment variables for build optimization
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Install system dependencies for LAPACK/BLAS compilation and OpenCL
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Build tools and compilers
+    build-essential \
+    cmake \
+    gfortran \
+    gcc \
+    g++ \
+    make \
+    pkg-config \
+    # OpenCL and GPU support
+    opencl-headers \
+    ocl-icd-opencl-dev \
+    opencl-dev \
+    clinfo \
+    # BLAS/LAPACK system libraries
+    libblas-dev \
+    liblapack-dev \
+    libopenblas-dev \
+    libgfortran5 \
+    # Additional libraries for numerical computing
+    libfftw3-dev \
+    libhdf5-dev \
+    # Git for source management
+    git \
+    # Debugging and profiling tools
+    gdb \
+    valgrind \
+    # System monitoring
+    htop \
+    # Clean up to reduce image size
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /tmp/*
+
+# Create non-root user for security
+RUN groupadd -r lapack && useradd --no-log-init -r -g lapack lapack
+
+# Set up working directory
+WORKDIR /opt/lapack-ai
+
+# Copy and install Python requirements
+COPY MODERNIZATION/dev_environment/requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r /tmp/requirements.txt && \
+    rm /tmp/requirements.txt
+
+# Configure OpenCL environment
+ENV OCL_ENABLE_DEBUG=1 \
+    PYOPENCL_COMPILER_OUTPUT=1 \
+    OCL_CACHE_DIR=/tmp/ocl_cache
+
+# Create cache directory with proper permissions
+RUN mkdir -p /tmp/ocl_cache && \
+    chown -R lapack:lapack /tmp/ocl_cache && \
+    chmod 755 /tmp/ocl_cache
+
+# Install OpenCL runtime (Intel OpenCL Runtime for CPU fallback)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    intel-opencl-icd \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up environment for Fortran-C interoperability
+ENV FC=gfortran \
+    CC=gcc \
+    CXX=g++ \
+    LIBRARY_PATH=/usr/local/lib:/usr/lib/x86_64-linux-gnu \
+    LD_LIBRARY_PATH=/usr/local/lib:/usr/lib/x86_64-linux-gnu \
+    PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig
+
+# Create directories for development
+RUN mkdir -p /opt/lapack-ai/{src,build,logs,data} && \
+    chown -R lapack:lapack /opt/lapack-ai
+
+# Switch to non-root user
+USER lapack
+
+# Test OpenCL installation and Python environment
+RUN python -c "import pyopencl as cl; print('OpenCL platforms:', len(cl.get_platforms()))" || echo "OpenCL devices not available (expected in build)"
+RUN python -c "import numpy as np; print('NumPy version:', np.__version__)"
+RUN python -c "import scipy; print('SciPy version:', scipy.__version__)"
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD python -c "import numpy, scipy, pyopencl" || exit 1
+
+# Default command
+CMD ["/bin/bash"] 

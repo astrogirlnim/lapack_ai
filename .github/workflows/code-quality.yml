@@ -137,13 +137,39 @@ jobs:
         cd SRC
         TEST_FILES=($(ls *.f *.f90 2>/dev/null | head -5))
 
+        SYNTAX_ERRORS=0
+
         for file in "${TEST_FILES[@]}"; do
           echo "  🔍 Syntax checking: $file"
-          gfortran -fsyntax-only -std=f2008 -Wall -Wextra -pedantic "$file" 2>&1 || \
-            echo "    ⚠️ Syntax warnings/errors in $file"
+
+          # Capture gfortran output and exit code
+          OUTPUT=$(gfortran -fsyntax-only -std=f2008 -Wall -Wextra -pedantic "$file" 2>&1)
+          EXIT_CODE=$?
+
+          # Check if we have any output (warnings or errors)
+          if [ -z "$OUTPUT" ]; then
+            echo "    ✅ Clean compilation - no issues in $file"
+          else
+            # Check if output contains actual syntax errors
+            if echo "$OUTPUT" | grep -q "Error:"; then
+              echo "    ❌ Syntax errors in $file:"
+              echo "$OUTPUT" | grep "Error:" | head -3
+              SYNTAX_ERRORS=$((SYNTAX_ERRORS + 1))
+            else
+              # Just warnings (common in legacy Fortran code)
+              WARNING_COUNT=$(echo "$OUTPUT" | grep -c "Warning:" || echo "0")
+              echo "    ⚠️ $WARNING_COUNT warnings in $file (acceptable for legacy Fortran):"
+              echo "$OUTPUT" | grep "Warning:" | head -2 | sed 's/^/      /'
+            fi
+          fi
         done
 
-        echo "✅ Fortran syntax validation completed"
+        if [ $SYNTAX_ERRORS -gt 0 ]; then
+          echo "❌ Found $SYNTAX_ERRORS files with actual syntax errors"
+          exit 1
+        fi
+
+        echo "✅ Fortran syntax validation completed - warnings are acceptable"
 
   python-quality:
     name: Python code quality

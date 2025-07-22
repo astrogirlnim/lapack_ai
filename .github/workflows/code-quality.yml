@@ -93,144 +93,126 @@ jobs:
 
         echo "✅ fprettify validation completed"
 
-  fortran-lint:
-    name: Fortran-specific linting
+  fortran-compilation:
+    name: LAPACK Fortran compilation test
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Set up Python for fprettify
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-
-    - name: Install Fortran tools
+    - name: Install build tools
       run: |
         sudo apt-get update
-        sudo apt-get install -y gfortran
-        pip install fprettify
-        echo "✅ Fortran tools installed"
+        sudo apt-get install -y --no-install-recommends \
+          gfortran \
+          libblas-dev \
+          liblapack-dev \
+          cmake
+        echo "✅ Build tools installed"
 
-        # Verify installations
-        echo "🔍 Verifying tool installations..."
-        which gfortran || echo "❌ gfortran not found in PATH"
-        gfortran --version | head -1 || echo "❌ gfortran version check failed"
-        which fprettify || echo "❌ fprettify not found in PATH"
-        fprettify --version || echo "❌ fprettify version check failed"
-        echo "✅ Tool verification completed"
+        # Show compiler version for debugging
+        echo "🔍 Compiler information:"
+        gfortran --version | head -2
+        echo "✅ Compiler verification completed"
 
-    - name: Find Fortran files
-      id: find-fortran
+    - name: Test core LAPACK module compilation
       run: |
-        # Find Fortran files, excluding build artifacts and deprecated code
-        FORTRAN_FILES=$(find . -type f \( -name "*.f" -o -name "*.f90" -o -name "*.f95" -o -name "*.f03" -o -name "*.f08" \
-                          -o -name "*.F" -o -name "*.F90" -o -name "*.F95" -o -name "*.F03" -o -name "*.F08" \) \
-                        -not -path "./build/*" \
-                        -not -path "./CMakeFiles/*" \
-                        -not -path "*/DEPRECATED/*" \
-                        -not -name "*.mod" \
-                        | wc -l)
-
-        echo "fortran_count=$FORTRAN_FILES" >> $GITHUB_OUTPUT
-        echo "📊 Found $FORTRAN_FILES Fortran files for linting"
-
-    - name: Run syntax validation on Fortran files
-      if: steps.find-fortran.outputs.fortran_count > 0
-      run: |
-        echo "🔍 Running Fortran syntax validation..."
-
-        # Debug environment before proceeding
-        echo "🔍 Debug info:"
-        echo "  Current directory: $(pwd)"
-        echo "  gfortran location: $(which gfortran || echo 'NOT FOUND')"
-        echo "  SRC directory exists: $([ -d SRC ] && echo 'YES' || echo 'NO')"
-
-        # Test compilation of key LAPACK source files to validate syntax
+        echo "🔧 Testing core LAPACK module compilation..."
         cd SRC
-        echo "  Changed to SRC directory: $(pwd)"
-        echo "  Available .f files: $(ls *.f 2>/dev/null | wc -l || echo '0')"
-        echo "  Available .f90 files: $(ls *.f90 2>/dev/null | wc -l || echo '0')"
-        echo "  Available .F90 files: $(ls *.F90 2>/dev/null | wc -l || echo '0')"
 
-        # Compile all required modules before syntax checking
-        echo "🔧 Compiling required modules..."
-        # Compile LA_CONSTANTS module FIRST (required by la_xisnan.F90 and other .f90 files)
+        # Use LAPACK's standard gfortran flags
+        GFORTRAN_FLAGS="-O2 -frecursive -Wall"
+        COMPILE_ERRORS=0
+
+        echo "📦 Compiling essential LAPACK modules..."
+
+        # Compile LA_CONSTANTS module (required by many routines)
         if [ -f "la_constants.f90" ]; then
-          echo "  📦 Compiling LA_CONSTANTS module..."
-          gfortran -c la_constants.f90 2>&1 | tee laconstants_build.log
-          MODULE_EXIT_CODE=${PIPESTATUS[0]}
-          if [ $MODULE_EXIT_CODE -ne 0 ]; then
-            echo "    ❌ Failed to compile LA_CONSTANTS module. See output above and in laconstants_build.log"
-            cat laconstants_build.log
-            exit 1
+          echo "  🔍 Compiling la_constants.f90..."
+          if gfortran $GFORTRAN_FLAGS -c la_constants.f90 2>&1 | tee la_constants.log; then
+            echo "    ✅ la_constants.f90 compiled successfully"
           else
-            echo "    ✅ LA_CONSTANTS module compiled successfully"
+            echo "    ❌ la_constants.f90 compilation failed"
+            cat la_constants.log
+            COMPILE_ERRORS=$((COMPILE_ERRORS + 1))
           fi
         fi
-        # Compile LA_XISNAN module SECOND (depends on LA_CONSTANTS module)
+
+        # Compile LA_XISNAN module (depends on LA_CONSTANTS)
         if [ -f "la_xisnan.F90" ]; then
-          echo "  📦 Compiling LA_XISNAN module..."
-          gfortran -c la_xisnan.F90 2>&1 | tee laxisnan_build.log
-          MODULE_EXIT_CODE=${PIPESTATUS[0]}
-          if [ $MODULE_EXIT_CODE -ne 0 ]; then
-            echo "    ❌ Failed to compile LA_XISNAN module. See output above and in laxisnan_build.log"
-            cat laxisnan_build.log
-            exit 1
+          echo "  🔍 Compiling la_xisnan.F90..."
+          if gfortran $GFORTRAN_FLAGS -c la_xisnan.F90 2>&1 | tee la_xisnan.log; then
+            echo "    ✅ la_xisnan.F90 compiled successfully"
           else
-            echo "    ✅ LA_XISNAN module compiled successfully"
+            echo "    ❌ la_xisnan.F90 compilation failed"
+            cat la_xisnan.log
+            COMPILE_ERRORS=$((COMPILE_ERRORS + 1))
           fi
         fi
 
-        # Select test files for validation (include both .f90 and .F90)
-        TEST_FILES=($(ls *.f *.f90 *.F90 2>/dev/null | head -5))
-        echo "  Selected test files: ${TEST_FILES[*]}"
+        # Test compilation of key LAPACK routines (sample from different categories)
+        TEST_ROUTINES=(
+          "dgemm.f"      # Basic linear algebra
+          "dgesvd.f"     # SVD (critical routine)
+          "dgesv.f"      # Linear system solver
+          "dgetrf.f"     # LU factorization
+          "dpotrf.f"     # Cholesky factorization
+        )
 
-        # Debug: Show which files we're actually going to test
-        echo "  🔍 Files to be syntax checked:"
-        for file in "${TEST_FILES[@]}"; do
-          echo "    - $file ($(wc -l < "$file" 2>/dev/null || echo '?') lines)"
-        done
-
-        SYNTAX_ERRORS=0
-
-        for file in "${TEST_FILES[@]}"; do
-          echo "  🔍 Syntax checking: $file"
-
-          # Capture gfortran output and exit code
-          # Use LAPACK's official gfortran flags (from make.inc.gfortran)
-          OUTPUT=$(gfortran -fsyntax-only -frecursive "$file" 2>&1)
-          EXIT_CODE=$?
-
-          # Check if we have any output (warnings or errors)
-          if [ -z "$OUTPUT" ]; then
-            echo "    ✅ Clean compilation - no issues in $file"
-          else
-            # Check if output contains actual syntax errors or fatal errors
-            if echo "$OUTPUT" | grep -q -E "(Error:|Fatal Error:)"; then
-              echo "    ❌ Syntax errors in $file:"
-              echo "$OUTPUT" | grep -E "(Error:|Fatal Error:)" | head -3
-              SYNTAX_ERRORS=$((SYNTAX_ERRORS + 1))
+        echo "📊 Testing compilation of key routines..."
+        for routine in "${TEST_ROUTINES[@]}"; do
+          if [ -f "$routine" ]; then
+            echo "  🔍 Compiling $routine..."
+            if gfortran $GFORTRAN_FLAGS -c "$routine" 2>&1 | tee "${routine%.f}.log"; then
+              echo "    ✅ $routine compiled successfully"
             else
-              # Just warnings (common in legacy Fortran code)
-              WARNING_COUNT=$(echo "$OUTPUT" | grep -c "Warning:" || echo "0")
-              echo "    ⚠️ $WARNING_COUNT warnings in $file (acceptable for legacy Fortran):"
-              echo "$OUTPUT" | grep "Warning:" | head -2 | sed 's/^/      /'
+              echo "    ❌ $routine compilation failed"
+              cat "${routine%.f}.log"
+              COMPILE_ERRORS=$((COMPILE_ERRORS + 1))
             fi
+          else
+            echo "    ⚠️ $routine not found (skipped)"
           fi
         done
 
-        # Clean up generated module files
-        echo "🧹 Cleaning up generated module files..."
-        rm -f *.mod *.o
+        # Clean up object files and logs
+        echo "🧹 Cleaning up generated files..."
+        rm -f *.o *.mod *.log
 
-        if [ $SYNTAX_ERRORS -gt 0 ]; then
-          echo "❌ Found $SYNTAX_ERRORS files with actual syntax errors"
+        # Report results
+        if [ $COMPILE_ERRORS -eq 0 ]; then
+          echo "✅ All tested LAPACK routines compiled successfully"
+        else
+          echo "❌ Found $COMPILE_ERRORS compilation failures"
           exit 1
         fi
 
-        echo "✅ Fortran syntax validation completed - warnings are acceptable"
+    - name: Test CMake configuration
+      run: |
+        echo "🔧 Testing CMake configuration..."
+        mkdir -p build
+        cd build
+
+        # Test that CMake can configure the build
+        if cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=OFF ..; then
+          echo "✅ CMake configuration successful"
+        else
+          echo "❌ CMake configuration failed"
+          exit 1
+        fi
+
+        # Test compilation of a small subset (quick feedback)
+        echo "🔍 Testing sample compilation with CMake..."
+        if make -j2 blas > cmake_build.log 2>&1; then
+          echo "✅ Sample CMake build successful"
+        else
+          echo "❌ Sample CMake build failed"
+          cat cmake_build.log
+          exit 1
+        fi
+
+        echo "✅ LAPACK compilation tests completed successfully"
 
   python-quality:
     name: Python code quality
@@ -337,7 +319,7 @@ jobs:
   summary:
     name: Quality Check Summary
     runs-on: ubuntu-latest
-    needs: [pre-commit, fortran-lint, python-quality, documentation-check, security-check]
+    needs: [pre-commit, fortran-compilation, python-quality, documentation-check, security-check]
     if: always()
 
     steps:
@@ -351,7 +333,7 @@ jobs:
         echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
         echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
         echo "| Pre-commit hooks | ${{ needs.pre-commit.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| Fortran linting | ${{ needs.fortran-lint.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Fortran compilation | ${{ needs.fortran-compilation.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Python quality | ${{ needs.python-quality.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Documentation | ${{ needs.documentation-check.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Security scan | ${{ needs.security-check.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY

@@ -7,26 +7,34 @@ repos:
     rev: v0.3.7  # Use the latest stable version
     hooks:
       - id: fprettify
-        name: 'Format Fortran code with fprettify (conservative)'
-        description: 'Conservative formatting for legacy Fortran code'
-        files: \.(f|f90|f95|f03|f08|F|F90|F95|F03|F08)$
+        name: 'Format Fortran code with fprettify (modern files only)'
+        description: 'Conservative formatting for modern Fortran code only'
+        files: |
+          (?x)^(
+            MODERNIZATION/.*\.(f90|f95|f03|f08|F90|F95|F03|F08)$|
+            SRC/la_constants\.f90$|
+            SRC/la_xisnan\.F90$|
+            SRC/.*lartg\.f90$|
+            SRC/.*lassq\.f90$
+          )$
         exclude: |
           (?x)^(
             .*/DEPRECATED/.*|
             .*/build/.*|
             .*/CMakeFiles/.*|
-            .*\.mod$
+            .*\.mod$|
+            .*/test.*|
+            .*/Test.*|
+            .*/TESTING/.*
           )$
         args:
-          - --indent=2              # 2-space indentation
-          - --line-length=132       # Modern Fortran line length
-          - --whitespace=1          # Conservative whitespace handling
-          - --disable-fypp          # Disable fypp preprocessing
-          - --disable-indent-mod    # Disable module indentation changes
+          - --config=.fprettify.rc    # Use our custom config file
         language: python
         additional_dependencies: [fprettify>=0.3.7]
-        # Make fprettify non-blocking for legacy code issues
         verbose: true
+        fail_fast: false
+        # Add timeout to prevent long runs
+        timeout: 60
 
   # Python code quality and formatting
   - repo: https://github.com/psf/black

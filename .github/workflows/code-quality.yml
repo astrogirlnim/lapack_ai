@@ -113,6 +113,14 @@ jobs:
         pip install fprettify
         echo "✅ Fortran tools installed"
 
+        # Verify installations
+        echo "🔍 Verifying tool installations..."
+        which gfortran || echo "❌ gfortran not found in PATH"
+        gfortran --version | head -1 || echo "❌ gfortran version check failed"
+        which fprettify || echo "❌ fprettify not found in PATH"
+        fprettify --version || echo "❌ fprettify version check failed"
+        echo "✅ Tool verification completed"
+
     - name: Find Fortran files
       id: find-fortran
       run: |
@@ -133,9 +141,20 @@ jobs:
       run: |
         echo "🔍 Running Fortran syntax validation..."
 
+        # Debug environment before proceeding
+        echo "🔍 Debug info:"
+        echo "  Current directory: $(pwd)"
+        echo "  gfortran location: $(which gfortran || echo 'NOT FOUND')"
+        echo "  SRC directory exists: $([ -d SRC ] && echo 'YES' || echo 'NO')"
+
         # Test compilation of key LAPACK source files to validate syntax
         cd SRC
+        echo "  Changed to SRC directory: $(pwd)"
+        echo "  Available .f files: $(ls *.f 2>/dev/null | wc -l || echo '0')"
+        echo "  Available .f90 files: $(ls *.f90 2>/dev/null | wc -l || echo '0')"
+
         TEST_FILES=($(ls *.f *.f90 2>/dev/null | head -5))
+        echo "  Selected test files: ${TEST_FILES[*]}"
 
         SYNTAX_ERRORS=0
 

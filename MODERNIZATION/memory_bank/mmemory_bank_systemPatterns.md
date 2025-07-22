@@ -49,7 +49,56 @@
 
 ## Core Design Patterns
 
-### Pattern 1: Container-First Development Architecture ✅
+### Pattern 1: VARIANTS System Integration (AlphaTensor) ✅
+**Principle**: Use proven LAPACK VARIANTS architecture for algorithm alternatives
+**Implementation**: AlphaTensor follows existing lu/cholesky variant patterns
+**Benefits**: Battle-tested integration, link-time selection, identical APIs
+
+**VARIANTS Architecture**:
+```
+SRC/VARIANTS/
+├── alphatensor/                 # NEW: AlphaTensor implementation
+│   ├── dgemm_alpha.f           # Core AlphaTensor Fortran routine
+│   ├── test_dgemm_alpha.f      # Validation and testing
+│   └── benchmark_dgemm_alpha.f # Performance benchmarking
+├── cholesky/                   # Existing: Cholesky factorization variants
+│   ├── RL/ → cholrl.a         # Right-Looking variant library
+│   └── TOP/ → choltop.a       # Top-Level variant library
+└── lu/                         # Existing: LU factorization variants
+    ├── CR/ → lucr.a           # Crout variant library
+    ├── LL/ → lull.a           # Left-Looking variant library
+    └── REC/ → lurec.a         # Recursive variant library
+```
+
+**Integration Strategy**:
+```c
+// AlphaTensor dispatch follows proven VARIANTS pattern
+int DGEMM_ALPHA(char TRANSA, char TRANSB, int M, int N, int K,
+                double ALPHA, double* A, int LDA, double* B, int LDB,
+                double BETA, double* C, int LDC) {
+    
+    // 4x4 optimization detection (AlphaTensor's sweet spot)
+    if (M == 4 && N == 4 && K == 4) {
+        return dgemm_alphatensor_4x4(TRANSA, TRANSB, M, N, K, 
+                                   ALPHA, A, LDA, B, LDB, BETA, C, LDC);
+    }
+    
+    // Fallback to standard DGEMM for other sizes
+    return DGEMM_(&TRANSA, &TRANSB, &M, &N, &K, &ALPHA, A, &LDA, 
+                  B, &LDB, &BETA, C, &LDC);
+}
+```
+
+**Build Integration** (follows existing VARIANTS pattern):
+```makefile
+# SRC/VARIANTS/Makefile (enhanced)
+ALPHATENSOR = alphatensor/dgemm_alpha.o
+alphatensor.a: $(ALPHATENSOR)
+	$(ARCH) $(ARCHFLAGS) $@ $(ALPHATENSOR)
+	$(RANLIB) $@
+```
+
+### Pattern 2: Container-First Development Architecture ✅
 **Principle**: All development, testing, and deployment through containers
 **Implementation**:
 - Multi-stage Docker builds for different environments

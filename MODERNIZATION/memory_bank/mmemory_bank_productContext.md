@@ -10,6 +10,12 @@
 - ~1.5-2 million lines of battle-tested Fortran code
 - Standard for scientific computing and engineering applications
 
+**AlphaTensor Opportunity**: 
+- DeepMind's breakthrough: 47 vs 64 multiplications for 4×4 matrices (26% reduction)
+- Perfect fit for ML workloads with small matrix operations
+- CPU-first implementation using proven LAPACK integration patterns
+- Significant performance improvements for matrix-heavy AI applications
+
 **Modern AI/ML Disconnect**:
 - Data scientists work primarily in Python ecosystems
 - GPU acceleration is essential for large-scale ML workloads

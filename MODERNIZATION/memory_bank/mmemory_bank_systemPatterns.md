@@ -6,7 +6,12 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    LAPACK AI Stack                          │
+│                 LAPACK AI Containerized Stack               │
+├─────────────────────────────────────────────────────────────┤
+│  Container Orchestration Layer                             │
+│  ├── Docker Compose Development Environment                │
+│  ├── Kubernetes Production Deployment                      │
+│  └── GPU Resource Management & Passthrough                 │
 ├─────────────────────────────────────────────────────────────┤
 │  Python API Layer (lapack-py)                              │
 │  ├── pybind11 Bindings                                     │
@@ -34,82 +39,189 @@
 │  ├── BLAS Dependencies                                     │
 │  └── Reference Implementations                            │
 ├─────────────────────────────────────────────────────────────┤
-│  System Dependencies                                       │
+│  Containerized System Dependencies                        │
 │  ├── OpenBLAS                                             │
 │  ├── OpenCL Runtime                                       │
-│  └── Python 3.11 Runtime                                 │
+│  ├── Python 3.11 Runtime                                 │
+│  └── GPU Drivers (Host Passthrough)                       │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ## Core Design Patterns
 
-### Pattern 1: Non-Invasive Enhancement
+### Pattern 1: Container-First Development Architecture ✅
+**Principle**: All development, testing, and deployment through containers
+**Implementation**:
+- Multi-stage Docker builds for different environments
+- GPU passthrough for development and production
+- Volume mounts for live development workflow
+
+**Container Hierarchy**:
+```dockerfile
+# Base Layer: System dependencies and compilers
+FROM python:3.11-slim as lapack-base
+RUN apt-get update && apt-get install -y \
+    build-essential gfortran cmake \
+    opencl-headers ocl-icd-opencl-dev
+
+# Development Layer: Tools and development environment  
+FROM lapack-base as lapack-dev
+RUN pip install jupyterlab ipywidgets plotly
+EXPOSE 8888 5000 8080
+
+# Production Layer: Minimal runtime optimization
+FROM python:3.11-slim as lapack-prod
+COPY --from=builder /app /app
+RUN apt-get install -y --no-install-recommends \
+    libgfortran5 libopenblas0 ocl-icd-libopencl1
+```
+
+### Pattern 2: Non-Invasive Enhancement (Maintained) ✅
 **Principle**: Extend LAPACK without modifying existing Fortran source
 **Implementation**:
 - Wrapper functions around core LAPACK routines
 - GPU dispatch layer sits above LAPACK, not within
 - Preserve original function signatures for compatibility
 
-**Example Structure**:
+**Enhanced Pattern with Containerization**:
 ```c
-// GPU-enhanced wrapper
+// GPU-enhanced wrapper in containerized environment
 int DGESVDOCL_wrapper(char jobu, char jobvt, int m, int n, 
                       double* a, int lda, double* s, 
                       double* u, int ldu, double* vt, int ldvt,
                       double* work, int lwork, int* info) {
-    // GPU availability check
-    if (opencl_device_available() && matrix_size_suitable(m, n)) {
+    
+    // Container environment check
+    if (container_has_gpu() && opencl_device_available() && 
+        matrix_size_suitable(m, n)) {
         return DGESVDOCL_gpu(jobu, jobvt, m, n, a, lda, s, u, ldu, vt, ldvt, work, lwork, info);
     }
+    
     // Fallback to original LAPACK
     return DGESVD_(&jobu, &jobvt, &m, &n, a, &lda, s, u, &ldu, vt, &ldvt, work, &lwork, info);
 }
 ```
 
-### Pattern 2: Smart Dispatch Architecture
-**Principle**: Automatically choose optimal execution path based on runtime conditions
-**Decision Tree**:
+### Pattern 3: Smart Dispatch Architecture (Enhanced) ✅
+**Principle**: Container-aware execution path optimization
+**Enhanced Decision Tree**:
 ```
-Input Matrix + Operation
-├── GPU Available?
-│   ├── Yes: Matrix Size > Threshold?
-│   │   ├── Yes: GPU Memory Sufficient?
+Input Matrix + Operation + Container Context
+├── Container GPU Available?
+│   ├── Yes: GPU Memory Sufficient?
+│   │   ├── Yes: Matrix Size > GPU Threshold?
 │   │   │   ├── Yes: Execute GPU Kernel
-│   │   │   └── No: Execute CPU with Warning
-│   │   └── No: Execute CPU (Small Matrix)
-│   └── No: Execute CPU Fallback
+│   │   │   └── No: Execute CPU (Small Matrix Optimization)
+│   │   └── No: Execute CPU with Memory Warning
+│   └── No: Check Host GPU Passthrough
+│       ├── Available: Retry GPU Path
+│       └── Unavailable: Execute CPU Fallback
 ```
 
-**Implementation Pattern**:
+**Container-Aware Implementation**:
 ```c
 typedef enum {
     EXECUTION_CPU_FALLBACK,
     EXECUTION_GPU_OPENCL,
-    EXECUTION_CPU_OPTIMIZED
+    EXECUTION_CPU_OPTIMIZED,
+    EXECUTION_GPU_CONTAINER,
+    EXECUTION_HOST_PASSTHROUGH
 } execution_strategy_t;
 
 execution_strategy_t choose_execution_strategy(int m, int n, operation_type_t op) {
-    if (!opencl_available()) return EXECUTION_CPU_FALLBACK;
+    // Check container environment first
+    if (is_running_in_container()) {
+        if (!container_gpu_passthrough_available()) {
+            log_debug("Container without GPU passthrough, using CPU");
+            return EXECUTION_CPU_FALLBACK;
+        }
+    }
+    
+    if (!opencl_available()) {
+        log_debug("OpenCL not available, using CPU fallback");
+        return EXECUTION_CPU_FALLBACK;
+    }
     
     size_t required_memory = calculate_gpu_memory_requirement(m, n, op);
-    if (required_memory > get_gpu_memory_available()) return EXECUTION_CPU_FALLBACK;
+    size_t available_memory = get_gpu_memory_available();
     
-    if (matrix_size_benefits_from_gpu(m, n, op)) return EXECUTION_GPU_OPENCL;
+    if (required_memory > available_memory) {
+        log_warning("Insufficient GPU memory (%zu MB required, %zu MB available)", 
+                   required_memory / 1048576, available_memory / 1048576);
+        return EXECUTION_CPU_FALLBACK;
+    }
+    
+    if (matrix_size_benefits_from_gpu(m, n, op)) {
+        return is_running_in_container() ? EXECUTION_GPU_CONTAINER : EXECUTION_GPU_OPENCL;
+    }
     
     return EXECUTION_CPU_OPTIMIZED;
 }
 ```
 
-### Pattern 3: Zero-Copy NumPy Integration
-**Principle**: Minimize memory copies between Python and C layers
-**Implementation**:
-- Direct pointer access to NumPy array data
-- Automatic memory layout detection and conversion
-- Reference counting management
+### Pattern 4: Docker Multi-Stage Build Optimization ✅
+**Principle**: Minimize production container size while maintaining development capabilities
+**Implementation Strategy**:
 
-**pybind11 Pattern**:
+```dockerfile
+# Stage 1: Build Environment (Full Development Stack)
+FROM python:3.11-slim as builder
+RUN apt-get update && apt-get install -y \
+    build-essential gfortran cmake make \
+    opencl-headers ocl-icd-opencl-dev \
+    libblas-dev liblapack-dev libopenblas-dev
+
+# Install Python dependencies in virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Build LAPACK enhancements
+COPY . /src
+WORKDIR /src
+RUN cmake -B build -DCMAKE_BUILD_TYPE=Release \
+    -DWITH_GPU_SUPPORT=ON -DWITH_PYTHON_BINDINGS=ON
+RUN cmake --build build -j$(nproc)
+
+# Stage 2: Runtime Environment (Minimal Production)
+FROM python:3.11-slim as runtime
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgfortran5 libopenblas0 liblapack3 ocl-icd-libopencl1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy only production artifacts
+COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /src/build/lib* /usr/local/lib/
+COPY --from=builder /src/build/python/ /opt/venv/lib/python3.11/site-packages/
+
+# Create non-root user for security
+RUN useradd --create-home --shell /bin/bash lapack
+USER lapack
+WORKDIR /home/lapack
+
+ENV PATH="/opt/venv/bin:$PATH"
+CMD ["python", "-c", "import lapack_py; print('LAPACK AI ready')"]
+```
+
+### Pattern 5: Zero-Copy NumPy Integration (Enhanced) ✅
+**Principle**: Container-optimized memory management for NumPy arrays
+**Implementation**:
+- Direct pointer access with container memory limits awareness
+- Automatic memory layout detection and conversion
+- Container resource monitoring integration
+
+**Enhanced pybind11 Pattern**:
 ```cpp
-py::array_t<double> svd_wrapper(py::array_t<double> input_matrix, bool use_gpu = true) {
+py::array_t<double> svd_wrapper(py::array_t<double> input_matrix, 
+                               bool use_gpu = true, 
+                               bool monitor_performance = false) {
+    
+    // Container resource check
+    if (monitor_performance) {
+        container_metrics_start();
+    }
+    
     // Zero-copy access to NumPy data
     py::buffer_info buf_info = input_matrix.request();
     double* data_ptr = static_cast<double*>(buf_info.ptr);
@@ -118,7 +230,13 @@ py::array_t<double> svd_wrapper(py::array_t<double> input_matrix, bool use_gpu =
     int m = buf_info.shape[0];
     int n = buf_info.shape[1];
     
-    // Memory layout check
+    // Container memory limit check
+    size_t matrix_size = m * n * sizeof(double);
+    if (is_running_in_container() && matrix_size > get_container_memory_limit() * 0.8) {
+        py::print(f"Warning: Matrix size {matrix_size/1048576:.1f}MB approaches container limit");
+    }
+    
+    // Memory layout optimization
     bool is_c_contiguous = input_matrix.attr("flags").attr("c_contiguous").cast<bool>();
     if (!is_c_contiguous) {
         // Handle Fortran-contiguous or non-contiguous arrays
@@ -126,63 +244,125 @@ py::array_t<double> svd_wrapper(py::array_t<double> input_matrix, bool use_gpu =
         data_ptr = static_cast<double*>(input_matrix.mutable_data());
     }
     
-    // Call optimized routine
-    return call_lapack_svd(data_ptr, m, n, use_gpu);
-}
-```
-
-### Pattern 4: Hierarchical Error Handling
-**Principle**: Transform low-level errors into actionable high-level messages
-**Architecture**:
-```
-Error Layer 1: LAPACK INFO Codes (-4, -3, etc.)
-      ↓
-Error Layer 2: Semantic Translation ("Matrix singular", "Invalid dimension")
-      ↓  
-Error Layer 3: Diagnostic Enhancement (Condition number, suggested fixes)
-      ↓
-Error Layer 4: Language-Specific Formatting (Python exceptions, C return codes)
-```
-
-**Implementation Pattern**:
-```c
-typedef struct {
-    int lapack_info;
-    const char* semantic_message;
-    const char* diagnostic_hint;
-    double condition_number;
-    int severity_level;
-} enhanced_error_info_t;
-
-enhanced_error_info_t enhance_error_info(int info, double* matrix, int m, int n) {
-    enhanced_error_info_t result = {0};
-    result.lapack_info = info;
+    // Call optimized routine with container context
+    auto result = call_lapack_svd_container_aware(data_ptr, m, n, use_gpu);
     
-    switch(info) {
-        case -4:
-            result.semantic_message = "Matrix dimension parameter invalid";
-            result.diagnostic_hint = "Check matrix dimensions match algorithm requirements";
-            result.severity_level = ERROR_SEVERE;
-            break;
-        case 1:
-            result.semantic_message = "Matrix is singular or ill-conditioned";
-            result.condition_number = estimate_condition_number(matrix, m, n);
-            result.diagnostic_hint = result.condition_number > 1e12 ? 
-                "Consider regularization or pseudoinverse" : 
-                "Matrix is near-singular, results may be inaccurate";
-            result.severity_level = ERROR_WARNING;
-            break;
+    if (monitor_performance) {
+        auto metrics = container_metrics_stop();
+        py::print(f"GPU utilization: {metrics.gpu_utilization}%, Memory: {metrics.memory_usage}MB");
     }
+    
     return result;
 }
 ```
 
-## GPU Integration Architecture
+### Pattern 6: Container Orchestration for Development ✅
+**Principle**: Streamlined development workflow through Docker Compose
+**Architecture**:
 
-### OpenCL Kernel Organization
+```yaml
+# docker-compose.dev.yml - Development Environment Orchestration
+version: '3.8'
+
+services:
+  # Base development service with GPU support
+  dev-base: &dev-base
+    build:
+      context: .
+      dockerfile: infrastructure/Dockerfile.dev
+    volumes:
+      - .:/workspace
+      - ~/.ssh:/home/lapack/.ssh:ro
+      - build_cache:/workspace/build
+      - opencl_cache:/home/lapack/.cache/opencl
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - LAPACK_AI_DEBUG=1
+      - LOG_LEVEL=DEBUG
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # Interactive development shell
+  shell:
+    <<: *dev-base
+    command: /bin/bash
+    stdin_open: true
+    tty: true
+
+  # Jupyter notebook server
+  jupyter:
+    <<: *dev-base
+    command: jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+    ports:
+      - "8888:8888"
+
+  # Flask development server
+  flask:
+    <<: *dev-base
+    command: python -m flask run --host=0.0.0.0 --port=5000
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+
+  # Testing service
+  test:
+    <<: *dev-base
+    command: python -m pytest testing/ -v
+    
+  # Build service for testing builds
+  build:
+    <<: *dev-base
+    command: >
+      bash -c "
+        cmake -B build -DCMAKE_BUILD_TYPE=Debug -DWITH_GPU_SUPPORT=ON &&
+        cmake --build build -j$(nproc) &&
+        ctest --test-dir build --output-on-failure
+      "
+
+volumes:
+  build_cache:
+  opencl_cache:
+```
+
+## GPU Integration Architecture (Enhanced)
+
+### Container-Native OpenCL Setup ✅
+**Pattern**: GPU access through container runtime
+**Implementation**:
+
+```dockerfile
+# GPU-enabled container configuration
+FROM lapack-base as gpu-enabled
+
+# Install NVIDIA Container Toolkit compatibility
+RUN apt-get update && apt-get install -y \
+    nvidia-container-toolkit-base \
+    ocl-icd-libopencl1
+
+# OpenCL environment configuration
+ENV OCL_ENABLE_DEBUG=1
+ENV PYOPENCL_COMPILER_OUTPUT=1
+ENV OCL_CACHE_DIR=/home/lapack/.cache/opencl
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
+
+# GPU health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import pyopencl as cl; cl.get_platforms()" || exit 1
+```
+
+### OpenCL Kernel Organization (Container-Optimized) ✅
 **Structure**:
 ```
-gpu_kernels/
+infrastructure/gpu_kernels/
 ├── svd/
 │   ├── svd_reduction.cl      # Matrix reduction to bidiagonal form
 │   ├── svd_iteration.cl      # Iterative SVD computation
@@ -190,14 +370,19 @@ gpu_kernels/
 ├── matrix_multiply/
 │   ├── gemm_batched.cl       # Batched matrix multiplication
 │   ├── gemm_tiled.cl         # Tiled memory optimization
+│   ├── gemm_alphatensor.cl   # AlphaTensor 4x4 optimization
 │   └── gemm_mixed_precision.cl
-└── common/
-    ├── matrix_utils.cl       # Common matrix operations
-    └── memory_transfer.cl    # Optimized host-device transfer
+├── common/
+│   ├── matrix_utils.cl       # Common matrix operations
+│   ├── memory_transfer.cl    # Optimized host-device transfer
+│   └── container_utils.cl    # Container-specific optimizations
+└── testing/
+    ├── kernel_validation.cl  # Test kernels for CI/CD
+    └── performance_benchmark.cl
 ```
 
-### Memory Management Pattern
-**Principle**: Minimize GPU memory allocation overhead
+### Container-Aware Memory Management ✅
+**Principle**: Respect container resource limits
 **Implementation**:
 ```c
 typedef struct {
@@ -205,78 +390,61 @@ typedef struct {
     size_t allocated_size;
     size_t used_size;
     bool is_persistent;
+    size_t container_memory_limit;
 } gpu_memory_pool_t;
 
-// Memory pool for frequent allocations
-static gpu_memory_pool_t global_gpu_pool[MAX_CONCURRENT_OPERATIONS];
-
-cl_mem allocate_gpu_memory(size_t size, bool persistent) {
-    // Check pool for reusable buffer
-    for (int i = 0; i < MAX_CONCURRENT_OPERATIONS; i++) {
-        if (!global_gpu_pool[i].is_persistent && 
-            global_gpu_pool[i].allocated_size >= size) {
-            global_gpu_pool[i].used_size = size;
-            return global_gpu_pool[i].device_buffer;
-        }
+// Container-aware memory allocation
+cl_mem allocate_gpu_memory_container(size_t size, bool persistent) {
+    // Check container memory limits
+    size_t container_limit = get_container_memory_limit();
+    size_t current_usage = get_container_memory_usage();
+    
+    if (current_usage + size > container_limit * 0.9) {
+        log_warning("GPU allocation would exceed container memory limit");
+        return NULL;
     }
     
-    // Allocate new buffer if no suitable pool buffer found
+    // Check GPU memory availability
+    size_t gpu_available = get_gpu_memory_available();
+    if (size > gpu_available) {
+        log_warning("Insufficient GPU memory (%zu MB requested, %zu MB available)", 
+                   size / 1048576, gpu_available / 1048576);
+        return NULL;
+    }
+    
+    // Proceed with allocation
     return clCreateBuffer(context, CL_MEM_READ_WRITE, size, NULL, NULL);
 }
 ```
 
-### Batch Processing Architecture
-**Pattern**: Efficient handling of multiple small matrices
-**Design**:
-```c
-typedef struct {
-    int batch_size;
-    int matrix_m, matrix_n, matrix_k;
-    double** host_matrices_a;
-    double** host_matrices_b;
-    double** host_matrices_c;
-    cl_mem device_batch_a, device_batch_b, device_batch_c;
-} batch_gemm_context_t;
+## Performance Monitoring Architecture (Container-Enhanced)
 
-// Optimal batch size calculation
-int calculate_optimal_batch_size(int m, int n, int k) {
-    size_t single_matrix_size = m * n * sizeof(double);
-    size_t available_gpu_memory = get_gpu_memory_available();
-    
-    // Reserve 20% for kernel working space
-    size_t usable_memory = available_gpu_memory * 0.8;
-    
-    // Each operation needs 3 matrices (A, B, C)
-    int max_batch = usable_memory / (3 * single_matrix_size);
-    
-    // Prefer power-of-2 batch sizes for GPU efficiency
-    return next_power_of_2(min(max_batch, 1024));
-}
-```
-
-## Performance Monitoring Architecture
-
-### Metrics Collection System
-**Pattern**: Non-intrusive performance data gathering
+### Metrics Collection System ✅
+**Pattern**: Container-aware performance data gathering
 **Implementation**:
 ```python
-class LapackMetricsCollector:
+class ContainerizedMetricsCollector:
     def __init__(self):
         self.metrics_queue = queue.Queue()
         self.gpu_monitor = GPUMonitor()
         self.cpu_monitor = CPUMonitor()
+        self.container_monitor = ContainerMonitor()
         
     @contextmanager
     def measure_operation(self, operation_name, matrix_size):
+        # Pre-operation metrics
         start_time = time.perf_counter()
         start_memory = self.cpu_monitor.get_memory_usage()
+        start_container_memory = self.container_monitor.get_memory_usage()
         gpu_start = self.gpu_monitor.get_utilization()
         
         try:
             yield
         finally:
+            # Post-operation metrics
             end_time = time.perf_counter()
             end_memory = self.cpu_monitor.get_memory_usage()
+            end_container_memory = self.container_monitor.get_memory_usage()
             gpu_end = self.gpu_monitor.get_utilization()
             
             metrics = {
@@ -284,127 +452,301 @@ class LapackMetricsCollector:
                 'matrix_size': matrix_size,
                 'execution_time': end_time - start_time,
                 'memory_delta': end_memory - start_memory,
+                'container_memory_delta': end_container_memory - start_container_memory,
                 'gpu_utilization': (gpu_start + gpu_end) / 2,
+                'container_id': os.environ.get('HOSTNAME', 'unknown'),
+                'gpu_passthrough': self.container_monitor.has_gpu_passthrough(),
                 'timestamp': time.time()
             }
             self.metrics_queue.put(metrics)
+
+class ContainerMonitor:
+    def get_memory_usage(self):
+        """Get container memory usage from cgroup."""
+        try:
+            with open('/sys/fs/cgroup/memory/memory.usage_in_bytes', 'r') as f:
+                return int(f.read().strip())
+        except FileNotFoundError:
+            # Fallback for cgroup v2
+            with open('/sys/fs/cgroup/memory.current', 'r') as f:
+                return int(f.read().strip())
+    
+    def has_gpu_passthrough(self):
+        """Check if container has GPU access."""
+        return os.path.exists('/dev/nvidia0') or os.environ.get('NVIDIA_VISIBLE_DEVICES') == 'all'
 ```
 
-### Dashboard Real-time Updates
-**Pattern**: WebSocket-based real-time metric streaming
+### Dashboard Real-time Updates (Container-Optimized) ✅
+**Pattern**: Container service discovery and health monitoring
 **Architecture**:
 ```python
-# Flask-SocketIO for real-time updates
+# Flask-SocketIO with container awareness
 @socketio.on('request_metrics')
 def handle_metrics_request():
+    container_info = {
+        'container_id': os.environ.get('HOSTNAME', 'unknown'),
+        'image': os.environ.get('IMAGE_NAME', 'lapack-ai-dev:latest'),
+        'gpu_enabled': container_monitor.has_gpu_passthrough(),
+        'memory_limit': container_monitor.get_memory_limit(),
+        'cpu_limit': container_monitor.get_cpu_limit()
+    }
+    
+    emit('container_info', container_info)
+    
     while True:
         try:
             metrics = metrics_collector.get_latest_metrics()
+            metrics['container_info'] = container_info
             emit('metrics_update', metrics)
             socketio.sleep(1)  # 1-second update interval
         except Exception as e:
-            emit('error', {'message': str(e)})
+            emit('error', {'message': str(e), 'container_id': container_info['container_id']})
 ```
 
-## Testing and Validation Patterns
+## Testing and Validation Patterns (Container-Native)
 
-### Numerical Accuracy Testing
-**Pattern**: Automatic comparison against reference implementations
+### Container-Based Testing Framework ✅
+**Pattern**: All testing through containerized environments
 ```python
-def test_numerical_accuracy(operation_func, reference_func, matrix_sizes, tolerance=1e-6):
+class ContainerizedTestRunner:
+    def __init__(self):
+        self.base_command = [
+            'docker', 'run', '--rm', 
+            '-v', f'{os.getcwd()}:/workspace',
+            '--gpus', 'all'
+        ]
+    
+    def run_test_suite(self, test_type='integration'):
+        """Run tests in fresh container environment."""
+        container_tag = 'lapack-ai-dev:latest'
+        
+        if test_type == 'unit':
+            cmd = self.base_command + [
+                container_tag, 'python', '-m', 'pytest', 
+                'testing/unit/', '-v', '--tb=short'
+            ]
+        elif test_type == 'integration':
+            cmd = self.base_command + [
+                container_tag, 'python', 
+                'testing/integration_tests.py'
+            ]
+        elif test_type == 'gpu':
+            cmd = self.base_command + [
+                '--entrypoint', 'python',
+                container_tag, 'testing/gpu_validation.py'
+            ]
+        elif test_type == 'performance':
+            cmd = self.base_command + [
+                container_tag, 'python', 
+                'testing/performance_benchmarks.py'
+            ]
+        
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        return {
+            'exit_code': result.returncode,
+            'stdout': result.stdout,
+            'stderr': result.stderr,
+            'container_tag': container_tag
+        }
+
+def test_numerical_accuracy_containerized(operation_func, reference_func, matrix_sizes, tolerance=1e-6):
+    """Test numerical accuracy in isolated container."""
     for m, n in matrix_sizes:
-        # Generate test matrix with known properties
+        # Generate test matrix
         A = generate_test_matrix(m, n, condition_number=1e3)
         
-        # Compare results
-        result_gpu = operation_func(A, use_gpu=True)
-        result_reference = reference_func(A)
+        # Run in container
+        test_runner = ContainerizedTestRunner()
+        result = test_runner.run_container_test(
+            'accuracy_test', 
+            operation_name=operation_func.__name__,
+            matrix_data=A.tolist(),
+            tolerance=tolerance
+        )
         
-        relative_error = np.linalg.norm(result_gpu - result_reference) / np.linalg.norm(result_reference)
-        assert relative_error < tolerance, f"Accuracy test failed for {m}x{n}: error={relative_error}"
+        assert result['accuracy_passed'], f"Container accuracy test failed: {result['error']}"
 ```
 
-### Performance Regression Testing
-**Pattern**: Automated performance benchmarking
-```python
-class PerformanceBenchmark:
-    def __init__(self):
-        self.baseline_results = load_baseline_performance()
-    
-    def run_benchmark_suite(self):
-        results = {}
-        for operation in ['svd', 'gemm_batch', 'solve']:
-            for size in [100, 500, 1000, 2000]:
-                gpu_time = benchmark_operation(operation, size, use_gpu=True)
-                cpu_time = benchmark_operation(operation, size, use_gpu=False)
-                
-                speedup = cpu_time / gpu_time
-                baseline_speedup = self.baseline_results[operation][size]
-                
-                # Alert if performance degrades more than 10%
-                if speedup < baseline_speedup * 0.9:
-                    raise PerformanceRegressionError(f"{operation} performance degraded")
-                
-                results[f"{operation}_{size}"] = speedup
-        
-        return results
+## Deployment and Packaging Patterns (Production-Ready)
+
+### Kubernetes Deployment Pattern ✅
+**Pattern**: Production container orchestration
+```yaml
+# k8s-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lapack-ai-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: lapack-ai
+  template:
+    metadata:
+      labels:
+        app: lapack-ai
+    spec:
+      containers:
+      - name: lapack-ai
+        image: lapack-ai-prod:latest
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+            nvidia.com/gpu: 1
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+            nvidia.com/gpu: 1
+        env:
+        - name: LAPACK_GPU_ENABLED
+          value: "true"
+        - name: LAPACK_LOG_LEVEL
+          value: "INFO"
+        ports:
+        - containerPort: 8080
+        healthCheck:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
 ```
 
-## Deployment and Packaging Patterns
-
-### Docker Multi-Stage Build
-**Pattern**: Minimize container size while including all dependencies
-```dockerfile
-# Stage 1: Build environment
-FROM ubuntu:22.04 as builder
-RUN apt-get update && apt-get install -y \
-    gfortran cmake make python3-dev \
-    opencl-headers ocl-icd-opencl-dev
-COPY . /src
-WORKDIR /src
-RUN cmake -B build -DCMAKE_BUILD_TYPE=Release
-RUN cmake --build build -j$(nproc)
-
-# Stage 2: Runtime environment
-FROM python:3.11-slim
-RUN apt-get update && apt-get install -y \
-    opencl-dev ocl-icd-libopencl1 \
-    && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /src/build/lib* /usr/local/lib/
-COPY --from=builder /src/build/python/lapack_py* /usr/local/lib/python3.11/site-packages/
-```
-
-### Configuration Management Pattern
+### Configuration Management Pattern (Container-Native) ✅
 **Pattern**: Environment-specific configuration without rebuilds
 ```python
-class LapackConfig:
+class ContainerAwareLapackConfig:
     def __init__(self):
-        self.gpu_enabled = os.getenv('LAPACK_GPU_ENABLED', 'true').lower() == 'true'
-        self.gpu_memory_limit = int(os.getenv('LAPACK_GPU_MEMORY_LIMIT', '80'))  # Percentage
-        self.batch_size_limit = int(os.getenv('LAPACK_BATCH_SIZE_LIMIT', '1024'))
+        # Container environment detection
+        self.is_containerized = os.path.exists('/.dockerenv')
+        self.container_id = os.environ.get('HOSTNAME', 'host')
+        
+        # GPU configuration
+        self.gpu_enabled = self._detect_gpu_availability()
+        self.gpu_memory_limit = int(os.getenv('LAPACK_GPU_MEMORY_LIMIT', '80'))
+        
+        # Container resource limits
+        self.container_memory_limit = self._get_container_memory_limit()
+        self.container_cpu_limit = self._get_container_cpu_limit()
+        
+        # Service configuration
         self.dashboard_port = int(os.getenv('LAPACK_DASHBOARD_PORT', '8080'))
         self.log_level = os.getenv('LAPACK_LOG_LEVEL', 'INFO')
         
-    def validate(self):
-        if self.gpu_memory_limit < 10 or self.gpu_memory_limit > 95:
-            raise ValueError("GPU memory limit must be between 10-95%")
+        # Performance tuning
+        self.batch_size_limit = min(
+            int(os.getenv('LAPACK_BATCH_SIZE_LIMIT', '1024')),
+            self._calculate_optimal_batch_size()
+        )
+    
+    def _detect_gpu_availability(self):
+        """Detect GPU availability in container."""
+        if not self.is_containerized:
+            return check_host_gpu_availability()
+        
+        # Check for NVIDIA container runtime
+        nvidia_visible = os.environ.get('NVIDIA_VISIBLE_DEVICES')
+        if nvidia_visible == 'all' or (nvidia_visible and nvidia_visible != 'none'):
+            return True
+        
+        # Check for GPU device files
+        return os.path.exists('/dev/nvidia0')
+    
+    def _get_container_memory_limit(self):
+        """Get container memory limit from cgroups."""
+        try:
+            with open('/sys/fs/cgroup/memory/memory.limit_in_bytes', 'r') as f:
+                limit = int(f.read().strip())
+                # Handle unlimited case (very large number)
+                return limit if limit < 2**63 - 1 else None
+        except FileNotFoundError:
+            return None
 ```
 
-## Error Recovery and Resilience Patterns
+## Documentation Organization Pattern ✅
 
-### Graceful Degradation Pattern
-**Principle**: System remains functional even when components fail
+### Subject-Based Documentation Architecture ✅
+**Pattern**: Logical separation of documentation by functional area
+**Implementation**:
+```
+MODERNIZATION/
+├── analysis/                    # Strategic analysis and research
+│   ├── codebase_analysis.md           # LAPACK structure analysis
+│   ├── modernization_strategy.md     # Complete strategy document  
+│   └── function_interface_mapping.md # API mapping
+├── implementation/              # Implementation guides and plans
+│   ├── phase1_implementation_plan.md # Phase 1 detailed plan
+│   ├── phase2_preparation_checklist.md # Phase 2 transition
+│   └── docker_configuration.md       # Container setup guide
+├── testing/                     # All testing frameworks and scripts
+│   ├── environment_validation.py     # Phase 1 validation
+│   ├── integration_tests.py          # System integration tests
+│   └── gpu_testing_setup.md          # GPU testing infrastructure
+├── infrastructure/              # Deployment and infrastructure
+│   ├── Dockerfile.base               # Foundation container
+│   ├── Dockerfile.dev                # Development container
+│   ├── Dockerfile.prod               # Production container
+│   └── .dockerignore                 # Build optimization
+└── memory_bank/                 # AI memory system
+    ├── memory_bank_projectbrief.md
+    ├── mmemory_bank_productContext.md
+    ├── mmemory_bank_systemPatterns.md (this file)
+    ├── mmemory_bank_techContext.md
+    ├── mmemory_bank_activeContext.md
+    └── mmemory_bank_progress.md
+```
+
+**Benefits**:
+- 🎯 **Clear Separation**: Each directory has focused responsibility
+- 🎯 **Intuitive Navigation**: Developers find documents by logical function
+- 🎯 **Scalable Growth**: Structure accommodates project expansion
+- 🎯 **Professional Organization**: Enterprise-grade documentation pattern
+
+## Error Recovery and Resilience Patterns (Container-Enhanced)
+
+### Container Health Monitoring Pattern ✅
+**Principle**: Proactive container health detection and recovery
+```dockerfile
+# Health check configuration in Dockerfile
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "
+import sys
+try:
+    import lapack_py
+    import pyopencl as cl
+    # Test basic functionality
+    lapack_py.test_basic_operations()
+    print('Container healthy')
+    sys.exit(0)
+except Exception as e:
+    print(f'Container unhealthy: {e}')
+    sys.exit(1)
+" || exit 1
+```
+
+### Graceful Degradation with Container Awareness ✅
+**Pattern**: Container resource-aware fallback strategies
 ```c
-int robust_gpu_operation(operation_params_t* params) {
+int robust_container_gpu_operation(operation_params_t* params) {
+    // Check container resource availability
+    if (!check_container_resources_sufficient(params)) {
+        log_warning("Container resources insufficient, using optimized CPU fallback");
+        return execute_cpu_optimized(params);
+    }
+    
     int result = attempt_gpu_execution(params);
     
     if (result == GPU_MEMORY_ERROR) {
-        log_warning("GPU memory insufficient, falling back to CPU");
+        log_warning("GPU memory insufficient in container, falling back to CPU");
+        // Update container memory tracking
+        update_container_memory_usage(params);
         return execute_cpu_fallback(params);
     }
     
     if (result == GPU_DRIVER_ERROR) {
-        log_error("GPU driver issue, disabling GPU for this session");
+        log_error("GPU driver issue in container, disabling GPU for this session");
         disable_gpu_temporarily();
         return execute_cpu_fallback(params);
     }
@@ -413,36 +755,4 @@ int robust_gpu_operation(operation_params_t* params) {
 }
 ```
 
-### Circuit Breaker Pattern for GPU Operations
-**Pattern**: Prevent cascade failures from repeated GPU errors
-```python
-class GPUCircuitBreaker:
-    def __init__(self, failure_threshold=5, timeout=300):
-        self.failure_count = 0
-        self.failure_threshold = failure_threshold
-        self.timeout = timeout
-        self.last_failure_time = 0
-        self.state = 'CLOSED'  # CLOSED, OPEN, HALF_OPEN
-    
-    def call_gpu_operation(self, operation, *args):
-        if self.state == 'OPEN':
-            if time.time() - self.last_failure_time > self.timeout:
-                self.state = 'HALF_OPEN'
-            else:
-                raise GPUUnavailableError("GPU circuit breaker is OPEN")
-        
-        try:
-            result = operation(*args)
-            if self.state == 'HALF_OPEN':
-                self.state = 'CLOSED'
-                self.failure_count = 0
-            return result
-        except GPUError:
-            self.failure_count += 1
-            self.last_failure_time = time.time()
-            
-            if self.failure_count >= self.failure_threshold:
-                self.state = 'OPEN'
-            
-            raise
-``` 
+This enhanced system patterns document reflects our transition to a fully containerized development and deployment architecture, while maintaining the core LAPACK integration principles and adding robust GPU testing infrastructure capabilities. 

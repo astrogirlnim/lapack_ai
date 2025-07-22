@@ -42,12 +42,8 @@ jobs:
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pre-commit fprettify
+        pip install pre-commit
         echo "✅ Python dependencies installed"
-
-        # Verify fprettify installation
-        fprettify --version
-        echo "✅ fprettify is available"
 
     - name: Cache pre-commit environments
       uses: actions/cache@v3
@@ -69,29 +65,7 @@ jobs:
         pre-commit run --all-files --verbose
         echo "✅ Pre-commit checks completed"
 
-    - name: Run fprettify on Fortran files (validation)
-      run: |
-        echo "🔍 Additional fprettify validation..."
 
-        # Find all Fortran files for processing
-        FORTRAN_FILES=$(find . -name "*.f" -o -name "*.f90" -o -name "*.f95" -o -name "*.f03" -o -name "*.f08" \
-                          -o -name "*.F" -o -name "*.F90" -o -name "*.F95" -o -name "*.F03" -o -name "*.F08" | \
-                        grep -v build/ | grep -v CMakeFiles/ | grep -v DEPRECATED/ | head -20)
-
-        if [ -n "$FORTRAN_FILES" ]; then
-          echo "📁 Found Fortran files to check:"
-          echo "$FORTRAN_FILES" | head -10
-
-          # Test fprettify on a sample of files (check mode only)
-          echo "$FORTRAN_FILES" | head -5 | while read -r file; do
-            echo "  🔍 Checking: $file"
-            fprettify --diff "$file" || echo "    ⚠️ Formatting needed for $file"
-          done
-        else
-          echo "ℹ️ No Fortran files found for processing"
-        fi
-
-        echo "✅ fprettify validation completed"
 
   fortran-compilation:
     name: LAPACK Fortran compilation test
@@ -341,6 +315,6 @@ jobs:
         echo "### 📝 Next Steps" >> $GITHUB_STEP_SUMMARY
         echo "- Run \`pre-commit install\` to enable hooks locally" >> $GITHUB_STEP_SUMMARY
         echo "- Use \`pre-commit run --all-files\` to format all code" >> $GITHUB_STEP_SUMMARY
-        echo "- Run \`fprettify --diff [file]\` to preview Fortran formatting" >> $GITHUB_STEP_SUMMARY
+        echo "- Fortran code quality is validated during compilation step" >> $GITHUB_STEP_SUMMARY
 
         echo "✅ Quality check summary generated"

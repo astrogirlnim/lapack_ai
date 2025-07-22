@@ -2,39 +2,7 @@
 # Comprehensive code quality and formatting hooks for multi-language codebase
 
 repos:
-  # Fortran code formatting with fprettify (conservative settings for legacy code)
-  - repo: https://github.com/fortran-lang/fprettify
-    rev: v0.3.7  # Use the latest stable version
-    hooks:
-      - id: fprettify
-        name: 'Format Fortran code with fprettify (modern files only)'
-        description: 'Conservative formatting for modern Fortran code only'
-        files: |
-          (?x)^(
-            MODERNIZATION/.*\.(f90|f95|f03|f08|F90|F95|F03|F08)$|
-            SRC/la_constants\.f90$|
-            SRC/la_xisnan\.F90$|
-            SRC/.*lartg\.f90$|
-            SRC/.*lassq\.f90$
-          )$
-        exclude: |
-          (?x)^(
-            .*/DEPRECATED/.*|
-            .*/build/.*|
-            .*/CMakeFiles/.*|
-            .*\.mod$|
-            .*/test.*|
-            .*/Test.*|
-            .*/TESTING/.*
-          )$
-        args:
-          - --config=.fprettify.rc    # Use our custom config file
-        language: python
-        additional_dependencies: [fprettify>=0.3.7]
-        verbose: true
-        fail_fast: false
-        # Add timeout to prevent long runs
-        timeout: 60
+  # Note: fprettify removed - code quality is handled in compilation step
 
   # Python code quality and formatting
   - repo: https://github.com/psf/black

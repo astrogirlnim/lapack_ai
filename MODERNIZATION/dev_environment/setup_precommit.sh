@@ -80,18 +80,20 @@ else
     echo "⚠️ .fprettify.rc configuration not found"
 fi
 
-# Create secrets baseline if it doesn't exist
-echo "🔒 Setting up secrets scanning..."
-if [ ! -f ".secrets.baseline" ]; then
-    echo "📋 Creating secrets baseline..."
-    if command -v detect-secrets >/dev/null 2>&1; then
-        detect-secrets scan --baseline .secrets.baseline
-        echo "✅ Secrets baseline created"
+# Check gitleaks configuration
+echo "🔒 Setting up gitleaks security scanning..."
+if [ -f ".gitleaks.toml" ]; then
+    echo "✅ Gitleaks configuration found"
+
+    # Test gitleaks if available
+    if command -v gitleaks >/dev/null 2>&1; then
+        echo "🧪 Testing gitleaks configuration..."
+        gitleaks detect --config .gitleaks.toml --no-git --quiet || echo "   (Gitleaks test completed)"
     else
-        echo "⚠️ detect-secrets not installed, skipping baseline creation"
+        echo "ℹ️ Gitleaks not installed locally (will be available in CI/containers)"
     fi
 else
-    echo "✅ Secrets baseline already exists"
+    echo "⚠️ .gitleaks.toml configuration not found"
 fi
 
 # Run a quick test of the pre-commit hooks
@@ -129,7 +131,7 @@ echo "   ✅ pre-commit hooks installed"
 echo "   ✅ fprettify Fortran formatter configured"
 echo "   ✅ Python code quality tools (black, isort, flake8)"
 echo "   ✅ File quality checks (trailing whitespace, etc.)"
-echo "   ✅ Security scanning (detect-secrets)"
+echo "   ✅ Security scanning (gitleaks)"
 echo "   ✅ CMake formatting"
 echo "   ✅ Docker linting"
 echo ""

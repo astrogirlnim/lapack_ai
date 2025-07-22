@@ -32,7 +32,7 @@ The pre-commit configuration includes comprehensive code quality checks for the 
 ### Additional Tools
 - **CMake formatting**: Consistent build script formatting
 - **Docker linting**: Dockerfile quality checks
-- **Security scanning**: Detect hardcoded secrets and credentials
+- **Security scanning**: Gitleaks for detecting hardcoded secrets and credentials
 
 ## Installation and Setup
 
@@ -195,7 +195,7 @@ The project includes a comprehensive GitHub Actions workflow (`.github/workflows
 - Runs all pre-commit hooks on every PR
 - Validates Fortran syntax
 - Checks Python code quality
-- Scans for security issues
+- Scans for security issues with gitleaks
 - Provides detailed feedback on code quality
 
 ### Local Testing

@@ -222,26 +222,19 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Install security scanning tools
+    - name: Install gitleaks
       run: |
-        pip install detect-secrets
-        echo "✅ Security tools installed"
+        # Install gitleaks
+        curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.18.4/gitleaks_8.18.4_linux_x64.tar.gz \
+          | tar -xz gitleaks
+        sudo mv gitleaks /usr/local/bin/
+        echo "✅ Gitleaks installed"
 
-    - name: Create secrets baseline if missing
+    - name: Run gitleaks scan
       run: |
-        if [ ! -f .secrets.baseline ]; then
-          echo "📋 Creating secrets baseline..."
-          detect-secrets scan --baseline .secrets.baseline
-          echo "✅ Secrets baseline created"
-        else
-          echo "✅ Secrets baseline exists"
-        fi
-
-    - name: Run security scan
-      run: |
-        echo "🔒 Running security scan..."
-        detect-secrets scan --baseline .secrets.baseline --exclude-files ".*\.git/.*|.*build/.*|.*\.venv/.*"
-        echo "✅ Security scan completed"
+        echo "🔒 Running gitleaks security scan..."
+        gitleaks detect --config .gitleaks.toml --verbose --exit-code 1
+        echo "✅ Gitleaks scan completed"
 
     - name: Check for common security issues
       run: |

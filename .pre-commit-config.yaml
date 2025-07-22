@@ -103,13 +103,21 @@ repos:
         files: (CMakeLists\.txt|\.cmake)$
         args: [--line-width=100, --tab-size=2]
 
-  # Security and secrets detection
-  - repo: https://github.com/Yelp/detect-secrets
-    rev: v1.4.0
+  # Security and secrets detection with gitleaks
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.4
     hooks:
-      - id: detect-secrets
-        name: 'Detect hardcoded secrets'
-        exclude: \.(lock|min\.js|jpg|png|gif|ico|svg)$
+      - id: gitleaks
+        name: 'Scan for secrets with gitleaks'
+        description: 'Detect hardcoded secrets, API keys, and credentials'
+        exclude: |
+          (?x)^(
+            .*\.lock$|
+            .*\.min\.js$|
+            .*\.(jpg|png|gif|ico|svg)$|
+            .*/build/.*|
+            .*/node_modules/.*
+          )$
 
   # Docker file linting (allow warnings for legacy compatibility)
   - repo: https://github.com/hadolint/hadolint

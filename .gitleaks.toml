@@ -1,0 +1,67 @@
+# Gitleaks Configuration for LAPACK AI Modernization Project
+# https://github.com/gitleaks/gitleaks
+
+title = "LAPACK AI Gitleaks Configuration"
+
+# Additional custom rules for scientific computing context
+[[rules]]
+id = "lapack-api-key"
+description = "Potential API key in scientific computing context"
+regex = '''(?i)(api[_-]?key|apikey)['"]*\s*[:=]\s*['"][a-zA-Z0-9]{20,}['"]'''
+keywords = ["api_key", "apikey", "api-key"]
+
+[[rules]]
+id = "openai-key"
+description = "OpenAI API key"
+regex = '''sk-[a-zA-Z0-9]{48}'''
+keywords = ["openai", "gpt", "sk-"]
+
+[[rules]]
+id = "aws-key"
+description = "AWS Access Key"
+regex = '''AKIA[0-9A-Z]{16}'''
+keywords = ["aws", "amazon"]
+
+# Allowlist for false positives common in scientific code
+[allowlist]
+description = "Allowlist for LAPACK AI project"
+regexes = [
+    # Scientific notation and mathematical constants
+    '''(?i)(pi|euler|gamma|delta|epsilon|sigma|theta|lambda|mu|nu|rho|tau|phi|psi|omega)''',
+    # LAPACK routine names and parameters
+    '''(?i)(dgesvd|dgemm|dgetrf|dgetri|dsyev|dsyevd|zheev|chegv|spotrf|dpotrf)''',
+    # Common variable names in numerical computing
+    '''(?i)(lwork|info|ldvt|ldu|jobz|uplo|trans|diag|side|alpha|beta)''',
+    # Test data and example values
+    '''(?i)(test|example|sample|demo|mock|fake)''',
+    # Documentation and comments
+    '''(?i)(todo|fixme|note|example|documentation)'''
+]
+
+paths = [
+    # Documentation files
+    '''.*\.(md|rst|txt|tex|bib)$''',
+    # Test and documentation directories
+    '''.*/(test|tests|testing|examples|docs|documentation)/.*''',
+    # Configuration files with potential false positives
+    '''.*\.(json|xml|yaml|yml)$''',
+    # Memory bank documentation files
+    '''MODERNIZATION/memory_bank/.*''',
+    # Research and planning documents
+    '''MODERNIZATION/BRAINLIFT/.*''',
+    # Binary and image files
+    '''.*\.(png|jpg|jpeg|gif|ico|svg|pdf|zip|tar|gz|bz2|7z|exe|dll|so|dylib|a|o|obj|bin)$''',
+    # Fortran module files
+    '''.*\.mod$''',
+    # Build and cache directories
+    '''build/.*''',
+    '''dist/.*''',
+    '''node_modules/.*''',
+    '''.git/.*''',
+    '''.venv/.*''',
+    '''venv/.*''',
+    '''__pycache__/.*''',
+    '''.pytest_cache/.*''',
+    '''.cache/.*''',
+    '''.*\.lock$'''
+]

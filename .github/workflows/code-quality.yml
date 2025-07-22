@@ -153,6 +153,25 @@ jobs:
         echo "  Available .f files: $(ls *.f 2>/dev/null | wc -l || echo '0')"
         echo "  Available .f90 files: $(ls *.f90 2>/dev/null | wc -l || echo '0')"
 
+        # First, compile any required modules to generate .mod files
+        echo "🔧 Compiling required modules..."
+
+        # Compile LA_CONSTANTS module if it exists (required by several .f90 files)
+        if [ -f "la_constants.f90" ]; then
+          echo "  📦 Compiling LA_CONSTANTS module..."
+          MODULE_OUTPUT=$(gfortran -c la_constants.f90 2>&1)
+          MODULE_EXIT_CODE=$?
+
+          if [ $MODULE_EXIT_CODE -ne 0 ]; then
+            echo "    ❌ Failed to compile LA_CONSTANTS module:"
+            echo "$MODULE_OUTPUT"
+            exit 1
+          else
+            echo "    ✅ LA_CONSTANTS module compiled successfully"
+          fi
+        fi
+
+        # Select test files for validation
         TEST_FILES=($(ls *.f *.f90 2>/dev/null | head -5))
         echo "  Selected test files: ${TEST_FILES[*]}"
 
@@ -169,10 +188,10 @@ jobs:
           if [ -z "$OUTPUT" ]; then
             echo "    ✅ Clean compilation - no issues in $file"
           else
-            # Check if output contains actual syntax errors
-            if echo "$OUTPUT" | grep -q "Error:"; then
+            # Check if output contains actual syntax errors or fatal errors
+            if echo "$OUTPUT" | grep -q -E "(Error:|Fatal Error:)"; then
               echo "    ❌ Syntax errors in $file:"
-              echo "$OUTPUT" | grep "Error:" | head -3
+              echo "$OUTPUT" | grep -E "(Error:|Fatal Error:)" | head -3
               SYNTAX_ERRORS=$((SYNTAX_ERRORS + 1))
             else
               # Just warnings (common in legacy Fortran code)
@@ -182,6 +201,10 @@ jobs:
             fi
           fi
         done
+
+        # Clean up generated module files
+        echo "🧹 Cleaning up generated module files..."
+        rm -f *.mod *.o
 
         if [ $SYNTAX_ERRORS -gt 0 ]; then
           echo "❌ Found $SYNTAX_ERRORS files with actual syntax errors"

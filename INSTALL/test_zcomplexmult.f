@@ -111,7 +111,7 @@
                   nFailingTests = nFailingTests + 1
                   WRITE( *, FMT = 9998 ) 'ic',i, Y, Y, R, '-Inf and NaN'
               endif
-          else 
+          else
               if( R .eq. R ) then
                   nFailingTests = nFailingTests + 1
                   WRITE( *, FMT = 9998 ) 'ic',i, Y, Y, R, 'NaN'

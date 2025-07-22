@@ -34,7 +34,7 @@
 
 lapack_int API_SUFFIX(LAPACKE_dsytrs_aa_2stage)( int matrix_layout, char uplo, lapack_int n,
                           lapack_int nrhs, double* a, lapack_int lda,
-                          double* tb, lapack_int ltb, lapack_int* ipiv, 
+                          double* tb, lapack_int ltb, lapack_int* ipiv,
                           lapack_int* ipiv2, double* b, lapack_int ldb )
 {
     lapack_int info = 0;

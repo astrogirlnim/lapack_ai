@@ -56,7 +56,7 @@ lapack_int API_SUFFIX(LAPACKE_sorcsd2by1)( int matrix_layout, char jobu1, char j
         if( API_SUFFIX(LAPACKE_sge_nancheck)( matrix_layout, nrows_x11, q, x11, ldx11 ) ) {
             return -8;
         }
- 
+
         if( API_SUFFIX(LAPACKE_sge_nancheck)( matrix_layout, nrows_x21, q, x21, ldx21 ) ) {
             return -9;
         }

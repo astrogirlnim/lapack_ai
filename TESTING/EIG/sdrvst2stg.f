@@ -508,7 +508,7 @@
      $                   SSTT22, SSYEV, SSYEVD, SSYEVR, SSYEVX, SSYT21,
      $                   SSYEVD_2STAGE, SSYEVR_2STAGE, SSYEVX_2STAGE,
      $                   SSYEV_2STAGE, SSBEV_2STAGE, SSBEVD_2STAGE,
-     $                   SSBEVX_2STAGE, SSYTRD_2STAGE, SSYTRD_SY2SB, 
+     $                   SSBEVX_2STAGE, SSYTRD_2STAGE, SSYTRD_SY2SB,
      $                   SSYTRD_SB2ST, SSYT22, XERBLA
 *     ..
 *     .. Scalars in Common ..
@@ -2442,7 +2442,7 @@ c           LIWEDC = 12
 *
                NTEST = NTEST + 2
                SRNAMT = 'SSYEVD_2STAGE'
-               CALL SSYEVD_2STAGE( 'N', UPLO, N, A, LDU, D3, WORK, 
+               CALL SSYEVD_2STAGE( 'N', UPLO, N, A, LDU, D3, WORK,
      $                              LWORK, IWORK, LIWEDC, IINFO )
                IF( IINFO.NE.0 ) THEN
                   WRITE( NOUNIT, FMT = 9999 )

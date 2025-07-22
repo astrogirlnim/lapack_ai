@@ -196,7 +196,7 @@
 *     .. Intrinsic Functions..
 *
       INTRINSIC         CONJG
-*     
+*
 *     The general scheme used is inspired by the approach inside DGEQRT3
 *     which was (at the time of writing this code):
 *     Based on the algorithm of Elmroth and Gustavson,
@@ -242,7 +242,7 @@
       QL = (.NOT.DIRF).AND.COLV
 *
 *     The last case is RQ. Due to how we structured this, if the
-*     above 3 are false, then RQ must be true, so we never store 
+*     above 3 are false, then RQ must be true, so we never store
 *     this
 *     RQ happens when we have backward direction in row storage
 *     RQ = (.NOT.DIRF).AND.(.NOT.COLV)
@@ -260,17 +260,17 @@
 *        V_{1,1}\in\C^{l,l}      unit lower triangular
 *        V_{2,1}\in\C^{k-l,l}    rectangular
 *        V_{3,1}\in\C^{n-k,l}    rectangular
-*        
+*
 *        V_{2,2}\in\C^{k-l,k-l}  unit lower triangular
 *        V_{3,2}\in\C^{n-k,k-l}  rectangular
 *
-*        We will construct the T matrix 
+*        We will construct the T matrix
 *        T = |---------------|
 *            |T_{1,1} T_{1,2}|
 *            |0       T_{2,2}|
 *            |---------------|
 *
-*        T is the triangular factor obtained from block reflectors. 
+*        T is the triangular factor obtained from block reflectors.
 *        To motivate the structure, assume we have already computed T_{1,1}
 *        and T_{2,2}. Then collect the associated reflectors in V_1 and V_2
 *
@@ -281,17 +281,17 @@
 *        Where l = floor(k/2)
 *
 *        Then, consider the product:
-*        
+*
 *        (I - V_1*T_{1,1}*V_1')*(I - V_2*T_{2,2}*V_2')
 *        = I - V_1*T_{1,1}*V_1' - V_2*T_{2,2}*V_2' + V_1*T_{1,1}*V_1'*V_2*T_{2,2}*V_2'
-*        
+*
 *        Define T{1,2} = -T_{1,1}*V_1'*V_2*T_{2,2}
-*        
-*        Then, we can define the matrix V as 
+*
+*        Then, we can define the matrix V as
 *        V = |-------|
 *            |V_1 V_2|
 *            |-------|
-*        
+*
 *        So, our product is equivalent to the matrix product
 *        I - V*T*V'
 *        This means, we can compute T_{1,1} and T_{2,2}, then use this information
@@ -303,10 +303,10 @@
 *
 *        Compute T_{2,2} recursively
 *
-         CALL CLARFT(DIRECT, STOREV, N-L, K-L, V(L+1, L+1), LDV, 
+         CALL CLARFT(DIRECT, STOREV, N-L, K-L, V(L+1, L+1), LDV,
      $               TAU(L+1), T(L+1, L+1), LDT)
 *
-*        Compute T_{1,2} 
+*        Compute T_{1,2}
 *        T_{1,2} = V_{2,1}'
 *
          DO J = 1, L
@@ -324,7 +324,7 @@
 *        T_{1,2} = V_{3,1}'*V_{3,2} + T_{1,2}
 *        Note: We assume K <= N, and GEMM will do nothing if N=K
 *
-         CALL CGEMM('Conjugate', 'No transpose', L, K-L, N-K, ONE, 
+         CALL CGEMM('Conjugate', 'No transpose', L, K-L, N-K, ONE,
      $         V(K+1, 1), LDV, V(K+1, L+1), LDV, ONE, T(1, L+1),
      $         LDT)
 *
@@ -339,7 +339,7 @@
 *
 *        T_{1,2} = T_{1,2}*T_{2,2}
 *
-         CALL CTRMM('Right', 'Upper', 'No transpose', 'Non-unit', L, 
+         CALL CTRMM('Right', 'Upper', 'No transpose', 'Non-unit', L,
      $         K-L, ONE, T(L+1, L+1), LDT, T(1, L+1), LDT)
 
       ELSE IF(LQ) THEN
@@ -354,19 +354,19 @@
 *        V_{1,1}\in\C^{l,l}      unit upper triangular
 *        V_{1,2}\in\C^{l,k-l}    rectangular
 *        V_{1,3}\in\C^{l,n-k}    rectangular
-*        
+*
 *        V_{2,2}\in\C^{k-l,k-l}  unit upper triangular
 *        V_{2,3}\in\C^{k-l,n-k}  rectangular
 *
 *        Where l = floor(k/2)
 *
-*        We will construct the T matrix 
+*        We will construct the T matrix
 *        T = |---------------|
 *            |T_{1,1} T_{1,2}|
 *            |0       T_{2,2}|
 *            |---------------|
 *
-*        T is the triangular factor obtained from block reflectors. 
+*        T is the triangular factor obtained from block reflectors.
 *        To motivate the structure, assume we have already computed T_{1,1}
 *        and T_{2,2}. Then collect the associated reflectors in V_1 and V_2
 *
@@ -375,18 +375,18 @@
 *        T_{1,2}\in\C^{l, k-l}   rectangular
 *
 *        Then, consider the product:
-*        
+*
 *        (I - V_1'*T_{1,1}*V_1)*(I - V_2'*T_{2,2}*V_2)
 *        = I - V_1'*T_{1,1}*V_1 - V_2'*T_{2,2}*V_2 + V_1'*T_{1,1}*V_1*V_2'*T_{2,2}*V_2
-*        
+*
 *        Define T_{1,2} = -T_{1,1}*V_1*V_2'*T_{2,2}
-*        
-*        Then, we can define the matrix V as 
+*
+*        Then, we can define the matrix V as
 *        V = |---|
 *            |V_1|
 *            |V_2|
 *            |---|
-*        
+*
 *        So, our product is equivalent to the matrix product
 *        I - V'*T*V
 *        This means, we can compute T_{1,1} and T_{2,2}, then use this information
@@ -398,7 +398,7 @@
 *
 *        Compute T_{2,2} recursively
 *
-         CALL CLARFT(DIRECT, STOREV, N-L, K-L, V(L+1, L+1), LDV, 
+         CALL CLARFT(DIRECT, STOREV, N-L, K-L, V(L+1, L+1), LDV,
      $               TAU(L+1), T(L+1, L+1), LDT)
 
 *
@@ -445,18 +445,18 @@
 *
 *        V_{1,1}\in\C^{n-k,k-l}  rectangular
 *        V_{2,1}\in\C^{k-l,k-l}  unit upper triangular
-*        
+*
 *        V_{1,2}\in\C^{n-k,l}    rectangular
 *        V_{2,2}\in\C^{k-l,l}    rectangular
 *        V_{3,2}\in\C^{l,l}      unit upper triangular
 *
-*        We will construct the T matrix 
+*        We will construct the T matrix
 *        T = |---------------|
 *            |T_{1,1} 0      |
 *            |T_{2,1} T_{2,2}|
 *            |---------------|
 *
-*        T is the triangular factor obtained from block reflectors. 
+*        T is the triangular factor obtained from block reflectors.
 *        To motivate the structure, assume we have already computed T_{1,1}
 *        and T_{2,2}. Then collect the associated reflectors in V_1 and V_2
 *
@@ -467,17 +467,17 @@
 *        Where l = floor(k/2)
 *
 *        Then, consider the product:
-*        
+*
 *        (I - V_2*T_{2,2}*V_2')*(I - V_1*T_{1,1}*V_1')
 *        = I - V_2*T_{2,2}*V_2' - V_1*T_{1,1}*V_1' + V_2*T_{2,2}*V_2'*V_1*T_{1,1}*V_1'
-*        
+*
 *        Define T_{2,1} = -T_{2,2}*V_2'*V_1*T_{1,1}
-*        
-*        Then, we can define the matrix V as 
+*
+*        Then, we can define the matrix V as
 *        V = |-------|
 *            |V_1 V_2|
 *            |-------|
-*        
+*
 *        So, our product is equivalent to the matrix product
 *        I - V*T*V'
 *        This means, we can compute T_{1,1} and T_{2,2}, then use this information
@@ -546,13 +546,13 @@
 *        V_{2,2}\in\C^{l,k-l}    rectangular
 *        V_{2,3}\in\C^{l,l}      unit lower triangular
 *
-*        We will construct the T matrix 
+*        We will construct the T matrix
 *        T = |---------------|
 *            |T_{1,1} 0      |
 *            |T_{2,1} T_{2,2}|
 *            |---------------|
 *
-*        T is the triangular factor obtained from block reflectors. 
+*        T is the triangular factor obtained from block reflectors.
 *        To motivate the structure, assume we have already computed T_{1,1}
 *        and T_{2,2}. Then collect the associated reflectors in V_1 and V_2
 *
@@ -563,18 +563,18 @@
 *        Where l = floor(k/2)
 *
 *        Then, consider the product:
-*        
+*
 *        (I - V_2'*T_{2,2}*V_2)*(I - V_1'*T_{1,1}*V_1)
 *        = I - V_2'*T_{2,2}*V_2 - V_1'*T_{1,1}*V_1 + V_2'*T_{2,2}*V_2*V_1'*T_{1,1}*V_1
-*        
+*
 *        Define T_{2,1} = -T_{2,2}*V_2*V_1'*T_{1,1}
-*        
-*        Then, we can define the matrix V as 
+*
+*        Then, we can define the matrix V as
 *        V = |---|
 *            |V_1|
 *            |V_2|
 *            |---|
-*        
+*
 *        So, our product is equivalent to the matrix product
 *        I - V'*T*V
 *        This means, we can compute T_{1,1} and T_{2,2}, then use this information
@@ -592,7 +592,7 @@
 *        Compute T_{2,1}
 *        T_{2,1} = V_{2,2}
 *
-         CALL CLACPY('All', L, K-L, V(K-L+1, N-K+1), LDV, 
+         CALL CLACPY('All', L, K-L, V(K-L+1, N-K+1), LDV,
      $               T(K-L+1, 1), LDT)
 
 *
@@ -605,7 +605,7 @@
 *        T_{2,1} = V_{2,1}*V_{1,1}' + T_{2,1}
 *        Note: We assume K <= N, and GEMM will do nothing if N=K
 *
-         CALL CGEMM('No transpose', 'Conjugate', L, K-L, N-K, ONE, 
+         CALL CGEMM('No transpose', 'Conjugate', L, K-L, N-K, ONE,
      $               V(K-L+1, 1), LDV, V, LDV, ONE, T(K-L+1, 1),
      $               LDT)
 
@@ -617,7 +617,7 @@
 *        T_{2,1} = -T_{2,2}*T_{2,1}
 *
          CALL CTRMM('Left', 'Lower', 'No tranpose', 'Non-unit', L,
-     $               K-L, NEG_ONE, T(K-L+1, K-L+1), LDT, 
+     $               K-L, NEG_ONE, T(K-L+1, K-L+1), LDT,
      $               T(K-L+1, 1), LDT)
 
 *

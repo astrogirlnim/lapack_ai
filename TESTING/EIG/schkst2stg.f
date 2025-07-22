@@ -36,15 +36,15 @@
 *>
 *> SCHKST2STG  checks the symmetric eigenvalue problem routines
 *> using the 2-stage reduction techniques. Since the generation
-*> of Q or the vectors is not available in this release, we only 
-*> compare the eigenvalue resulting when using the 2-stage to the 
+*> of Q or the vectors is not available in this release, we only
+*> compare the eigenvalue resulting when using the 2-stage to the
 *> one considered as reference using the standard 1-stage reduction
-*> SSYTRD. For that, we call the standard SSYTRD and compute D1 using 
+*> SSYTRD. For that, we call the standard SSYTRD and compute D1 using
 *> SSTEQR, then we call the 2-stage SSYTRD_2STAGE with Upper and Lower
 *> and we compute D2 and D3 using SSTEQR and then we replaced tests
-*> 3 and 4 by tests 11 and 12. test 1 and 2 remain to verify that 
+*> 3 and 4 by tests 11 and 12. test 1 and 2 remain to verify that
 *> the 1-stage results are OK and can be trusted.
-*> This testing routine will converge to the SCHKST in the next 
+*> This testing routine will converge to the SCHKST in the next
 *> release when vectors and generation of Q will be implemented.
 *>
 *>    SSYTRD factors A as  U S U' , where ' means transpose,
@@ -107,18 +107,18 @@
 *> (2)     | I - UV' | / ( n ulp )        SORGTR( UPLO='U', ... )
 *>
 *> (3)     | A - V S V' | / ( |A| n ulp ) SSYTRD( UPLO='L', ... )
-*>         replaced by | D1 - D2 | / ( |D1| ulp ) where D1 is the 
-*>         eigenvalue matrix computed using S and D2 is the 
+*>         replaced by | D1 - D2 | / ( |D1| ulp ) where D1 is the
+*>         eigenvalue matrix computed using S and D2 is the
 *>         eigenvalue matrix computed using S_2stage the output of
-*>         SSYTRD_2STAGE("N", "U",....). D1 and D2 are computed 
-*>         via SSTEQR('N',...)  
+*>         SSYTRD_2STAGE("N", "U",....). D1 and D2 are computed
+*>         via SSTEQR('N',...)
 *>
 *> (4)     | I - UV' | / ( n ulp )        SORGTR( UPLO='L', ... )
-*>         replaced by | D1 - D3 | / ( |D1| ulp ) where D1 is the 
-*>         eigenvalue matrix computed using S and D3 is the 
+*>         replaced by | D1 - D3 | / ( |D1| ulp ) where D1 is the
+*>         eigenvalue matrix computed using S and D3 is the
 *>         eigenvalue matrix computed using S_2stage the output of
-*>         SSYTRD_2STAGE("N", "L",....). D1 and D3 are computed 
-*>         via SSTEQR('N',...)  
+*>         SSYTRD_2STAGE("N", "L",....). D1 and D3 are computed
+*>         via SSTEQR('N',...)
 *>
 *> (5-8)   Same as 1-4, but for SSPTRD and SOPGTR.
 *>
@@ -991,8 +991,8 @@
             END IF
 *
 *           2-STAGE TRD Upper case is used to compute D2.
-*           Note to set SD and SE to zero to be sure not reusing 
-*           the one from above. Compare it with D1 computed 
+*           Note to set SD and SE to zero to be sure not reusing
+*           the one from above. Compare it with D1 computed
 *           using the 1-stage.
 *
             CALL SLASET( 'Full', N, 1, ZERO, ZERO, SD, N )
@@ -1000,7 +1000,7 @@
             CALL SLACPY( "U", N, N, A, LDA, V, LDU )
             LH = MAX(1, 4*N)
             LW = LWORK - LH
-            CALL SSYTRD_2STAGE( 'N', "U", N, V, LDU, SD, SE, TAU, 
+            CALL SSYTRD_2STAGE( 'N', "U", N, V, LDU, SD, SE, TAU,
      $                   WORK, LH, WORK( LH+1 ), LW, IINFO )
 *
 *           Compute D2 from the 2-stage Upper case
@@ -1024,14 +1024,14 @@
             END IF
 *
 *           2-STAGE TRD Lower case is used to compute D3.
-*           Note to set SD and SE to zero to be sure not reusing 
-*           the one from above. Compare it with D1 computed 
-*           using the 1-stage. 
+*           Note to set SD and SE to zero to be sure not reusing
+*           the one from above. Compare it with D1 computed
+*           using the 1-stage.
 *
             CALL SLASET( 'Full', N, 1, ZERO, ZERO, SD, N )
             CALL SLASET( 'Full', N, 1, ZERO, ZERO, SE, N )
             CALL SLACPY( "L", N, N, A, LDA, V, LDU )
-            CALL SSYTRD_2STAGE( 'N', "L", N, V, LDU, SD, SE, TAU, 
+            CALL SSYTRD_2STAGE( 'N', "L", N, V, LDU, SD, SE, TAU,
      $                   WORK, LH, WORK( LH+1 ), LW, IINFO )
 *
 *           Compute D3 from the 2-stage Upper case

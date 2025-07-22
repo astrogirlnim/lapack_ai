@@ -759,7 +759,7 @@
                NTEST = NTEST + 2
                CALL CHEEVX_2STAGE( 'N', 'A', UPLO, N, A, LDU, VL, VU,
      $                             IL, IU, ABSTOL, M2, WA2, Z, LDU,
-     $                             WORK, LWORK, RWORK, IWORK, 
+     $                             WORK, LWORK, RWORK, IWORK,
      $                             IWORK( 5*N+1 ), IINFO )
                IF( IINFO.NE.0 ) THEN
                   WRITE( NOUNIT, FMT = 9999 )
@@ -816,7 +816,7 @@
 *
                CALL CHEEVX_2STAGE( 'N', 'I', UPLO, N, A, LDU, VL, VU,
      $                             IL, IU, ABSTOL, M3, WA3, Z, LDU,
-     $                             WORK, LWORK, RWORK, IWORK, 
+     $                             WORK, LWORK, RWORK, IWORK,
      $                             IWORK( 5*N+1 ), IINFO )
                IF( IINFO.NE.0 ) THEN
                   WRITE( NOUNIT, FMT = 9999 )
@@ -874,7 +874,7 @@
 *
                CALL CHEEVX_2STAGE( 'N', 'V', UPLO, N, A, LDU, VL, VU,
      $                             IL, IU, ABSTOL, M3, WA3, Z, LDU,
-     $                             WORK, LWORK, RWORK, IWORK, 
+     $                             WORK, LWORK, RWORK, IWORK,
      $                             IWORK( 5*N+1 ), IINFO )
                IF( IINFO.NE.0 ) THEN
                   WRITE( NOUNIT, FMT = 9999 )
@@ -1366,7 +1366,7 @@
                END IF
 *
                NTEST = NTEST + 2
-               CALL CHBEVD_2STAGE( 'N', UPLO, N, KD, V, LDU, D3, 
+               CALL CHBEVD_2STAGE( 'N', UPLO, N, KD, V, LDU, D3,
      $                             Z, LDU, WORK, LWORK, RWORK,
      $                             LRWEDC, IWORK, LIWEDC, IINFO )
                IF( IINFO.NE.0 ) THEN

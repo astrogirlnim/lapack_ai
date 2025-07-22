@@ -260,7 +260,7 @@
 *     .. External Functions ..
       LOGICAL            LSAME, DISNAN
       DOUBLE PRECISION   DLAMCH, DLANGE, DROUNDUP_LWORK
-      EXTERNAL           DLAMCH, DLANGE, LSAME, DISNAN, 
+      EXTERNAL           DLAMCH, DLANGE, LSAME, DISNAN,
      $                   DROUNDUP_LWORK
 *     ..
 *     .. Intrinsic Functions ..

@@ -80,7 +80,7 @@
 *> \param[in,out] U
 *> \verbatim
 *>          U is DOUBLE PRECISION array, dimension (LDU, N)
-*>         On exit, U contains the left singular vectors, 
+*>         On exit, U contains the left singular vectors,
 *>          if U passed in as (N, N) Identity.
 *> \endverbatim
 *>

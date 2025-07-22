@@ -168,4 +168,3 @@
 *
       ENDIF
       END SUBROUTINE SSYSWAPR
-

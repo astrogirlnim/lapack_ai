@@ -10,6 +10,5 @@ float API_SUFFIX(cblas_scabs1)(const void *c)
 {
    float cabs1 = 0.0;
    F77_scabs1_sub(c, &cabs1);
-   return cabs1; 
+   return cabs1;
 }
-

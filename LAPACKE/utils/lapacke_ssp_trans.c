@@ -42,4 +42,3 @@ void API_SUFFIX(LAPACKE_ssp_trans)( int matrix_layout, char uplo, lapack_int n,
 {
     API_SUFFIX(LAPACKE_stp_trans)( matrix_layout, uplo, 'n', n, in, out );
 }
-

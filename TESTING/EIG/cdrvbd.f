@@ -873,7 +873,7 @@
 *
                   LRWORK = MAX(2, M, 5*N)
                   LIWORK = MAX( N, 1 )
-                  CALL CGESVDQ( 'H', 'N', 'N', 'A', 'A', 
+                  CALL CGESVDQ( 'H', 'N', 'N', 'A', 'A',
      $                          M, N, A, LDA, SSAV, USAV, LDU,
      $                          VTSAV, LDVT, NUMRANK, IWORK, LIWORK,
      $                          WORK, LWORK, RWORK, LRWORK, IINFO )

@@ -237,7 +237,7 @@
 *
                         CALL ZLACPY( 'All', M, N, C, MAXM, X, MAXM)
                         CALL ZLACPY( 'All', M, N, C, MAXM, CC, MAXM)
-                        CALL ZTRSYL( TRANA, TRANB, ISGN, M, N, 
+                        CALL ZTRSYL( TRANA, TRANB, ISGN, M, N,
      $                               A, MAXM, B, MAXN, X, MAXM,
      $                               SCALE, IINFO )
                         IF( IINFO.NE.0 )

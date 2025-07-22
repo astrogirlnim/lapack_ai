@@ -124,7 +124,7 @@
 *> \param[in] LWORK
 *> \verbatim
 *>          LWORK is INTEGER
-*>          The length of WORK.  LWORK >= MAX(1,2*N,3*N-2), and for best 
+*>          The length of WORK.  LWORK >= MAX(1,2*N,3*N-2), and for best
 *>          performance LWORK >= MAX(1,N*NB), where NB is the optimal
 *>          blocksize for CHETRF.
 *>

@@ -8,7 +8,7 @@
 *  Definition:
 *  ===========
 *
-*       SUBROUTINE CCHKSY_AA_2STAGE( DOTYPE, NN, NVAL, NNB, NBVAL, 
+*       SUBROUTINE CCHKSY_AA_2STAGE( DOTYPE, NN, NVAL, NNB, NBVAL,
 *                             NNS, NSVAL, THRESH, TSTERR, NMAX, A,
 *                             AFAC, AINV, B, X, XACT, WORK, RWORK,
 *                             IWORK, NOUT )
@@ -215,7 +215,7 @@
 *     ..
 *     .. External Subroutines ..
       EXTERNAL           ALAERH, ALAHD, ALASUM, CERRSY, CLACPY, CLARHS,
-     $                   CLATB4, CLATMS, CSYT02, CSYT01, 
+     $                   CLATB4, CLATMS, CSYT02, CSYT01,
      $                   CSYTRF_AA_2STAGE, CSYTRS_AA_2STAGE,
      $                   XLAENV
 *     ..
@@ -425,8 +425,8 @@
 *
                   SRNAMT = 'CSYTRF_AA_2STAGE'
                   LWORK = MIN(N*NB, 3*NMAX*NMAX)
-                  CALL CSYTRF_AA_2STAGE( UPLO, N, AFAC, LDA, 
-     $                                   AINV, (3*NB+1)*N, 
+                  CALL CSYTRF_AA_2STAGE( UPLO, N, AFAC, LDA,
+     $                                   AINV, (3*NB+1)*N,
      $                                   IWORK, IWORK( 1+N ),
      $                                   WORK, LWORK,
      $                                   INFO )

@@ -170,4 +170,4 @@ CMD ["web"]
 # - Minimal base image (python:3.11-slim)
 # - Aggressive cleanup of package manager caches
 # - Only core LAPACK source files copied
-# Target size: <500MB 
+# Target size: <500MB

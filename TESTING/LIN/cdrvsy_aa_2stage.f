@@ -402,7 +402,7 @@
                      SRNAMT = 'CSYSV_AA_2STAGE '
                      LWORK = MIN(N*NB, 3*NMAX*NMAX)
                      CALL CSYSV_AA_2STAGE( UPLO, N, NRHS, AFAC, LDA,
-     $                                 AINV, (3*NB+1)*N, 
+     $                                 AINV, (3*NB+1)*N,
      $                                 IWORK, IWORK( 1+N ),
      $                                 X, LDA, WORK, LWORK, INFO )
 *

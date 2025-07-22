@@ -102,4 +102,4 @@ volumes:
 # docker compose -f docker-compose.dev.yml --profile flask up -d
 # docker compose -f docker-compose.dev.yml --profile test run --rm test
 # docker compose -f docker-compose.dev.yml --profile build run --rm build
-# docker compose -f docker-compose.dev.yml --profile production up -d prod-test 
+# docker compose -f docker-compose.dev.yml --profile production up -d prod-test

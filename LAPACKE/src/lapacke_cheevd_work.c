@@ -80,7 +80,7 @@ lapack_int API_SUFFIX(LAPACKE_cheevd_work)( int matrix_layout, char jobz, char u
         /* Transpose output matrices */
         if ( jobz == 'V' || jobz == 'v' ) {
             API_SUFFIX(LAPACKE_cge_trans)( LAPACK_COL_MAJOR, n, n, a_t, lda_t, a, lda );
-        } else { 
+        } else {
             API_SUFFIX(LAPACKE_che_trans)( LAPACK_COL_MAJOR, uplo, n, a_t, lda_t, a, lda );
         }
         /* Release memory and exit */

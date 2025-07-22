@@ -298,7 +298,7 @@
 *     Weak stability test: |S21| <= O(EPS F-norm((A)))
 *                          and  |T21| <= O(EPS F-norm((B)))
 *
-      WEAK = ABS( S( 2, 1 ) ).LE.THRESHA .AND. 
+      WEAK = ABS( S( 2, 1 ) ).LE.THRESHA .AND.
      $ ABS( T( 2, 1 ) ).LE.THRESHB
       IF( .NOT.WEAK )
      $   GO TO 20

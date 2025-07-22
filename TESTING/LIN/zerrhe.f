@@ -87,7 +87,7 @@
 *     .. External Subroutines ..
       EXTERNAL           ALAESM, CHKXER, ZHECON, ZHECON_3, ZHECON_ROOK,
      $                   ZHERFS, ZHETF2, ZHETF2_RK, ZHETF2_ROOK, ZHETRF,
-     $                   ZHETRF_RK, ZHETRF_ROOK, ZHETRF_AA, 
+     $                   ZHETRF_RK, ZHETRF_ROOK, ZHETRF_AA,
      $                   ZHETRF_AA_2STAGE, ZHETRI,
      $                   ZHETRI_3, ZHETRI_3X, ZHETRI_ROOK, ZHETRI2,
      $                   ZHETRI2X, ZHETRS, ZHETRS_3, ZHETRS_ROOK,
@@ -519,7 +519,7 @@
          INFOT = 10
          CALL ZHETRS_AA( 'U', 0, 1, A, 1, IP, B, 1, W, -2, INFO )
          CALL CHKXER( 'ZHETRS_AA', INFOT, NOUT, LERR, OK )
-*        
+*
       ELSE IF( LSAMEN( 2, C2, 'S2' ) ) THEN
 *
 *        Test error exits of the routines that use factorization

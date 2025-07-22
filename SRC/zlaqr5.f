@@ -419,7 +419,7 @@
                END IF
 
 *
-*              ==== Perform update from right within 
+*              ==== Perform update from right within
 *              .    computational window. ====
 *
                T1 = V( 1, M22 )
@@ -430,7 +430,7 @@
                   H( J, K+2 ) = H( J, K+2 ) - REFSUM*T2
    30          CONTINUE
 *
-*              ==== Perform update from left within 
+*              ==== Perform update from left within
 *              .    computational window. ====
 *
                IF( ACCUM ) THEN

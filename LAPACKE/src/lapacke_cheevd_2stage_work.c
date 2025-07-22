@@ -81,7 +81,7 @@ lapack_int API_SUFFIX(LAPACKE_cheevd_2stage_work)( int matrix_layout, char jobz,
         if ( jobz == 'V' || jobz == 'v' ) {
             API_SUFFIX(LAPACKE_cge_trans)( LAPACK_COL_MAJOR, n, n, a_t, lda_t, a, lda );
         } else {
-            API_SUFFIX(LAPACKE_che_trans)( LAPACK_COL_MAJOR, uplo, n, a_t, lda_t, a, lda ); 
+            API_SUFFIX(LAPACKE_che_trans)( LAPACK_COL_MAJOR, uplo, n, a_t, lda_t, a, lda );
         }
         /* Release memory and exit */
         LAPACKE_free( a_t );

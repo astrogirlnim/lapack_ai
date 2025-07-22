@@ -25,7 +25,7 @@ fi
 # Configure build environment based on host vs container
 if [ -f /.dockerenv ]; then
     echo "🐳 Setting up containerized build environment..."
-    
+
     # Container environment uses system packages
     export CC="gcc"
     export CXX="g++"
@@ -33,29 +33,29 @@ if [ -f /.dockerenv ]; then
     export LIBRARY_PATH="/usr/local/lib:/usr/lib/x86_64-linux-gnu"
     export LD_LIBRARY_PATH="/usr/local/lib:/usr/lib/x86_64-linux-gnu"
     export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig"
-    
+
     echo "✅ Container build environment configured"
 elif [[ "$OSTYPE" == "darwin"* ]]; then
     echo "🍎 Setting up macOS-specific library paths..."
-    
+
     # OpenBLAS (keg-only)
     export LDFLAGS="${LDFLAGS} -L/opt/homebrew/opt/openblas/lib"
     export CPPFLAGS="${CPPFLAGS} -I/opt/homebrew/opt/openblas/include"
     export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:/opt/homebrew/opt/openblas/lib/pkgconfig"
-    
+
     # LAPACK (keg-only)
     export LDFLAGS="${LDFLAGS} -L/opt/homebrew/opt/lapack/lib"
     export CPPFLAGS="${CPPFLAGS} -I/opt/homebrew/opt/lapack/include"
     export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:/opt/homebrew/opt/lapack/lib/pkgconfig"
-    
+
     # OpenCL headers (keg-only)
     export CPPFLAGS="${CPPFLAGS} -I/opt/homebrew/opt/opencl-headers/include"
-    
+
     # Use Homebrew's GCC for Fortran compatibility
     export CC="gcc-15"
     export CXX="g++-15"
     export FC="gfortran-15"
-    
+
     echo "✅ macOS library paths configured"
 else
     echo "🐧 Setting up Linux build environment..."
@@ -100,4 +100,4 @@ echo "🏗️  GCC: $(gcc --version | head -n1)"
 echo "🔧 Fortran: $(gfortran --version | head -n1)"
 echo ""
 echo "🚀 Ready to start LAPACK modernization development!"
-echo "💡 Run 'python -c \"import pyopencl; print('OpenCL available!')\"' to test GPU support" 
+echo "💡 Run 'python -c \"import pyopencl; print('OpenCL available!')\"' to test GPU support"

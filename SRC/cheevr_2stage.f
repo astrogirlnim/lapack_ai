@@ -446,7 +446,7 @@
       INTEGER            ILAENV, ILAENV2STAGE
       REAL               SLAMCH, CLANSY, SROUNDUP_LWORK
       EXTERNAL           LSAME, SLAMCH, CLANSY, ILAENV, ILAENV2STAGE,
-     $                   SROUNDUP_LWORK 
+     $                   SROUNDUP_LWORK
 *     ..
 *     .. External Subroutines ..
       EXTERNAL           SCOPY, SSCAL, SSTEBZ, SSTERF, XERBLA,

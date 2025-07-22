@@ -36,5 +36,3 @@ lapack_logical API_SUFFIX(LAPACKE_lsame)( char ca,  char cb )
 {
     return (lapack_logical) LAPACK_lsame( &ca, &cb );
 }
-
-

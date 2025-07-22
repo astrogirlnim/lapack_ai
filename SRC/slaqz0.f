@@ -318,7 +318,7 @@
 
 *     Local scalars
       REAL :: SMLNUM, ULP, ESHIFT, SAFMIN, SAFMAX, C1, S1, TEMP, SWAP,
-     $        BNORM, BTOL 
+     $        BNORM, BTOL
       INTEGER :: ISTART, ISTOP, IITER, MAXIT, ISTART2, K, LD, NSHIFTS,
      $           NBLOCK, NW, NMIN, NIBBLE, N_UNDEFLATED, N_DEFLATED,
      $           NS, SWEEP_INFO, SHIFTPOS, LWORKREQ, K2, ISTARTM,
@@ -336,7 +336,7 @@
 
 *
 *     Decode wantS,wantQ,wantZ
-*      
+*
       IF( LSAME( WANTS, 'E' ) ) THEN
          ILSCHUR = .FALSE.
          IWANTS = 1
@@ -401,7 +401,7 @@
          CALL XERBLA( 'SLAQZ0', -INFO )
          RETURN
       END IF
-   
+
 *
 *     Quick return if possible
 *
@@ -424,7 +424,7 @@
       NWR = MIN( IHI-ILO+1, ( N-1 ) / 3, NWR )
 
       NIBBLE = ILAENV( 14, 'SLAQZ0', JBCMPZ, N, ILO, IHI, LWORK )
-      
+
       NSR = ILAENV( 15, 'SLAQZ0', JBCMPZ, N, ILO, IHI, LWORK )
       NSR = MIN( NSR, ( N+6 ) / 9, IHI-ILO )
       NSR = MAX( 2, NSR-MOD( NSR, 2 ) )
@@ -493,7 +493,7 @@
       ISTOP = IHI
       MAXIT = 3*( IHI-ILO+1 )
       LD = 0
- 
+
       DO IITER = 1, MAXIT
          IF( IITER .GE. MAXIT ) THEN
             INFO = ISTOP+1
@@ -569,7 +569,7 @@
             IF( ABS( B( K, K ) ) .LT. BTOL ) THEN
 *              A diagonal element of B is negligible, move it
 *              to the top and deflate it
-               
+
                DO K2 = K, ISTART2+1, -1
                   CALL SLARTG( B( K2-1, K2 ), B( K2-1, K2-1 ), C1,
      $                         S1,
@@ -627,7 +627,7 @@
                END IF
 
                ISTART2 = ISTART2+1
-   
+
             END IF
             K = K-1
          END DO
@@ -701,7 +701,7 @@
                ALPHAI( I ) = ALPHAI( I+1 )
                ALPHAI( I+1 ) = ALPHAI( I+2 )
                ALPHAI( I+2 ) = SWAP
-               
+
                SWAP = BETA( I )
                BETA( I ) = BETA( I+1 )
                BETA( I+1 ) = BETA( I+2 )
@@ -710,7 +710,7 @@
          END DO
 
          IF ( MOD( LD, 6 ) .EQ. 0 ) THEN
-* 
+*
 *           Exceptional shift.  Chosen for no particularly good reason.
 *
             IF( ( REAL( MAXIT )*SAFMIN )*ABS( A( ISTOP,
@@ -750,7 +750,7 @@
    80 CALL SHGEQZ( WANTS, WANTQ, WANTZ, N, ILO, IHI, A, LDA, B, LDB,
      $             ALPHAR, ALPHAI, BETA, Q, LDQ, Z, LDZ, WORK, LWORK,
      $             NORM_INFO )
-      
+
       INFO = NORM_INFO
 
       END SUBROUTINE

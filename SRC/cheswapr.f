@@ -195,4 +195,3 @@
       ENDIF
 
       END SUBROUTINE CHESWAPR
-

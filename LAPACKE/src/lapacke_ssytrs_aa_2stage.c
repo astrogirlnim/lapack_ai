@@ -34,8 +34,8 @@
 
 lapack_int API_SUFFIX(LAPACKE_ssytrs_aa_2stage)( int matrix_layout, char uplo, lapack_int n,
                             lapack_int nrhs, float* a, lapack_int lda,
-                            float* tb, lapack_int ltb, 
-                            lapack_int* ipiv, lapack_int* ipiv2, 
+                            float* tb, lapack_int ltb,
+                            lapack_int* ipiv, lapack_int* ipiv2,
                             float* b, lapack_int ldb )
 {
     lapack_int info = 0;

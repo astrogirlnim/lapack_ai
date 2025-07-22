@@ -82,7 +82,7 @@
 *>              condition number of B, where A=B*D. If A has heavily weighted
 *>              rows, then using this condition number gives too pessimistic
 *>              error bound.
-*>       = 'A': Small singular values are not well determined by the data 
+*>       = 'A': Small singular values are not well determined by the data
 *>              and are considered as noisy; the matrix is treated as
 *>              numerically rank deficient. The error in the computed
 *>              singular values is bounded by f(m,n)*epsilon*||A||.
@@ -147,7 +147,7 @@
 *>          JOBT is CHARACTER*1
 *>         If the matrix is square then the procedure may determine to use
 *>         transposed A if A^* seems to be better with respect to convergence.
-*>         If the matrix is not square, JOBT is ignored. 
+*>         If the matrix is not square, JOBT is ignored.
 *>         The decision is based on two values of entropy over the adjoint
 *>         orbit of A^* * A. See the descriptions of RWORK(6) and RWORK(7).
 *>       = 'T': transpose if entropy test indicates possibly faster
@@ -298,9 +298,9 @@
 *>                            N*N+LWORK(ZPOCON)).
 *>          2. If SIGMA and the right singular vectors are needed (JOBV = 'V'),
 *>             (JOBU = 'N')
-*>            2.1   .. no scaled condition estimate requested (JOBE = 'N'):    
+*>            2.1   .. no scaled condition estimate requested (JOBE = 'N'):
 *>            -> the minimal requirement is LWORK >= 3*N.
-*>            -> For optimal performance, 
+*>            -> For optimal performance,
 *>               LWORK >= max(N+(N+1)*NB, 2*N+N*NB)=2*N+N*NB,
 *>               where NB is the optimal block size for ZGEQP3, ZGEQRF, ZGELQF,
 *>               ZUNMLQ. In general, the optimal length LWORK is computed as
@@ -308,13 +308,13 @@
 *>                       N+LWORK(ZGELQF), 2*N+LWORK(ZGEQRF), N+LWORK(ZUNMLQ)).
 *>            2.2 .. an estimate of the scaled condition number of A is
 *>               required (JOBA='E', or 'G').
-*>            -> the minimal requirement is LWORK >= 3*N.      
-*>            -> For optimal performance, 
+*>            -> the minimal requirement is LWORK >= 3*N.
+*>            -> For optimal performance,
 *>               LWORK >= max(N+(N+1)*NB, 2*N,2*N+N*NB)=2*N+N*NB,
 *>               where NB is the optimal block size for ZGEQP3, ZGEQRF, ZGELQF,
 *>               ZUNMLQ. In general, the optimal length LWORK is computed as
 *>               LWORK >= max(N+LWORK(ZGEQP3), LWORK(ZPOCON), N+LWORK(ZGESVJ),
-*>                       N+LWORK(ZGELQF), 2*N+LWORK(ZGEQRF), N+LWORK(ZUNMLQ)).   
+*>                       N+LWORK(ZGELQF), 2*N+LWORK(ZGEQRF), N+LWORK(ZUNMLQ)).
 *>          3. If SIGMA and the left singular vectors are needed
 *>            3.1  .. no scaled condition estimate requested (JOBE = 'N'):
 *>            -> the minimal requirement is LWORK >= 3*N.
@@ -322,7 +322,7 @@
 *>               if JOBU = 'U' :: LWORK >= max(3*N, N+(N+1)*NB, 2*N+N*NB)=2*N+N*NB,
 *>               where NB is the optimal block size for ZGEQP3, ZGEQRF, ZUNMQR.
 *>               In general, the optimal length LWORK is computed as
-*>               LWORK >= max(N+LWORK(ZGEQP3), 2*N+LWORK(ZGEQRF), N+LWORK(ZUNMQR)). 
+*>               LWORK >= max(N+LWORK(ZGEQP3), 2*N+LWORK(ZGEQRF), N+LWORK(ZUNMQR)).
 *>            3.2  .. an estimate of the scaled condition number of A is
 *>               required (JOBA='E', or 'G').
 *>            -> the minimal requirement is LWORK >= 3*N.
@@ -332,10 +332,10 @@
 *>               In general, the optimal length LWORK is computed as
 *>               LWORK >= max(N+LWORK(ZGEQP3),N+LWORK(ZPOCON),
 *>                        2*N+LWORK(ZGEQRF), N+LWORK(ZUNMQR)).
-*>          4. If the full SVD is needed: (JOBU = 'U' or JOBU = 'F') and 
-*>            4.1. if JOBV = 'V'  
-*>               the minimal requirement is LWORK >= 5*N+2*N*N. 
-*>            4.2. if JOBV = 'J' the minimal requirement is 
+*>          4. If the full SVD is needed: (JOBU = 'U' or JOBU = 'F') and
+*>            4.1. if JOBV = 'V'
+*>               the minimal requirement is LWORK >= 5*N+2*N*N.
+*>            4.2. if JOBV = 'J' the minimal requirement is
 *>               LWORK >= 4*N+N*N.
 *>            In both cases, the allocated CWORK can accommodate blocked runs
 *>            of ZGEQP3, ZGEQRF, ZGELQF, SUNMQR, ZUNMLQ.
@@ -421,33 +421,33 @@
 *>          then LRWORK = max( 7, 2 * M ).
 *>          4.2. Otherwise, LRWORK  = max( 7, N ).
 *>
-*>          If, on entry, LRWORK = -1 or LWORK=-1, a workspace query is assumed and 
-*>          the length of RWORK is returned in RWORK(1). 
+*>          If, on entry, LRWORK = -1 or LWORK=-1, a workspace query is assumed and
+*>          the length of RWORK is returned in RWORK(1).
 *> \endverbatim
 *>
 *> \param[out] IWORK
 *> \verbatim
-*>          IWORK is INTEGER array, of dimension at least 4, that further depends 
+*>          IWORK is INTEGER array, of dimension at least 4, that further depends
 *>          on the job:
 *>
 *>          1. If only the singular values are requested then:
-*>             If ( LSAME(JOBT,'T') .OR. LSAME(JOBA,'F') .OR. LSAME(JOBA,'G') ) 
+*>             If ( LSAME(JOBT,'T') .OR. LSAME(JOBA,'F') .OR. LSAME(JOBA,'G') )
 *>             then the length of IWORK is N+M; otherwise the length of IWORK is N.
 *>          2. If the singular values and the right singular vectors are requested then:
-*>             If ( LSAME(JOBT,'T') .OR. LSAME(JOBA,'F') .OR. LSAME(JOBA,'G') ) 
-*>             then the length of IWORK is N+M; otherwise the length of IWORK is N. 
+*>             If ( LSAME(JOBT,'T') .OR. LSAME(JOBA,'F') .OR. LSAME(JOBA,'G') )
+*>             then the length of IWORK is N+M; otherwise the length of IWORK is N.
 *>          3. If the singular values and the left singular vectors are requested then:
-*>             If ( LSAME(JOBT,'T') .OR. LSAME(JOBA,'F') .OR. LSAME(JOBA,'G') ) 
-*>             then the length of IWORK is N+M; otherwise the length of IWORK is N. 
+*>             If ( LSAME(JOBT,'T') .OR. LSAME(JOBA,'F') .OR. LSAME(JOBA,'G') )
+*>             then the length of IWORK is N+M; otherwise the length of IWORK is N.
 *>          4. If the singular values with both the left and the right singular vectors
-*>             are requested, then:      
+*>             are requested, then:
 *>             4.1. If LSAME(JOBV,'J') the length of IWORK is determined as follows:
-*>                  If ( LSAME(JOBT,'T') .OR. LSAME(JOBA,'F') .OR. LSAME(JOBA,'G') ) 
-*>                  then the length of IWORK is N+M; otherwise the length of IWORK is N. 
+*>                  If ( LSAME(JOBT,'T') .OR. LSAME(JOBA,'F') .OR. LSAME(JOBA,'G') )
+*>                  then the length of IWORK is N+M; otherwise the length of IWORK is N.
 *>             4.2. If LSAME(JOBV,'V') the length of IWORK is determined as follows:
-*>                  If ( LSAME(JOBT,'T') .OR. LSAME(JOBA,'F') .OR. LSAME(JOBA,'G') ) 
+*>                  If ( LSAME(JOBT,'T') .OR. LSAME(JOBA,'F') .OR. LSAME(JOBA,'G') )
 *>                  then the length of IWORK is 2*N+M; otherwise the length of IWORK is 2*N.
-*>        
+*>
 *>          On exit,
 *>          IWORK(1) = the numerical rank determined after the initial
 *>                     QR factorization with pivoting. See the descriptions
@@ -460,7 +460,7 @@
 *>          IWORK(4) = 1 or -1. If IWORK(4) = 1, then the procedure used A^* to
 *>                     do the job as specified by the JOB parameters.
 *>          If the call to ZGEJSV is a workspace query (indicated by LWORK = -1 or
-*>          LRWORK = -1), then on exit IWORK(1) contains the required length of 
+*>          LRWORK = -1), then on exit IWORK(1) contains the required length of
 *>          IWORK for the job parameters used in the call.
 *> \endverbatim
 *>
@@ -603,9 +603,9 @@
       INTEGER OPTWRK, MINWRK, MINRWRK, MINIWRK
       INTEGER LWCON,  LWLQF, LWQP3, LWQRF, LWUNMLQ, LWUNMQR, LWUNMQRM,
      $        LWSVDJ, LWSVDJV, LRWQP3, LRWCON, LRWSVDJ, IWOFF
-      INTEGER LWRK_ZGELQF, LWRK_ZGEQP3,  LWRK_ZGEQP3N, LWRK_ZGEQRF,  
-     $        LWRK_ZGESVJ, LWRK_ZGESVJV, LWRK_ZGESVJU, LWRK_ZUNMLQ, 
-     $        LWRK_ZUNMQR, LWRK_ZUNMQRM    
+      INTEGER LWRK_ZGELQF, LWRK_ZGEQP3,  LWRK_ZGEQP3N, LWRK_ZGEQRF,
+     $        LWRK_ZGESVJ, LWRK_ZGESVJV, LWRK_ZGESVJU, LWRK_ZUNMLQ,
+     $        LWRK_ZUNMQR, LWRK_ZUNMQRM
 *     ..
 *     .. Local Arrays
       COMPLEX*16         CDUMMY(1)
@@ -676,8 +676,8 @@
          INFO = 0
       END IF
 *
-      IF ( INFO .EQ. 0 ) THEN 
-*         .. compute the minimal and the optimal workspace lengths 
+      IF ( INFO .EQ. 0 ) THEN
+*         .. compute the minimal and the optimal workspace lengths
 *         [[The expressions for computing the minimal and the optimal
 *         values of LCWORK, LRWORK are written with a lot of redundancy and
 *         can be simplified. However, this verbose form is useful for
@@ -687,24 +687,24 @@
 *         ZGEQRF of an N x N matrix, ZGELQF of an N x N matrix,
 *         ZUNMLQ for computing N x N matrix, ZUNMQR for computing N x N
 *         matrix, ZUNMQR for computing M x N matrix, respectively.
-          LWQP3 = N+1   
+          LWQP3 = N+1
           LWQRF = MAX( 1, N )
           LWLQF = MAX( 1, N )
           LWUNMLQ  = MAX( 1, N )
           LWUNMQR  = MAX( 1, N )
           LWUNMQRM = MAX( 1, M )
 *        .. minimal workspace length for ZPOCON of an N x N matrix
-          LWCON = 2 * N 
+          LWCON = 2 * N
 *        .. minimal workspace length for ZGESVJ of an N x N matrix,
 *         without and with explicit accumulation of Jacobi rotations
-          LWSVDJ  = MAX( 2 * N, 1 )         
+          LWSVDJ  = MAX( 2 * N, 1 )
           LWSVDJV = MAX( 2 * N, 1 )
 *         .. minimal REAL workspace length for ZGEQP3, ZPOCON, ZGESVJ
-          LRWQP3  = 2 * N 
-          LRWCON  = N 
-          LRWSVDJ = N 
-          IF ( LQUERY ) THEN 
-              CALL ZGEQP3( M, N, A, LDA, IWORK, CDUMMY, CDUMMY, -1, 
+          LRWQP3  = 2 * N
+          LRWCON  = N
+          LRWSVDJ = N
+          IF ( LQUERY ) THEN
+              CALL ZGEQP3( M, N, A, LDA, IWORK, CDUMMY, CDUMMY, -1,
      $             RDUMMY, IERR )
               LWRK_ZGEQP3 = INT( CDUMMY(1) )
               CALL ZGEQRF( N, N, A, LDA, CDUMMY, CDUMMY,-1, IERR )
@@ -714,50 +714,50 @@
           END IF
           MINWRK  = 2
           OPTWRK  = 2
-          MINIWRK = N 
+          MINIWRK = N
           IF ( .NOT. (LSVEC .OR. RSVEC ) ) THEN
 *             .. minimal and optimal sizes of the complex workspace if
 *             only the singular values are requested
-              IF ( ERREST ) THEN 
+              IF ( ERREST ) THEN
                   MINWRK = MAX( N+LWQP3, N**2+LWCON, N+LWQRF, LWSVDJ )
               ELSE
                   MINWRK = MAX( N+LWQP3, N+LWQRF, LWSVDJ )
               END IF
-              IF ( LQUERY ) THEN 
+              IF ( LQUERY ) THEN
                   CALL ZGESVJ( 'L', 'N', 'N', N, N, A, LDA, SVA, N,
      $                         V,
      $                 LDV, CDUMMY, -1, RDUMMY, -1, IERR )
                   LWRK_ZGESVJ = INT( CDUMMY(1) )
-                  IF ( ERREST ) THEN 
-                      OPTWRK = MAX( N+LWRK_ZGEQP3, N**2+LWCON, 
+                  IF ( ERREST ) THEN
+                      OPTWRK = MAX( N+LWRK_ZGEQP3, N**2+LWCON,
      $                              N+LWRK_ZGEQRF, LWRK_ZGESVJ )
                   ELSE
-                      OPTWRK = MAX( N+LWRK_ZGEQP3, N+LWRK_ZGEQRF, 
+                      OPTWRK = MAX( N+LWRK_ZGEQP3, N+LWRK_ZGEQRF,
      $                              LWRK_ZGESVJ )
                   END IF
               END IF
-              IF ( L2TRAN .OR. ROWPIV ) THEN 
-                  IF ( ERREST ) THEN 
+              IF ( L2TRAN .OR. ROWPIV ) THEN
+                  IF ( ERREST ) THEN
                      MINRWRK = MAX( 7, 2*M,  LRWQP3, LRWCON, LRWSVDJ )
                   ELSE
                      MINRWRK = MAX( 7, 2*M,  LRWQP3, LRWSVDJ )
-                  END IF                 
+                  END IF
               ELSE
-                  IF ( ERREST ) THEN 
+                  IF ( ERREST ) THEN
                      MINRWRK = MAX( 7, LRWQP3, LRWCON, LRWSVDJ )
                   ELSE
                      MINRWRK = MAX( 7, LRWQP3, LRWSVDJ )
                   END IF
-              END IF   
-              IF ( ROWPIV .OR. L2TRAN ) MINIWRK = MINIWRK + M 
+              END IF
+              IF ( ROWPIV .OR. L2TRAN ) MINIWRK = MINIWRK + M
           ELSE IF ( RSVEC .AND. (.NOT.LSVEC) ) THEN
 *            .. minimal and optimal sizes of the complex workspace if the
 *            singular values and the right singular vectors are requested
-             IF ( ERREST ) THEN 
-                 MINWRK = MAX( N+LWQP3, LWCON, LWSVDJ, N+LWLQF,  
+             IF ( ERREST ) THEN
+                 MINWRK = MAX( N+LWQP3, LWCON, LWSVDJ, N+LWLQF,
      $                         2*N+LWQRF, N+LWSVDJ, N+LWUNMLQ )
              ELSE
-                 MINWRK = MAX( N+LWQP3, LWSVDJ, N+LWLQF, 2*N+LWQRF, 
+                 MINWRK = MAX( N+LWQP3, LWSVDJ, N+LWLQF, 2*N+LWQRF,
      $                         N+LWSVDJ, N+LWUNMLQ )
              END IF
              IF ( LQUERY ) THEN
@@ -767,31 +767,31 @@
                  CALL ZUNMLQ( 'L', 'C', N, N, N, A, LDA, CDUMMY,
      $                V, LDV, CDUMMY, -1, IERR )
                  LWRK_ZUNMLQ = INT( CDUMMY(1) )
-                 IF ( ERREST ) THEN 
-                 OPTWRK = MAX( N+LWRK_ZGEQP3, LWCON, LWRK_ZGESVJ, 
+                 IF ( ERREST ) THEN
+                 OPTWRK = MAX( N+LWRK_ZGEQP3, LWCON, LWRK_ZGESVJ,
      $                         N+LWRK_ZGELQF, 2*N+LWRK_ZGEQRF,
      $                         N+LWRK_ZGESVJ,  N+LWRK_ZUNMLQ )
                  ELSE
                  OPTWRK = MAX( N+LWRK_ZGEQP3, LWRK_ZGESVJ,N+LWRK_ZGELQF,
-     $                         2*N+LWRK_ZGEQRF, N+LWRK_ZGESVJ, 
+     $                         2*N+LWRK_ZGEQRF, N+LWRK_ZGESVJ,
      $                         N+LWRK_ZUNMLQ )
                  END IF
              END IF
-             IF ( L2TRAN .OR. ROWPIV ) THEN 
-                  IF ( ERREST ) THEN 
+             IF ( L2TRAN .OR. ROWPIV ) THEN
+                  IF ( ERREST ) THEN
                      MINRWRK = MAX( 7, 2*M,  LRWQP3, LRWSVDJ, LRWCON )
                   ELSE
-                     MINRWRK = MAX( 7, 2*M,  LRWQP3, LRWSVDJ ) 
-                  END IF                  
+                     MINRWRK = MAX( 7, 2*M,  LRWQP3, LRWSVDJ )
+                  END IF
              ELSE
-                  IF ( ERREST ) THEN 
+                  IF ( ERREST ) THEN
                      MINRWRK = MAX( 7, LRWQP3, LRWSVDJ, LRWCON )
                   ELSE
-                     MINRWRK = MAX( 7, LRWQP3, LRWSVDJ ) 
-                  END IF                 
+                     MINRWRK = MAX( 7, LRWQP3, LRWSVDJ )
+                  END IF
              END IF
              IF ( ROWPIV .OR. L2TRAN ) MINIWRK = MINIWRK + M
-          ELSE IF ( LSVEC .AND. (.NOT.RSVEC) ) THEN  
+          ELSE IF ( LSVEC .AND. (.NOT.RSVEC) ) THEN
 *            .. minimal and optimal sizes of the complex workspace if the
 *            singular values and the left singular vectors are requested
              IF ( ERREST ) THEN
@@ -814,51 +814,51 @@
      $                             LWRK_ZGESVJ, LWRK_ZUNMQRM )
                  END IF
              END IF
-             IF ( L2TRAN .OR. ROWPIV ) THEN 
-                 IF ( ERREST ) THEN 
+             IF ( L2TRAN .OR. ROWPIV ) THEN
+                 IF ( ERREST ) THEN
                     MINRWRK = MAX( 7, 2*M,  LRWQP3, LRWSVDJ, LRWCON )
                  ELSE
                     MINRWRK = MAX( 7, 2*M,  LRWQP3, LRWSVDJ )
-                 END IF                 
+                 END IF
              ELSE
-                 IF ( ERREST ) THEN 
+                 IF ( ERREST ) THEN
                     MINRWRK = MAX( 7, LRWQP3, LRWSVDJ, LRWCON )
                  ELSE
                     MINRWRK = MAX( 7, LRWQP3, LRWSVDJ )
-                 END IF                
-             END IF 
+                 END IF
+             END IF
              IF ( ROWPIV .OR. L2TRAN ) MINIWRK = MINIWRK + M
           ELSE
 *            .. minimal and optimal sizes of the complex workspace if the
 *            full SVD is requested
-             IF ( .NOT. JRACC ) THEN                
-                 IF ( ERREST ) THEN 
-                    MINWRK = MAX( N+LWQP3, N+LWCON,  2*N+N**2+LWCON, 
-     $                         2*N+LWQRF,         2*N+LWQP3, 
-     $                         2*N+N**2+N+LWLQF,  2*N+N**2+N+N**2+LWCON,
-     $                         2*N+N**2+N+LWSVDJ, 2*N+N**2+N+LWSVDJV, 
-     $                         2*N+N**2+N+LWUNMQR,2*N+N**2+N+LWUNMLQ, 
-     $                         N+N**2+LWSVDJ,   N+LWUNMQRM )
-                 ELSE
-                    MINWRK = MAX( N+LWQP3,        2*N+N**2+LWCON, 
-     $                         2*N+LWQRF,         2*N+LWQP3, 
+             IF ( .NOT. JRACC ) THEN
+                 IF ( ERREST ) THEN
+                    MINWRK = MAX( N+LWQP3, N+LWCON,  2*N+N**2+LWCON,
+     $                         2*N+LWQRF,         2*N+LWQP3,
      $                         2*N+N**2+N+LWLQF,  2*N+N**2+N+N**2+LWCON,
      $                         2*N+N**2+N+LWSVDJ, 2*N+N**2+N+LWSVDJV,
      $                         2*N+N**2+N+LWUNMQR,2*N+N**2+N+LWUNMLQ,
-     $                         N+N**2+LWSVDJ,      N+LWUNMQRM ) 
-                 END IF 
-                 MINIWRK = MINIWRK + N 
+     $                         N+N**2+LWSVDJ,   N+LWUNMQRM )
+                 ELSE
+                    MINWRK = MAX( N+LWQP3,        2*N+N**2+LWCON,
+     $                         2*N+LWQRF,         2*N+LWQP3,
+     $                         2*N+N**2+N+LWLQF,  2*N+N**2+N+N**2+LWCON,
+     $                         2*N+N**2+N+LWSVDJ, 2*N+N**2+N+LWSVDJV,
+     $                         2*N+N**2+N+LWUNMQR,2*N+N**2+N+LWUNMLQ,
+     $                         N+N**2+LWSVDJ,      N+LWUNMQRM )
+                 END IF
+                 MINIWRK = MINIWRK + N
                  IF ( ROWPIV .OR. L2TRAN ) MINIWRK = MINIWRK + M
              ELSE
-                 IF ( ERREST ) THEN 
-                    MINWRK = MAX( N+LWQP3, N+LWCON, 2*N+LWQRF, 
-     $                         2*N+N**2+LWSVDJV, 2*N+N**2+N+LWUNMQR, 
+                 IF ( ERREST ) THEN
+                    MINWRK = MAX( N+LWQP3, N+LWCON, 2*N+LWQRF,
+     $                         2*N+N**2+LWSVDJV, 2*N+N**2+N+LWUNMQR,
      $                         N+LWUNMQRM )
                  ELSE
-                    MINWRK = MAX( N+LWQP3, 2*N+LWQRF, 
-     $                         2*N+N**2+LWSVDJV, 2*N+N**2+N+LWUNMQR, 
-     $                         N+LWUNMQRM ) 
-                 END IF   
+                    MINWRK = MAX( N+LWQP3, 2*N+LWQRF,
+     $                         2*N+N**2+LWSVDJV, 2*N+N**2+N+LWUNMQR,
+     $                         N+LWUNMQRM )
+                 END IF
                  IF ( ROWPIV .OR. L2TRAN ) MINIWRK = MINIWRK + M
              END IF
              IF ( LQUERY ) THEN
@@ -885,31 +885,31 @@
                      CALL ZUNMLQ( 'L', 'C', N, N, N, A, LDA, CDUMMY,
      $                    V, LDV, CDUMMY, -1, IERR )
                      LWRK_ZUNMLQ = INT( CDUMMY(1) )
-                     IF ( ERREST ) THEN 
-                       OPTWRK = MAX( N+LWRK_ZGEQP3, N+LWCON, 
-     $                          2*N+N**2+LWCON, 2*N+LWRK_ZGEQRF, 
-     $                          2*N+LWRK_ZGEQP3N, 
-     $                          2*N+N**2+N+LWRK_ZGELQF,  
+                     IF ( ERREST ) THEN
+                       OPTWRK = MAX( N+LWRK_ZGEQP3, N+LWCON,
+     $                          2*N+N**2+LWCON, 2*N+LWRK_ZGEQRF,
+     $                          2*N+LWRK_ZGEQP3N,
+     $                          2*N+N**2+N+LWRK_ZGELQF,
      $                          2*N+N**2+N+N**2+LWCON,
-     $                          2*N+N**2+N+LWRK_ZGESVJ, 
-     $                          2*N+N**2+N+LWRK_ZGESVJV,               
+     $                          2*N+N**2+N+LWRK_ZGESVJ,
+     $                          2*N+N**2+N+LWRK_ZGESVJV,
      $                          2*N+N**2+N+LWRK_ZUNMQR,
-     $                          2*N+N**2+N+LWRK_ZUNMLQ, 
-     $                          N+N**2+LWRK_ZGESVJU,                  
-     $                          N+LWRK_ZUNMQRM )
-                     ELSE
-                       OPTWRK = MAX( N+LWRK_ZGEQP3,  
-     $                          2*N+N**2+LWCON, 2*N+LWRK_ZGEQRF, 
-     $                          2*N+LWRK_ZGEQP3N, 
-     $                          2*N+N**2+N+LWRK_ZGELQF,  
-     $                          2*N+N**2+N+N**2+LWCON,
-     $                          2*N+N**2+N+LWRK_ZGESVJ,               
-     $                          2*N+N**2+N+LWRK_ZGESVJV, 
-     $                          2*N+N**2+N+LWRK_ZUNMQR,
-     $                          2*N+N**2+N+LWRK_ZUNMLQ, 
+     $                          2*N+N**2+N+LWRK_ZUNMLQ,
      $                          N+N**2+LWRK_ZGESVJU,
      $                          N+LWRK_ZUNMQRM )
-                     END IF                    
+                     ELSE
+                       OPTWRK = MAX( N+LWRK_ZGEQP3,
+     $                          2*N+N**2+LWCON, 2*N+LWRK_ZGEQRF,
+     $                          2*N+LWRK_ZGEQP3N,
+     $                          2*N+N**2+N+LWRK_ZGELQF,
+     $                          2*N+N**2+N+N**2+LWCON,
+     $                          2*N+N**2+N+LWRK_ZGESVJ,
+     $                          2*N+N**2+N+LWRK_ZGESVJV,
+     $                          2*N+N**2+N+LWRK_ZUNMQR,
+     $                          2*N+N**2+N+LWRK_ZUNMLQ,
+     $                          N+N**2+LWRK_ZGESVJU,
+     $                          N+LWRK_ZUNMQRM )
+                     END IF
                  ELSE
                      CALL ZGESVJ( 'L', 'U', 'V', N, N, U, LDU, SVA,
      $                    N, V, LDV, CDUMMY, -1, RDUMMY, -1, IERR )
@@ -922,31 +922,31 @@
      $                            U,
      $                    LDU, CDUMMY, -1, IERR )
                      LWRK_ZUNMQRM = INT( CDUMMY(1) )
-                     IF ( ERREST ) THEN 
-                        OPTWRK = MAX( N+LWRK_ZGEQP3, N+LWCON,   
-     $                           2*N+LWRK_ZGEQRF, 2*N+N**2,  
-     $                           2*N+N**2+LWRK_ZGESVJV,  
+                     IF ( ERREST ) THEN
+                        OPTWRK = MAX( N+LWRK_ZGEQP3, N+LWCON,
+     $                           2*N+LWRK_ZGEQRF, 2*N+N**2,
+     $                           2*N+N**2+LWRK_ZGESVJV,
      $                           2*N+N**2+N+LWRK_ZUNMQR,N+LWRK_ZUNMQRM )
                      ELSE
-                        OPTWRK = MAX( N+LWRK_ZGEQP3, 2*N+LWRK_ZGEQRF,  
-     $                           2*N+N**2, 2*N+N**2+LWRK_ZGESVJV, 
-     $                           2*N+N**2+N+LWRK_ZUNMQR, 
-     $                           N+LWRK_ZUNMQRM )   
-                     END IF                  
-                 END IF               
-             END IF 
-             IF ( L2TRAN .OR. ROWPIV ) THEN 
+                        OPTWRK = MAX( N+LWRK_ZGEQP3, 2*N+LWRK_ZGEQRF,
+     $                           2*N+N**2, 2*N+N**2+LWRK_ZGESVJV,
+     $                           2*N+N**2+N+LWRK_ZUNMQR,
+     $                           N+LWRK_ZUNMQRM )
+                     END IF
+                 END IF
+             END IF
+             IF ( L2TRAN .OR. ROWPIV ) THEN
                  MINRWRK = MAX( 7, 2*M,  LRWQP3, LRWSVDJ, LRWCON )
              ELSE
                  MINRWRK = MAX( 7, LRWQP3, LRWSVDJ, LRWCON )
-             END IF 
+             END IF
           END IF
           MINWRK = MAX( 2, MINWRK )
           OPTWRK = MAX( MINWRK, OPTWRK )
           IF ( LWORK  .LT. MINWRK  .AND. (.NOT.LQUERY) ) INFO = - 17
-          IF ( LRWORK .LT. MINRWRK .AND. (.NOT.LQUERY) ) INFO = - 19   
+          IF ( LRWORK .LT. MINRWRK .AND. (.NOT.LQUERY) ) INFO = - 19
       END IF
-*      
+*
       IF ( INFO .NE. 0 ) THEN
 *       #:(
          CALL XERBLA( 'ZGEJSV', - INFO )
@@ -956,7 +956,7 @@
           CWORK(2) = MINWRK
           RWORK(1) = MINRWRK
           IWORK(1) = MAX( 4, MINIWRK )
-          RETURN   
+          RETURN
       END IF
 *
 *     Quick return for void matrix (Y3K safe)
@@ -1130,7 +1130,7 @@
                RWORK(M+p)  = XSC * SCALEM
                RWORK(p)    = XSC * (SCALEM*SQRT(TEMP1))
                AATMAX = MAX( AATMAX, RWORK(p) )
-               IF (RWORK(p) .NE. ZERO) 
+               IF (RWORK(p) .NE. ZERO)
      $            AATMIN = MIN(AATMIN,RWORK(p))
  1950       CONTINUE
          ELSE
@@ -1183,7 +1183,7 @@
 *        usually means better input for the algorithm.
 *
          TRANSP = ( ENTRAT .LT. ENTRA )
-* 
+*
 *        If A^* is better than A, take the adjoint of A. This is allowed
 *        only for square matrices, M=N.
          IF ( TRANSP ) THEN
@@ -1233,7 +1233,7 @@
 *     >> change in the April 2016 update: allow bigger range, i.e. the
 *     largest column is allowed up to BIG/N and ZGESVJ will do the rest.
       BIG1   = SQRT( BIG )
-      TEMP1  = SQRT( BIG / DBLE(N) ) 
+      TEMP1  = SQRT( BIG / DBLE(N) )
 *      TEMP1  = BIG/DBLE(N)
 *
       CALL DLASCL( 'G', 0, 0, AAPP, TEMP1, N, 1, SVA, N, IERR )
@@ -1289,7 +1289,7 @@
 *        row pivoting combined with standard column pivoting
 *        has similar effect as Powell-Reid complete pivoting.
 *        The ell-infinity norms of A are made nonincreasing.
-         IF ( ( LSVEC .AND. RSVEC ) .AND. .NOT.( JRACC ) ) THEN 
+         IF ( ( LSVEC .AND. RSVEC ) .AND. .NOT.( JRACC ) ) THEN
               IWOFF = 2*N
          ELSE
               IWOFF = N
@@ -1412,8 +1412,8 @@
                ELSE
                    CALL ZPOCON( 'U', N, V, LDV, ONE, TEMP1,
      $                  CWORK, RWORK, IERR )
-               END IF               
-*          
+               END IF
+*
             ELSE IF ( LSVEC ) THEN
 *              .. U is available as workspace
                CALL ZLACPY( 'U', N, N, A, LDA, U, LDU )
@@ -1426,7 +1426,7 @@
             ELSE
                CALL ZLACPY( 'U', N, N, A, LDA, CWORK, N )
 *[]            CALL ZLACPY( 'U', N, N, A, LDA, CWORK(N+1), N )
-*              Change: here index shifted by N to the left, CWORK(1:N) 
+*              Change: here index shifted by N to the left, CWORK(1:N)
 *              not needed for SIGMA only computation
                DO 3052 p = 1, N
                   TEMP1 = SVA(IWORK(p))
@@ -1437,10 +1437,10 @@
 *[]               CALL ZPOCON( 'U', N, CWORK(N+1), N, ONE, TEMP1,
 *[]     $              CWORK(N+N*N+1), RWORK, IERR )
                CALL ZPOCON( 'U', N, CWORK, N, ONE, TEMP1,
-     $              CWORK(N*N+1), RWORK, IERR )               
-*              
+     $              CWORK(N*N+1), RWORK, IERR )
+*
             END IF
-            IF ( TEMP1 .NE. ZERO ) THEN 
+            IF ( TEMP1 .NE. ZERO ) THEN
                SCONDA = ONE / SQRT(TEMP1)
             ELSE
                SCONDA = - ONE
@@ -1544,7 +1544,7 @@
 *
 *
       ELSE IF ( ( RSVEC .AND. ( .NOT. LSVEC ) .AND. ( .NOT. JRACC ) )
-     $       .OR. 
+     $       .OR.
      $   ( JRACC .AND. ( .NOT. LSVEC ) .AND. ( NR .NE. N ) ) ) THEN
 *
 *        -> Singular Values and Right Singular Vectors <-
@@ -1609,8 +1609,8 @@
             CALL ZLACPY( 'A', N, N, V, LDV, U, LDU )
           END IF
 *
-      ELSE IF ( JRACC .AND. (.NOT. LSVEC) .AND. ( NR.EQ. N ) ) THEN 
-*          
+      ELSE IF ( JRACC .AND. (.NOT. LSVEC) .AND. ( NR.EQ. N ) ) THEN
+*
          CALL ZLASET( 'L', N-1,N-1, CZERO, CZERO, A(2,1), LDA )
 *
          CALL ZGESVJ( 'U','N','V', N, N, A, LDA, SVA, N, V, LDV,
@@ -2115,7 +2115,7 @@
 *        a posteriori computation of the singular vectors assumes robust
 *        implementation of BLAS and some LAPACK procedures, capable of working
 *        in presence of extreme values, e.g. when the singular values spread from
-*        the underflow to the overflow threshold. 
+*        the underflow to the overflow threshold.
 *
          DO 7968 p = 1, NR
             CALL ZCOPY( N-p+1, A(p,p), LDA, V(p,p), 1 )
@@ -2256,11 +2256,11 @@
       IWORK(2) = NUMRANK
       IWORK(3) = WARNING
       IF ( TRANSP ) THEN
-          IWORK(4) =  1 
+          IWORK(4) =  1
       ELSE
           IWORK(4) = -1
-      END IF 
-      
+      END IF
+
 *
       RETURN
 *     ..

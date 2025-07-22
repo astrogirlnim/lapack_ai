@@ -237,7 +237,7 @@
 *
                         CALL CLACPY( 'All', M, N, C, MAXM, X, MAXM)
                         CALL CLACPY( 'All', M, N, C, MAXM, CC, MAXM)
-                        CALL CTRSYL( TRANA, TRANB, ISGN, M, N, 
+                        CALL CTRSYL( TRANA, TRANB, ISGN, M, N,
      $                               A, MAXM, B, MAXN, X, MAXM,
      $                               SCALE, IINFO )
                         IF( IINFO.NE.0 )
@@ -288,7 +288,7 @@
      $                             ( ( ABS( RMUL )*TNRM )*EPS )*XNRM )
 *                       Verify that TRSYL3 only flushes if TRSYL flushes (but
 *                       there may be cases where TRSYL3 avoid flushing).
-                        IF( SCALE3.EQ.ZERO .AND. SCALE.GT.ZERO .OR. 
+                        IF( SCALE3.EQ.ZERO .AND. SCALE.GT.ZERO .OR.
      $                      IINFO.NE.INFO ) THEN
                            NFAIL( 3 ) = NFAIL( 3 ) + 1
                         END IF

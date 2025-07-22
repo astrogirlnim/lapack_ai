@@ -36,7 +36,7 @@
 *>       DGEJSV   compute SVD of an M-by-N matrix A where M >= N
 *>       DGESVDX  compute SVD of an M-by-N matrix A(by bisection
 *>                and inverse iteration)
-*>       DGESVDQ  compute SVD of an M-by-N matrix A(with a 
+*>       DGESVDQ  compute SVD of an M-by-N matrix A(with a
 *>                QR-Preconditioned )
 *> \endverbatim
 *

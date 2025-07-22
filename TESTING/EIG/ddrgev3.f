@@ -739,7 +739,7 @@
                DO 83 JC = 1, N, 4
                   B( JC, JC ) = ZERO
    83          CONTINUE
-               
+
             END IF
 *
    90       CONTINUE

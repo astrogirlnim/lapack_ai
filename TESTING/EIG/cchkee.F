@@ -1108,7 +1108,7 @@
      $                   CDRGEV, CDRGSX, CDRGVX, CDRVBD, CDRVES, CDRVEV,
      $                   CDRVSG, CDRVST, CDRVSX, CDRVVX, CERRBD,
      $                   CERRED, CERRGG, CERRHS, CERRST, ILAVER, XLAENV,
-     $                   CDRGES3, CDRGEV3, 
+     $                   CDRGES3, CDRGEV3,
      $                   CCHKST2STG, CDRVST2STG, CCHKHB2STG
 *     ..
 *     .. Intrinsic Functions ..
@@ -2351,9 +2351,9 @@
 *     $                A( 1, 2 ), NMAX, WORK, LWORK, RWORK, RESULT,
 *     $                INFO )
          CALL CCHKHB2STG( NN, NVAL, NK, KVAL, MAXTYP, DOTYPE, ISEED,
-     $                 THRESH, NOUT, A( 1, 1 ), NMAX, DR( 1, 1 ), 
+     $                 THRESH, NOUT, A( 1, 1 ), NMAX, DR( 1, 1 ),
      $                 DR( 1, 2 ), DR( 1, 3 ), DR( 1, 4 ), DR( 1, 5 ),
-     $                 A( 1, 2 ), NMAX, WORK, LWORK, RWORK, RESULT, 
+     $                 A( 1, 2 ), NMAX, WORK, LWORK, RWORK, RESULT,
      $                 INFO )
          IF( INFO.NE.0 )
      $      WRITE( NOUT, FMT = 9980 )'CCHKHB', INFO
@@ -2475,7 +2475,7 @@
   380 CONTINUE
       WRITE( NOUT, FMT = 9994 )
       S2 = SECOND( )
-      WRITE( NOUT, FMT = 9993 )S2 - S1    
+      WRITE( NOUT, FMT = 9993 )S2 - S1
 *
       DEALLOCATE (S, STAT = AllocateStatus)
       DEALLOCATE (A, STAT = AllocateStatus)

@@ -35,7 +35,7 @@
 lapack_int API_SUFFIX(LAPACKE_sgedmd)( int matrix_layout, char jobs, char jobz, char jobr,
 			   char jobf, lapack_int whtsvd, lapack_int m,
 			   lapack_int n, float* x, lapack_int ldx, float* y,
-			   lapack_int ldy, lapack_int nrnk, float* tol, 
+			   lapack_int ldy, lapack_int nrnk, float* tol,
 			   lapack_int k, float* reig, float* imeig,
 			   float* z, lapack_int ldz, float* res,
 			   float* b, lapack_int ldb, float* w, lapack_int ldw,

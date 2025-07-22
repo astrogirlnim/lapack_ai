@@ -247,7 +247,7 @@
 *        3) Backward substitution with U
 *
          IF( N.GT.1 ) THEN
-*     
+*
 *
 *           Compute U \ B -> B   [ U \ (T \ (U**T \P**T * B) ) ]
 *

@@ -130,7 +130,7 @@
 *
 *        C = [ C_1 C_2 ]
 *        C_1\in\mathbb{C}^{m\times 1}, C_2\in\mathbb{C}^{m\times n-1}
-*        So we compute: 
+*        So we compute:
 *        C = CH   = C(I - \tau vv**T)
 *                 = C - \tau Cvv**T
 *
@@ -279,7 +279,7 @@
 *              w(1:lastc,1) := C(1:lastc,1:lastv) * v(1:lastv,1)
 *
                ! w(1:lastc,1) := C(1:lastc,2:lastv) * v(2:lastv,1)
-               CALL ZGEMV( 'No transpose', LASTC, LASTV-1, ONE, 
+               CALL ZGEMV( 'No transpose', LASTC, LASTV-1, ONE,
      $            C(1,1+1), LDC, V(1+INCV), INCV, ZERO, WORK, 1 )
                ! w(1:lastc,1) += C(1:lastc,1) v(1,1) = C(1:lastc,1)
                CALL ZAXPY(LASTC, ONE, C, 1, WORK, 1)

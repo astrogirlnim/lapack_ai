@@ -140,7 +140,7 @@
 *> \verbatim
 *>          A is COMPLEX array, dimension (NT)
 *>           NT = N*(N+1)/2 if SIDE='R' and NT = M*(M+1)/2 otherwise.
-*>           On entry, the matrix A in RFP Format. 
+*>           On entry, the matrix A in RFP Format.
 *>           RFP Format is described by TRANSR, UPLO and N as follows:
 *>           If TRANSR='N' then RFP A is (0:N,0:K-1) when N is even;
 *>           K=N/2. RFP A is (0:N-1,0:K) when N is odd; K=N/2. If

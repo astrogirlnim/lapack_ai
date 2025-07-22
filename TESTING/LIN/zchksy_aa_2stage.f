@@ -8,7 +8,7 @@
 *  Definition:
 *  ===========
 *
-*       SUBROUTINE ZCHKSY_AA_2STAGE( DOTYPE, NN, NVAL, NNB, NBVAL, 
+*       SUBROUTINE ZCHKSY_AA_2STAGE( DOTYPE, NN, NVAL, NNB, NBVAL,
 *                             NNS, NSVAL, THRESH, TSTERR, NMAX, A,
 *                             AFAC, AINV, B, X, XACT, WORK, RWORK,
 *                             IWORK, NOUT )
@@ -215,7 +215,7 @@
 *     ..
 *     .. External Subroutines ..
       EXTERNAL           ALAERH, ALAHD, ALASUM, ZERRSY, ZLACPY, ZLARHS,
-     $                   ZLATB4, ZLATMS, ZSYT02, ZSYT01, 
+     $                   ZLATB4, ZLATMS, ZSYT02, ZSYT01,
      $                   ZSYTRF_AA_2STAGE, ZSYTRS_AA_2STAGE,
      $                   XLAENV
 *     ..
@@ -425,8 +425,8 @@
 *
                   SRNAMT = 'ZSYTRF_AA_2STAGE'
                   LWORK = MIN(N*NB, 3*NMAX*NMAX)
-                  CALL ZSYTRF_AA_2STAGE( UPLO, N, AFAC, LDA, 
-     $                                   AINV, (3*NB+1)*N, 
+                  CALL ZSYTRF_AA_2STAGE( UPLO, N, AFAC, LDA,
+     $                                   AINV, (3*NB+1)*N,
      $                                   IWORK, IWORK( 1+N ),
      $                                   WORK, LWORK,
      $                                   INFO )

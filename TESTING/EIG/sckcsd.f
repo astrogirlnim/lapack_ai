@@ -399,4 +399,3 @@
      $             X(1,Q+1), LDX, ISEED, WORK, INFO )
 *
       END
-

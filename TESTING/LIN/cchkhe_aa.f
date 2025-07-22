@@ -424,7 +424,7 @@
 *
                   LWORK = MAX( 1, ( NB+1 )*LDA )
                   SRNAMT = 'CHETRF_AA'
-                  CALL CHETRF_AA( UPLO, N, AFAC, LDA, IWORK, AINV, 
+                  CALL CHETRF_AA( UPLO, N, AFAC, LDA, IWORK, AINV,
      $                            LWORK, INFO )
 *
 *                 Adjust the expected value of INFO to account for
@@ -450,8 +450,8 @@ c                  END IF
 *                 Check error code from CHETRF and handle error.
 *
                   IF( INFO.NE.K ) THEN
-                     CALL ALAERH( PATH, 'CHETRF_AA', INFO, K, UPLO, 
-     $                            N, N, -1, -1, NB, IMAT, NFAIL, NERRS, 
+                     CALL ALAERH( PATH, 'CHETRF_AA', INFO, K, UPLO,
+     $                            N, N, -1, -1, NB, IMAT, NFAIL, NERRS,
      $                            NOUT )
                   END IF
 *

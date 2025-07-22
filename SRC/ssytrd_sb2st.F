@@ -564,4 +564,3 @@
 *     End of SSYTRD_SB2ST
 *
       END
-

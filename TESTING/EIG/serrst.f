@@ -175,31 +175,31 @@
 *
          SRNAMT = 'SSYTRD_2STAGE'
          INFOT = 1
-         CALL SSYTRD_2STAGE( '/', 'U', 0, A, 1, D, E, TAU, 
+         CALL SSYTRD_2STAGE( '/', 'U', 0, A, 1, D, E, TAU,
      $                                  C, 1, W, 1, INFO )
          CALL CHKXER( 'SSYTRD_2STAGE', INFOT, NOUT, LERR, OK )
          INFOT = 1
-         CALL SSYTRD_2STAGE( 'H', 'U', 0, A, 1, D, E, TAU, 
+         CALL SSYTRD_2STAGE( 'H', 'U', 0, A, 1, D, E, TAU,
      $                                  C, 1, W, 1, INFO )
          CALL CHKXER( 'SSYTRD_2STAGE', INFOT, NOUT, LERR, OK )
          INFOT = 2
-         CALL SSYTRD_2STAGE( 'N', '/', 0, A, 1, D, E, TAU, 
+         CALL SSYTRD_2STAGE( 'N', '/', 0, A, 1, D, E, TAU,
      $                                  C, 1, W, 1, INFO )
          CALL CHKXER( 'SSYTRD_2STAGE', INFOT, NOUT, LERR, OK )
          INFOT = 3
-         CALL SSYTRD_2STAGE( 'N', 'U', -1, A, 1, D, E, TAU, 
+         CALL SSYTRD_2STAGE( 'N', 'U', -1, A, 1, D, E, TAU,
      $                                  C, 1, W, 1, INFO )
          CALL CHKXER( 'SSYTRD_2STAGE', INFOT, NOUT, LERR, OK )
          INFOT = 5
-         CALL SSYTRD_2STAGE( 'N', 'U', 2, A, 1, D, E, TAU, 
+         CALL SSYTRD_2STAGE( 'N', 'U', 2, A, 1, D, E, TAU,
      $                                  C, 1, W, 1, INFO )
          CALL CHKXER( 'SSYTRD_2STAGE', INFOT, NOUT, LERR, OK )
          INFOT = 10
-         CALL SSYTRD_2STAGE( 'N', 'U', 0, A, 1, D, E, TAU, 
+         CALL SSYTRD_2STAGE( 'N', 'U', 0, A, 1, D, E, TAU,
      $                                  C, 0, W, 1, INFO )
          CALL CHKXER( 'SSYTRD_2STAGE', INFOT, NOUT, LERR, OK )
          INFOT = 12
-         CALL SSYTRD_2STAGE( 'N', 'U', 0, A, 1, D, E, TAU, 
+         CALL SSYTRD_2STAGE( 'N', 'U', 0, A, 1, D, E, TAU,
      $                                  C, 1, W, 0, INFO )
          CALL CHKXER( 'SSYTRD_2STAGE', INFOT, NOUT, LERR, OK )
          NT = NT + 7
@@ -231,39 +231,39 @@
 *
          SRNAMT = 'SSYTRD_SB2ST'
          INFOT = 1
-         CALL SSYTRD_SB2ST( '/', 'N', 'U', 0, 0, A, 1, D, E, 
+         CALL SSYTRD_SB2ST( '/', 'N', 'U', 0, 0, A, 1, D, E,
      $                                    C, 1, W, 1, INFO )
          CALL CHKXER( 'SSYTRD_SB2ST', INFOT, NOUT, LERR, OK )
          INFOT = 2
-         CALL SSYTRD_SB2ST( 'Y', '/', 'U', 0, 0, A, 1, D, E, 
+         CALL SSYTRD_SB2ST( 'Y', '/', 'U', 0, 0, A, 1, D, E,
      $                                    C, 1, W, 1, INFO )
          CALL CHKXER( 'SSYTRD_SB2ST', INFOT, NOUT, LERR, OK )
          INFOT = 2
-         CALL SSYTRD_SB2ST( 'Y', 'H', 'U', 0, 0, A, 1, D, E, 
+         CALL SSYTRD_SB2ST( 'Y', 'H', 'U', 0, 0, A, 1, D, E,
      $                                    C, 1, W, 1, INFO )
          CALL CHKXER( 'SSYTRD_SB2ST', INFOT, NOUT, LERR, OK )
          INFOT = 3
-         CALL SSYTRD_SB2ST( 'Y', 'N', '/', 0, 0, A, 1, D, E, 
+         CALL SSYTRD_SB2ST( 'Y', 'N', '/', 0, 0, A, 1, D, E,
      $                                    C, 1, W, 1, INFO )
          CALL CHKXER( 'SSYTRD_SB2ST', INFOT, NOUT, LERR, OK )
          INFOT = 4
-         CALL SSYTRD_SB2ST( 'Y', 'N', 'U', -1, 0, A, 1, D, E, 
+         CALL SSYTRD_SB2ST( 'Y', 'N', 'U', -1, 0, A, 1, D, E,
      $                                    C, 1, W, 1, INFO )
          CALL CHKXER( 'SSYTRD_SB2ST', INFOT, NOUT, LERR, OK )
          INFOT = 5
-         CALL SSYTRD_SB2ST( 'Y', 'N', 'U', 0, -1, A, 1, D, E, 
+         CALL SSYTRD_SB2ST( 'Y', 'N', 'U', 0, -1, A, 1, D, E,
      $                                    C, 1, W, 1, INFO )
          CALL CHKXER( 'SSYTRD_SB2ST', INFOT, NOUT, LERR, OK )
          INFOT = 7
-         CALL SSYTRD_SB2ST( 'Y', 'N', 'U', 0, 1, A, 1, D, E, 
+         CALL SSYTRD_SB2ST( 'Y', 'N', 'U', 0, 1, A, 1, D, E,
      $                                    C, 1, W, 1, INFO )
          CALL CHKXER( 'SSYTRD_SB2ST', INFOT, NOUT, LERR, OK )
          INFOT = 11
-         CALL SSYTRD_SB2ST( 'Y', 'N', 'U', 0, 0, A, 1, D, E, 
+         CALL SSYTRD_SB2ST( 'Y', 'N', 'U', 0, 0, A, 1, D, E,
      $                                    C, 0, W, 1, INFO )
          CALL CHKXER( 'SSYTRD_SB2ST', INFOT, NOUT, LERR, OK )
          INFOT = 13
-         CALL SSYTRD_SB2ST( 'Y', 'N', 'U', 0, 0, A, 1, D, E, 
+         CALL SSYTRD_SB2ST( 'Y', 'N', 'U', 0, 0, A, 1, D, E,
      $                                    C, 1, W, 0, INFO )
          CALL CHKXER( 'SSYTRD_SB2ST', INFOT, NOUT, LERR, OK )
          NT = NT + 9
@@ -1102,39 +1102,39 @@
 *
          SRNAMT = 'SSYTRD_SB2ST'
          INFOT = 1
-         CALL SSYTRD_SB2ST( '/', 'N', 'U', 0, 0, A, 1, D, E, 
+         CALL SSYTRD_SB2ST( '/', 'N', 'U', 0, 0, A, 1, D, E,
      $                                    C, 1, W, 1, INFO )
          CALL CHKXER( 'SSYTRD_SB2ST', INFOT, NOUT, LERR, OK )
          INFOT = 2
-         CALL SSYTRD_SB2ST( 'N', '/', 'U', 0, 0, A, 1, D, E, 
+         CALL SSYTRD_SB2ST( 'N', '/', 'U', 0, 0, A, 1, D, E,
      $                                    C, 1, W, 1, INFO )
          CALL CHKXER( 'SSYTRD_SB2ST', INFOT, NOUT, LERR, OK )
          INFOT = 2
-         CALL SSYTRD_SB2ST( 'N', 'H', 'U', 0, 0, A, 1, D, E, 
+         CALL SSYTRD_SB2ST( 'N', 'H', 'U', 0, 0, A, 1, D, E,
      $                                    C, 1, W, 1, INFO )
          CALL CHKXER( 'SSYTRD_SB2ST', INFOT, NOUT, LERR, OK )
          INFOT = 3
-         CALL SSYTRD_SB2ST( 'N', 'N', '/', 0, 0, A, 1, D, E, 
+         CALL SSYTRD_SB2ST( 'N', 'N', '/', 0, 0, A, 1, D, E,
      $                                    C, 1, W, 1, INFO )
          CALL CHKXER( 'SSYTRD_SB2ST', INFOT, NOUT, LERR, OK )
          INFOT = 4
-         CALL SSYTRD_SB2ST( 'N', 'N', 'U', -1, 0, A, 1, D, E, 
+         CALL SSYTRD_SB2ST( 'N', 'N', 'U', -1, 0, A, 1, D, E,
      $                                    C, 1, W, 1, INFO )
          CALL CHKXER( 'SSYTRD_SB2ST', INFOT, NOUT, LERR, OK )
          INFOT = 5
-         CALL SSYTRD_SB2ST( 'N', 'N', 'U', 0, -1, A, 1, D, E, 
+         CALL SSYTRD_SB2ST( 'N', 'N', 'U', 0, -1, A, 1, D, E,
      $                                    C, 1, W, 1, INFO )
          CALL CHKXER( 'SSYTRD_SB2ST', INFOT, NOUT, LERR, OK )
          INFOT = 7
-         CALL SSYTRD_SB2ST( 'N', 'N', 'U', 0, 1, A, 1, D, E, 
+         CALL SSYTRD_SB2ST( 'N', 'N', 'U', 0, 1, A, 1, D, E,
      $                                    C, 1, W, 1, INFO )
          CALL CHKXER( 'SSYTRD_SB2ST', INFOT, NOUT, LERR, OK )
          INFOT = 11
-         CALL SSYTRD_SB2ST( 'N', 'N', 'U', 0, 0, A, 1, D, E, 
+         CALL SSYTRD_SB2ST( 'N', 'N', 'U', 0, 0, A, 1, D, E,
      $                                    C, 0, W, 1, INFO )
          CALL CHKXER( 'SSYTRD_SB2ST', INFOT, NOUT, LERR, OK )
          INFOT = 13
-         CALL SSYTRD_SB2ST( 'N', 'N', 'U', 0, 0, A, 1, D, E, 
+         CALL SSYTRD_SB2ST( 'N', 'N', 'U', 0, 0, A, 1, D, E,
      $                                    C, 1, W, 0, INFO )
          CALL CHKXER( 'SSYTRD_SB2ST', INFOT, NOUT, LERR, OK )
          NT = NT + 9

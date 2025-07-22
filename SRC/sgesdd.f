@@ -260,7 +260,7 @@
 *     .. External Functions ..
       LOGICAL            LSAME, SISNAN
       REAL               SLAMCH, SLANGE, SROUNDUP_LWORK
-      EXTERNAL           SLAMCH, SLANGE, LSAME, SISNAN, 
+      EXTERNAL           SLAMCH, SLANGE, LSAME, SISNAN,
      $                   SROUNDUP_LWORK
 *     ..
 *     .. Intrinsic Functions ..

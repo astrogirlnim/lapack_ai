@@ -146,4 +146,4 @@ benchmarks/
 # Backup files
 *.backup
 *.orig
-*.rej 
+*.rej

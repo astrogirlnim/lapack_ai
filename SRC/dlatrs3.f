@@ -11,7 +11,7 @@
 *       INTEGER            INFO, LDA, LWORK, LDX, N, NRHS
 *       ..
 *       .. Array Arguments ..
-*       DOUBLE PRECISION   A( LDA, * ), CNORM( * ), SCALE( * ), 
+*       DOUBLE PRECISION   A( LDA, * ), CNORM( * ), SCALE( * ),
 *                          WORK( * ), X( LDX, * )
 *       ..
 *

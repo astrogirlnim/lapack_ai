@@ -16,7 +16,7 @@
 *  Definition:
 *  ===========
 *
-*      SUBROUTINE CSYTRS_AA_2STAGE( UPLO, N, NRHS, A, LDA, TB, LTB, IPIV, 
+*      SUBROUTINE CSYTRS_AA_2STAGE( UPLO, N, NRHS, A, LDA, TB, LTB, IPIV,
 *                                   IPIV2, B, LDB, INFO )
 *
 *       .. Scalar Arguments ..

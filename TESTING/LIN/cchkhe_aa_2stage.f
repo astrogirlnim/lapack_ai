@@ -8,7 +8,7 @@
 *  Definition:
 *  ===========
 *
-*       SUBROUTINE CCHKHE_AA_2STAGE( DOTYPE, NN, NVAL, NNB, NBVAL, 
+*       SUBROUTINE CCHKHE_AA_2STAGE( DOTYPE, NN, NVAL, NNB, NBVAL,
 *                             NNS, NSVAL, THRESH, TSTERR, NMAX, A,
 *                             AFAC, AINV, B, X, XACT, WORK, RWORK,
 *                             IWORK, NOUT )
@@ -217,9 +217,9 @@
       REAL               RESULT( NTESTS )
 *     ..
 *     .. External Subroutines ..
-      EXTERNAL           ALAERH, ALAHD, ALASUM, CERRHE, CLACPY, 
-     $                   CLARHS, CLATB4, CLATMS, CPOT02, 
-     $                   CHETRF_AA_2STAGE, 
+      EXTERNAL           ALAERH, ALAHD, ALASUM, CERRHE, CLACPY,
+     $                   CLARHS, CLATB4, CLATMS, CPOT02,
+     $                   CHETRF_AA_2STAGE,
      $                   CHETRS_AA_2STAGE, XLAENV
 *     ..
 *     .. Intrinsic Functions ..
@@ -471,7 +471,7 @@
 *+    TEST 1
 *                 Reconstruct matrix from factors and compute residual.
 *
-*                   
+*
 c                 NEED TO WRITE CHET01_AA_2STAGE
 c                  CALL CHET01_AA( UPLO, N, A, LDA, AFAC, LDA, IWORK,
 c     $                            AINV, LDA, RWORK, RESULT( 1 ) )

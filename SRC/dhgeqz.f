@@ -529,8 +529,8 @@
 *
             GO TO 80
          ELSE
-            IF( ABS( H( ILAST, ILAST-1 ) ).LE.MAX( SAFMIN, ULP*( 
-     $         ABS( H( ILAST, ILAST ) ) + ABS( H( ILAST-1, ILAST-1 ) ) 
+            IF( ABS( H( ILAST, ILAST-1 ) ).LE.MAX( SAFMIN, ULP*(
+     $         ABS( H( ILAST, ILAST ) ) + ABS( H( ILAST-1, ILAST-1 ) )
      $         ) ) ) THEN
                H( ILAST, ILAST-1 ) = ZERO
                GO TO 80
@@ -551,8 +551,8 @@
             IF( J.EQ.ILO ) THEN
                ILAZRO = .TRUE.
             ELSE
-               IF( ABS( H( J, J-1 ) ).LE.MAX( SAFMIN, ULP*( 
-     $         ABS( H( J, J ) ) + ABS( H( J-1, J-1 ) ) 
+               IF( ABS( H( J, J-1 ) ).LE.MAX( SAFMIN, ULP*(
+     $         ABS( H( J, J ) ) + ABS( H( J-1, J-1 ) )
      $         ) ) ) THEN
                   H( J, J-1 ) = ZERO
                   ILAZRO = .TRUE.

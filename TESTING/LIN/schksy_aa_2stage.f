@@ -8,7 +8,7 @@
 *  Definition:
 *  ===========
 *
-*       SUBROUTINE SCHKSY_AA_2STAGE( DOTYPE, NN, NVAL, NNB, NBVAL, 
+*       SUBROUTINE SCHKSY_AA_2STAGE( DOTYPE, NN, NVAL, NNB, NBVAL,
 *                             NNS, NSVAL, THRESH, TSTERR, NMAX, A,
 *                             AFAC, AINV, B, X, XACT, WORK, RWORK,
 *                             IWORK, NOUT )
@@ -213,7 +213,7 @@
 *     ..
 *     .. External Subroutines ..
       EXTERNAL           ALAERH, ALAHD, ALASUM, SERRSY, SLACPY, SLARHS,
-     $                   SLATB4, SLATMS, SPOT02, SSYT01_AA, 
+     $                   SLATB4, SLATMS, SPOT02, SSYT01_AA,
      $                   SSYTRF_AA_2STAGE, SSYTRS_AA_2STAGE,
      $                   XLAENV
 *     ..
@@ -424,7 +424,7 @@
 *
                   SRNAMT = 'SSYTRF_AA_2STAGE'
                   LWORK = MIN( MAX( 1, N*NB ), 3*NMAX*NMAX )
-                  CALL SSYTRF_AA_2STAGE( UPLO, N, AFAC, LDA, 
+                  CALL SSYTRF_AA_2STAGE( UPLO, N, AFAC, LDA,
      $                                   AINV, MAX( 1, (3*NB+1)*N ),
      $                                   IWORK, IWORK( 1+N ),
      $                                   WORK, LWORK,

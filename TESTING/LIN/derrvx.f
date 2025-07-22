@@ -727,15 +727,15 @@
 *
          SRNAMT = 'DSYSV_AA_2STAGE'
          INFOT = 1
-         CALL DSYSV_AA_2STAGE( '/', 0, 0, A, 1, A, 1, IP, IP, B, 1, 
+         CALL DSYSV_AA_2STAGE( '/', 0, 0, A, 1, A, 1, IP, IP, B, 1,
      $                         W, 1, INFO )
          CALL CHKXER( 'DSYSV_AA_2STAGE', INFOT, NOUT, LERR, OK )
          INFOT = 2
-         CALL DSYSV_AA_2STAGE( 'U', -1, 0, A, 1, A, 1, IP, IP, B, 1, 
+         CALL DSYSV_AA_2STAGE( 'U', -1, 0, A, 1, A, 1, IP, IP, B, 1,
      $                         W, 1, INFO )
          CALL CHKXER( 'DSYSV_AA_2STAGE', INFOT, NOUT, LERR, OK )
          INFOT = 3
-         CALL DSYSV_AA_2STAGE( 'U', 0, -1, A, 1, A, 1, IP, IP, B, 1, 
+         CALL DSYSV_AA_2STAGE( 'U', 0, -1, A, 1, A, 1, IP, IP, B, 1,
      $                         W, 1, INFO )
          CALL CHKXER( 'DSYSV_AA_2STAGE', INFOT, NOUT, LERR, OK )
          INFOT = 5

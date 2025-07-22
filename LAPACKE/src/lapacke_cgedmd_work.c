@@ -103,7 +103,7 @@ lapack_int API_SUFFIX(LAPACKE_cgedmd_work)( int matrix_layout, char jobs, char j
         if( lwork == -1 ) {
             LAPACK_cgedmd( &jobs, &jobz, &jobr, &jobf, &whtsvd, &m, &n, x,
 			   &ldx, y, &ldy, &nrnk, tol, &k, eigs, z, &ldz, res, b,
-			   &ldb, w, &ldw, s, &lds, zwork, &lzwork, 
+			   &ldb, w, &ldw, s, &lds, zwork, &lzwork,
 			   work, &lwork, iwork, &liwork, &info );
             return (info < 0) ? (info - 1) : info;
         }

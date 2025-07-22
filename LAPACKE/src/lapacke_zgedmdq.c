@@ -88,7 +88,7 @@ lapack_int API_SUFFIX(LAPACKE_zgedmdq)( int matrix_layout, char jobs, char jobz,
     info = API_SUFFIX(LAPACKE_zgedmdq_work)( matrix_layout, jobs, jobz, jobr, jobq, jobt,
                                  jobf, whtsvd, m, n, f, ldf, x, ldx, y, ldy,
                                  nrnk, tol, k, eigs, z, ldz, res,
-                                 b, ldb, v, ldv, s, lds, &zwork_query, lzwork, 
+                                 b, ldb, v, ldv, s, lds, &zwork_query, lzwork,
 				 &work_query, lwork, &iwork_query, liwork );
 
     if( info != 0 ) {
@@ -117,7 +117,7 @@ lapack_int API_SUFFIX(LAPACKE_zgedmdq)( int matrix_layout, char jobs, char jobz,
     info = API_SUFFIX(LAPACKE_zgedmdq_work)( matrix_layout, jobs, jobz, jobr, jobq, jobt,
                                  jobf, whtsvd, m, n, f, ldf, x, ldx, y, ldy,
                                  nrnk, tol, k, eigs, z, ldz, res,
-                                 b, ldb, v, ldv, s, lds, zwork, lzwork, 
+                                 b, ldb, v, ldv, s, lds, zwork, lzwork,
 				 work, lwork, iwork, liwork );
     /* Release memory and exit */
     LAPACKE_free( iwork );

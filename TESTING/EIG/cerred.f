@@ -36,7 +36,7 @@
 *>       CGEJSV   compute SVD of an M-by-N matrix A where M >= N
 *>       CGESVDX  compute SVD of an M-by-N matrix A(by bisection
 *>                and inverse iteration)
-*>       CGESVDQ  compute SVD of an M-by-N matrix A(with a 
+*>       CGESVDQ  compute SVD of an M-by-N matrix A(with a
 *>                QR-Preconditioned )
 *> \endverbatim
 *

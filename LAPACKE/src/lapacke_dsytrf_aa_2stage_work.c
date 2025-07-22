@@ -34,14 +34,14 @@
 
 lapack_int API_SUFFIX(LAPACKE_dsytrf_aa_2stage_work)( int matrix_layout, char uplo, lapack_int n,
                                double* a, lapack_int lda,
-                               double* tb, lapack_int ltb,  
+                               double* tb, lapack_int ltb,
                                lapack_int* ipiv, lapack_int* ipiv2,
                                double* work, lapack_int lwork )
 {
     lapack_int info = 0;
     if( matrix_layout == LAPACK_COL_MAJOR ) {
         /* Call LAPACK function and adjust info */
-        LAPACK_dsytrf_aa_2stage( &uplo, &n, a, &lda, tb, 
+        LAPACK_dsytrf_aa_2stage( &uplo, &n, a, &lda, tb,
         				 &ltb, ipiv, ipiv2, work, &lwork,
                          &info );
         if( info < 0 ) {
@@ -83,7 +83,7 @@ lapack_int API_SUFFIX(LAPACKE_dsytrf_aa_2stage_work)( int matrix_layout, char up
         /* Transpose input matrices */
         API_SUFFIX(LAPACKE_dsy_trans)( matrix_layout, uplo, n, a, lda, a_t, lda_t );
         /* Call LAPACK function and adjust info */
-        LAPACK_dsytrf_aa_2stage( &uplo, &n, a_t, &lda_t, 
+        LAPACK_dsytrf_aa_2stage( &uplo, &n, a_t, &lda_t,
         			  tb_t, &ltb, ipiv, ipiv2, work,
                       &lwork, &info );
         if( info < 0 ) {

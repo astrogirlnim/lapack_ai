@@ -66,7 +66,7 @@
 *> \verbatim
 *>          VU is DOUBLE PRECISION
 *>          Upper bound of the interval that contains the desired
-*>          eigenvalues. VL < VU. 
+*>          eigenvalues. VL < VU.
 *>          Note: VU is currently not used by this implementation of DLARRV, VU is
 *>          passed to DLARRV because it could be used compute gaps on the right end
 *>          of the extremal eigenvalues. However, with not much initial accuracy in

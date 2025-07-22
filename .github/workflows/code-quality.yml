@@ -187,13 +187,20 @@ jobs:
         TEST_FILES=($(ls *.f *.f90 *.F90 2>/dev/null | head -5))
         echo "  Selected test files: ${TEST_FILES[*]}"
 
+        # Debug: Show which files we're actually going to test
+        echo "  🔍 Files to be syntax checked:"
+        for file in "${TEST_FILES[@]}"; do
+          echo "    - $file ($(wc -l < "$file" 2>/dev/null || echo '?') lines)"
+        done
+
         SYNTAX_ERRORS=0
 
         for file in "${TEST_FILES[@]}"; do
           echo "  🔍 Syntax checking: $file"
 
           # Capture gfortran output and exit code
-          OUTPUT=$(gfortran -fsyntax-only -std=f2008 -Wall -Wextra -pedantic "$file" 2>&1)
+          # Use LAPACK's official gfortran flags (from make.inc.gfortran)
+          OUTPUT=$(gfortran -fsyntax-only -frecursive "$file" 2>&1)
           EXIT_CODE=$?
 
           # Check if we have any output (warnings or errors)

@@ -113,7 +113,7 @@ RUN echo '#!/bin/bash' > /opt/lapack-ai/start.sh && \
     echo '' >> /opt/lapack-ai/start.sh
 
 RUN echo '# Start service based on command' >> /opt/lapack-ai/start.sh && \
-    echo 'case "$1" in' >> /opt/lapack-ai/start.sh && \
+    echo "case \"\$1\" in" >> /opt/lapack-ai/start.sh && \
     echo '    "web")' >> /opt/lapack-ai/start.sh && \
     echo '        echo "Starting web server on port 5000..."' >> /opt/lapack-ai/start.sh && \
     echo '        exec gunicorn --bind 0.0.0.0:5000 --workers 2 --timeout 30 app:app' >> /opt/lapack-ai/start.sh && \

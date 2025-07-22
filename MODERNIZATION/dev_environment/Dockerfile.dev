@@ -85,10 +85,10 @@ RUN echo '#!/bin/bash' > /opt/lapack-ai/dev_startup.sh && \
     echo '' >> /opt/lapack-ai/dev_startup.sh && \
     echo '# Check system information' >> /opt/lapack-ai/dev_startup.sh && \
     echo 'echo "=== System Information ==="' >> /opt/lapack-ai/dev_startup.sh && \
-    echo 'echo "Python version: $(python --version)"' >> /opt/lapack-ai/dev_startup.sh && \
-    echo 'echo "GCC version: $(gcc --version | head -n1)"' >> /opt/lapack-ai/dev_startup.sh && \
-    echo 'echo "Gfortran version: $(gfortran --version | head -n1)"' >> /opt/lapack-ai/dev_startup.sh && \
-    echo 'echo "CMake version: $(cmake --version | head -n1)"' >> /opt/lapack-ai/dev_startup.sh && \
+    echo "echo \"Python version: \$(python --version)\"" >> /opt/lapack-ai/dev_startup.sh && \
+    echo "echo \"GCC version: \$(gcc --version | head -n1)\"" >> /opt/lapack-ai/dev_startup.sh && \
+    echo "echo \"Gfortran version: \$(gfortran --version | head -n1)\"" >> /opt/lapack-ai/dev_startup.sh && \
+    echo "echo \"CMake version: \$(cmake --version | head -n1)\"" >> /opt/lapack-ai/dev_startup.sh && \
     echo 'echo "OpenCL info:"' >> /opt/lapack-ai/dev_startup.sh && \
     echo 'clinfo -l 2>/dev/null || echo "No OpenCL devices found (this is normal without GPU)"' >> /opt/lapack-ai/dev_startup.sh
 
@@ -116,8 +116,8 @@ RUN echo '' >> /opt/lapack-ai/dev_startup.sh && \
 RUN echo '' >> /opt/lapack-ai/dev_startup.sh && \
     echo '# Check file permissions' >> /opt/lapack-ai/dev_startup.sh && \
     echo 'echo "=== Development Environment Ready ==="' >> /opt/lapack-ai/dev_startup.sh && \
-    echo 'echo "Working directory: $(pwd)"' >> /opt/lapack-ai/dev_startup.sh && \
-    echo 'echo "User: $(whoami)"' >> /opt/lapack-ai/dev_startup.sh && \
+    echo "echo \"Working directory: \$(pwd)\"" >> /opt/lapack-ai/dev_startup.sh && \
+    echo "echo \"User: \$(whoami)\"" >> /opt/lapack-ai/dev_startup.sh && \
     echo 'echo "Available services:"' >> /opt/lapack-ai/dev_startup.sh && \
     echo 'echo "  - Jupyter Lab: http://localhost:8888"' >> /opt/lapack-ai/dev_startup.sh && \
     echo 'echo "  - Flask Dashboard: http://localhost:5000"' >> /opt/lapack-ai/dev_startup.sh && \
@@ -125,16 +125,16 @@ RUN echo '' >> /opt/lapack-ai/dev_startup.sh && \
     echo '' >> /opt/lapack-ai/dev_startup.sh
 
 RUN echo '# Start services based on command line arguments' >> /opt/lapack-ai/dev_startup.sh && \
-    echo 'if [ "$1" = "jupyter" ]; then' >> /opt/lapack-ai/dev_startup.sh && \
+    echo "if [ \"\$1\" = \"jupyter\" ]; then" >> /opt/lapack-ai/dev_startup.sh && \
     echo '    echo "Starting Jupyter Lab..."' >> /opt/lapack-ai/dev_startup.sh && \
     echo '    jupyter lab --allow-root' >> /opt/lapack-ai/dev_startup.sh && \
-    echo 'elif [ "$1" = "flask" ]; then' >> /opt/lapack-ai/dev_startup.sh && \
+    echo "elif [ \"\$1\" = \"flask\" ]; then" >> /opt/lapack-ai/dev_startup.sh && \
     echo '    echo "Starting Flask development server..."' >> /opt/lapack-ai/dev_startup.sh && \
     echo '    cd /opt/lapack-ai && python -m flask run --host=0.0.0.0 --port=5000' >> /opt/lapack-ai/dev_startup.sh && \
-    echo 'elif [ "$1" = "test" ]; then' >> /opt/lapack-ai/dev_startup.sh && \
+    echo "elif [ \"\$1\" = \"test\" ]; then" >> /opt/lapack-ai/dev_startup.sh && \
     echo '    echo "Running tests..."' >> /opt/lapack-ai/dev_startup.sh && \
     echo '    cd /opt/lapack-ai && python -m pytest tests/ -v' >> /opt/lapack-ai/dev_startup.sh && \
-    echo 'elif [ "$1" = "build" ]; then' >> /opt/lapack-ai/dev_startup.sh && \
+    echo "elif [ \"\$1\" = \"build\" ]; then" >> /opt/lapack-ai/dev_startup.sh && \
     echo '    echo "Building LAPACK..."' >> /opt/lapack-ai/dev_startup.sh && \
     echo '    cd /opt/lapack-ai && ./scripts/build_lapack.sh' >> /opt/lapack-ai/dev_startup.sh && \
     echo 'else' >> /opt/lapack-ai/dev_startup.sh && \

@@ -34,9 +34,11 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y --no-install-recommends \
-          gfortran \
+          gfortran-15 \
           build-essential \
           cmake
+        # Create symlink for default gfortran command
+        sudo ln -sf /usr/bin/gfortran-15 /usr/bin/gfortran
         echo "✅ System dependencies installed"
 
     - name: Install Python dependencies
@@ -79,10 +81,12 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y --no-install-recommends \
-          gfortran \
+          gfortran-15 \
           libblas-dev \
           liblapack-dev \
           cmake
+        # Create symlink for default gfortran command
+        sudo ln -sf /usr/bin/gfortran-15 /usr/bin/gfortran
         echo "✅ Build tools installed"
 
         # Show compiler version for debugging

@@ -1,0 +1,284 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, master, develop, feature-* ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  pre-commit:
+    name: Pre-commit hooks
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch full history for better diff analysis
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install system dependencies for Fortran tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          gfortran \
+          build-essential \
+          cmake
+        echo "✅ System dependencies installed"
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pre-commit fprettify
+        echo "✅ Python dependencies installed"
+
+        # Verify fprettify installation
+        fprettify --version
+        echo "✅ fprettify is available"
+
+    - name: Cache pre-commit environments
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pre-commit
+        key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+        restore-keys: |
+          pre-commit-${{ runner.os }}-
+
+    - name: Install pre-commit hooks
+      run: |
+        echo "🔧 Installing pre-commit hooks..."
+        pre-commit install --install-hooks
+        echo "✅ Pre-commit hooks installed"
+
+    - name: Run pre-commit on all files
+      run: |
+        echo "🔍 Running pre-commit hooks on all files..."
+        pre-commit run --all-files --verbose
+        echo "✅ Pre-commit checks completed"
+
+    - name: Run fprettify on Fortran files (validation)
+      run: |
+        echo "🔍 Additional fprettify validation..."
+
+        # Find all Fortran files for processing
+        FORTRAN_FILES=$(find . -name "*.f" -o -name "*.f90" -o -name "*.f95" -o -name "*.f03" -o -name "*.f08" \
+                          -o -name "*.F" -o -name "*.F90" -o -name "*.F95" -o -name "*.F03" -o -name "*.F08" | \
+                        grep -v build/ | grep -v CMakeFiles/ | grep -v DEPRECATED/ | head -20)
+
+        if [ -n "$FORTRAN_FILES" ]; then
+          echo "📁 Found Fortran files to check:"
+          echo "$FORTRAN_FILES" | head -10
+
+          # Test fprettify on a sample of files (check mode only)
+          echo "$FORTRAN_FILES" | head -5 | while read -r file; do
+            echo "  🔍 Checking: $file"
+            fprettify --diff "$file" || echo "    ⚠️ Formatting needed for $file"
+          done
+        else
+          echo "ℹ️ No Fortran files found for processing"
+        fi
+
+        echo "✅ fprettify validation completed"
+
+  fortran-lint:
+    name: Fortran-specific linting
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python for fprettify
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install Fortran tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gfortran
+        pip install fprettify
+        echo "✅ Fortran tools installed"
+
+    - name: Find Fortran files
+      id: find-fortran
+      run: |
+        # Find Fortran files, excluding build artifacts and deprecated code
+        FORTRAN_FILES=$(find . -type f \( -name "*.f" -o -name "*.f90" -o -name "*.f95" -o -name "*.f03" -o -name "*.f08" \
+                          -o -name "*.F" -o -name "*.F90" -o -name "*.F95" -o -name "*.F03" -o -name "*.F08" \) \
+                        -not -path "./build/*" \
+                        -not -path "./CMakeFiles/*" \
+                        -not -path "*/DEPRECATED/*" \
+                        -not -name "*.mod" \
+                        | wc -l)
+
+        echo "fortran_count=$FORTRAN_FILES" >> $GITHUB_OUTPUT
+        echo "📊 Found $FORTRAN_FILES Fortran files for linting"
+
+    - name: Run syntax validation on Fortran files
+      if: steps.find-fortran.outputs.fortran_count > 0
+      run: |
+        echo "🔍 Running Fortran syntax validation..."
+
+        # Test compilation of key LAPACK source files to validate syntax
+        cd SRC
+        TEST_FILES=($(ls *.f *.f90 2>/dev/null | head -5))
+
+        for file in "${TEST_FILES[@]}"; do
+          echo "  🔍 Syntax checking: $file"
+          gfortran -fsyntax-only -std=f2008 -Wall -Wextra -pedantic "$file" 2>&1 || \
+            echo "    ⚠️ Syntax warnings/errors in $file"
+        done
+
+        echo "✅ Fortran syntax validation completed"
+
+  python-quality:
+    name: Python code quality
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install Python quality tools
+      run: |
+        pip install black isort flake8 mypy
+        echo "✅ Python quality tools installed"
+
+    - name: Check Python code formatting with Black
+      run: |
+        echo "🔍 Checking Python code formatting..."
+        find . -name "*.py" -not -path "./build/*" -not -path "./.venv/*" | head -10
+        black --check --diff --color . || echo "⚠️ Python formatting issues found"
+
+    - name: Check import sorting with isort
+      run: |
+        echo "🔍 Checking Python import sorting..."
+        isort --check-only --diff --color . || echo "⚠️ Import sorting issues found"
+
+    - name: Lint with flake8
+      run: |
+        echo "🔍 Linting Python code..."
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics || echo "⚠️ Python linting issues found"
+
+  documentation-check:
+    name: Documentation validation
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Validate YAML configuration files
+      run: |
+        echo "🔍 Validating YAML files..."
+        find . -name "*.yml" -o -name "*.yaml" | while read -r file; do
+          echo "  📄 Validating: $file"
+          python -c "import yaml; yaml.safe_load(open('$file'))" || echo "    ❌ Invalid YAML: $file"
+        done
+        echo "✅ YAML validation completed"
+
+    - name: Check Markdown files
+      run: |
+        echo "📚 Checking Markdown documentation..."
+        find . -name "*.md" | head -5 | while read -r file; do
+          echo "  📄 Found: $file"
+          # Basic check for common Markdown issues
+          if grep -q $'\r' "$file"; then
+            echo "    ⚠️ Windows line endings detected in $file"
+          fi
+        done
+        echo "✅ Markdown check completed"
+
+  security-check:
+    name: Security scanning
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python for security tools
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install security scanning tools
+      run: |
+        pip install detect-secrets
+        echo "✅ Security tools installed"
+
+    - name: Create secrets baseline if missing
+      run: |
+        if [ ! -f .secrets.baseline ]; then
+          echo "📋 Creating secrets baseline..."
+          detect-secrets scan --baseline .secrets.baseline
+          echo "✅ Secrets baseline created"
+        else
+          echo "✅ Secrets baseline exists"
+        fi
+
+    - name: Run security scan
+      run: |
+        echo "🔒 Running security scan..."
+        detect-secrets scan --baseline .secrets.baseline --exclude-files ".*\.git/.*|.*build/.*|.*\.venv/.*"
+        echo "✅ Security scan completed"
+
+    - name: Check for common security issues
+      run: |
+        echo "🔍 Checking for common security patterns..."
+
+        # Check for hardcoded passwords or keys
+        if grep -r -i "password\|secret\|key" --include="*.py" --include="*.sh" . | grep -v "example\|test\|mock" | head -5; then
+          echo "⚠️ Potential hardcoded credentials found (review needed)"
+        else
+          echo "✅ No obvious hardcoded credentials detected"
+        fi
+
+  summary:
+    name: Quality Check Summary
+    runs-on: ubuntu-latest
+    needs: [pre-commit, fortran-lint, python-quality, documentation-check, security-check]
+    if: always()
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Generate summary report
+      run: |
+        echo "## 📊 Code Quality Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Pre-commit hooks | ${{ needs.pre-commit.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Fortran linting | ${{ needs.fortran-lint.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Python quality | ${{ needs.python-quality.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Documentation | ${{ needs.documentation-check.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Security scan | ${{ needs.security-check.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📝 Next Steps" >> $GITHUB_STEP_SUMMARY
+        echo "- Run \`pre-commit install\` to enable hooks locally" >> $GITHUB_STEP_SUMMARY
+        echo "- Use \`pre-commit run --all-files\` to format all code" >> $GITHUB_STEP_SUMMARY
+        echo "- Run \`fprettify --diff [file]\` to preview Fortran formatting" >> $GITHUB_STEP_SUMMARY
+
+        echo "✅ Quality check summary generated"

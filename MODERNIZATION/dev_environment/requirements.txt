@@ -44,4 +44,8 @@ jupyter>=1.0.0
 matplotlib>=3.6.0
 
 # Container and deployment
-docker>=6.0.0 
+docker>=6.0.0
+
+# Pre-commit hooks and Fortran formatting
+pre-commit>=3.0.0
+fprettify>=0.3.7

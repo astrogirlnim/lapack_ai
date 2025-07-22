@@ -63,6 +63,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r /tmp/requirements.txt && \
     rm /tmp/requirements.txt
 
+# Install pre-commit and fprettify globally for code quality
+RUN pip install --no-cache-dir pre-commit fprettify
+
 # Configure OpenCL environment
 ENV OCL_ENABLE_DEBUG=1 \
     PYOPENCL_COMPILER_OUTPUT=1 \
@@ -73,7 +76,7 @@ RUN mkdir -p /tmp/ocl_cache && \
     chown -R lapack:lapack /tmp/ocl_cache && \
     chmod 755 /tmp/ocl_cache
 
-# Install additional OpenCL runtime support  
+# Install additional OpenCL runtime support
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ocl-icd-libopencl1 \
     && apt-get clean \
@@ -104,4 +107,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD python -c "import numpy, scipy, pyopencl" || exit 1
 
 # Default command
-CMD ["/bin/bash"] 
+CMD ["/bin/bash"]

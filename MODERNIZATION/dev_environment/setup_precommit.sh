@@ -1,6 +1,6 @@
 #!/bin/bash
 # LAPACK AI Modernization - Pre-commit Setup Script
-# This script installs and configures pre-commit hooks with fprettify for Fortran formatting
+# This script installs and configures pre-commit hooks for code quality
 
 set -e  # Exit on any error
 
@@ -21,7 +21,7 @@ else
     ENVIRONMENT="host"
 fi
 
-# Install pre-commit and fprettify if not already installed
+# Install pre-commit if not already installed
 echo "📦 Installing pre-commit tools..."
 if command -v pre-commit >/dev/null 2>&1; then
     echo "✅ pre-commit is already installed"
@@ -31,13 +31,7 @@ else
     pip install pre-commit
 fi
 
-if command -v fprettify >/dev/null 2>&1; then
-    echo "✅ fprettify is already installed"
-    fprettify --version
-else
-    echo "🔄 Installing fprettify..."
-    pip install fprettify
-fi
+# fprettify removed - code quality handled in compilation step
 
 # Change to project root
 cd "$PROJECT_ROOT"
@@ -63,22 +57,7 @@ else
     exit 1
 fi
 
-# Test fprettify configuration
-echo "🔍 Testing fprettify configuration..."
-if [ -f ".fprettify.rc" ]; then
-    echo "✅ fprettify configuration found"
-
-    # Find a sample Fortran file to test
-    SAMPLE_F_FILE=$(find SRC -name "*.f" -type f | head -1)
-    if [ -n "$SAMPLE_F_FILE" ]; then
-        echo "🧪 Testing fprettify on sample file: $SAMPLE_F_FILE"
-        fprettify --diff "$SAMPLE_F_FILE" | head -20 || echo "   (No changes needed or preview shown)"
-    else
-        echo "ℹ️ No Fortran files found for testing"
-    fi
-else
-    echo "⚠️ .fprettify.rc configuration not found"
-fi
+# fprettify testing removed - code quality handled in compilation step
 
 # Check gitleaks configuration
 echo "🔒 Setting up gitleaks security scanning..."
@@ -128,7 +107,7 @@ echo "🎉 Pre-commit setup completed successfully!"
 echo ""
 echo "📋 Summary of installed tools:"
 echo "   ✅ pre-commit hooks installed"
-echo "   ✅ fprettify Fortran formatter configured"
+echo "   ✅ Pre-commit hooks configured (fprettify removed)"
 echo "   ✅ Python code quality tools (black, isort, flake8)"
 echo "   ✅ File quality checks (trailing whitespace, etc.)"
 echo "   ✅ Security scanning (gitleaks)"
@@ -138,7 +117,7 @@ echo ""
 echo "🔧 How to use:"
 echo "   📝 Hooks will run automatically on git commit"
 echo "   🎯 Run manually: pre-commit run --all-files"
-echo "   🔍 Format specific file: fprettify --diff <file>"
+echo "   🔍 Fortran code quality: handled in compilation step"
 echo "   ⚙️ Update hooks: pre-commit autoupdate"
 echo ""
 echo "💡 Tips:"
@@ -157,7 +136,7 @@ if [ "$ENVIRONMENT" = "container" ]; then
 elif [ "$ENVIRONMENT" = "host" ]; then
     echo "🏠 Host Environment Notes:"
     echo "   • Consider using Docker for consistent environment"
-    echo "   • Make sure gfortran is installed for fprettify"
+    echo "   • Make sure gfortran is installed for compilation checks"
     echo "   • All team members should run this script"
 fi
 

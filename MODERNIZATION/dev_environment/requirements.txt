@@ -48,4 +48,4 @@ docker>=6.0.0
 
 # Pre-commit hooks and Fortran formatting
 pre-commit>=3.0.0
-fprettify>=0.3.7
+# fprettify removed - code quality handled in compilation step

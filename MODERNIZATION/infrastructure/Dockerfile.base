@@ -63,8 +63,8 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r /tmp/requirements.txt && \
     rm /tmp/requirements.txt
 
-# Install pre-commit and fprettify globally for code quality
-RUN pip install --no-cache-dir pre-commit fprettify
+# Install pre-commit globally for code quality
+RUN pip install --no-cache-dir pre-commit
 
 # Configure OpenCL environment
 ENV OCL_ENABLE_DEBUG=1 \

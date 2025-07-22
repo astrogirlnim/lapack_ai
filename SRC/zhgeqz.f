@@ -515,8 +515,8 @@
          IF( ILAST.EQ.ILO ) THEN
             GO TO 60
          ELSE
-            IF( ABS1( H( ILAST, ILAST-1 ) ).LE.MAX( SAFMIN, ULP*( 
-     $         ABS1( H( ILAST, ILAST ) ) + ABS1( H( ILAST-1, ILAST-1 ) 
+            IF( ABS1( H( ILAST, ILAST-1 ) ).LE.MAX( SAFMIN, ULP*(
+     $         ABS1( H( ILAST, ILAST ) ) + ABS1( H( ILAST-1, ILAST-1 )
      $         ) ) ) ) THEN
                H( ILAST, ILAST-1 ) = CZERO
                GO TO 60
@@ -537,8 +537,8 @@
             IF( J.EQ.ILO ) THEN
                ILAZRO = .TRUE.
             ELSE
-               IF( ABS1( H( J, J-1 ) ).LE.MAX( SAFMIN, ULP*( 
-     $            ABS1( H( J, J ) ) + ABS1( H( J-1, J-1 ) ) 
+               IF( ABS1( H( J, J-1 ) ).LE.MAX( SAFMIN, ULP*(
+     $            ABS1( H( J, J ) ) + ABS1( H( J-1, J-1 ) )
      $            ) ) ) THEN
                   H( J, J-1 ) = CZERO
                   ILAZRO = .TRUE.
@@ -761,7 +761,7 @@
 *
 *           Exceptional shift.  Chosen for no particularly good reason.
 *
-            IF( ( IITER / 20 )*20.EQ.IITER .AND. 
+            IF( ( IITER / 20 )*20.EQ.IITER .AND.
      $         BSCALE*ABS1(T( ILAST, ILAST )).GT.SAFMIN ) THEN
                ESHIFT = ESHIFT + ( ASCALE*H( ILAST,
      $            ILAST ) )/( BSCALE*T( ILAST, ILAST ) )

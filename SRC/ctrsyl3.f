@@ -1034,7 +1034,7 @@
                      SCAMIN = SCAMIN / 2.E0**EXPONENT( SCALOC )
                      SCALOC = SCALOC / 2.E0**EXPONENT( SCALOC )
                   END IF
-                  CNRM = CNRM * SCALOC 
+                  CNRM = CNRM * SCALOC
                   XNRM = XNRM * SCALOC
 *
 *                 Simultaneously apply the robust update factor and the

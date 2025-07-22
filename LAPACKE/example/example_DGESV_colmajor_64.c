@@ -116,4 +116,3 @@ int main(int argc, char **argv) {
         free(ipiv);
         exit( 0 );
 } /* End of LAPACKE_dgesv Example */
-

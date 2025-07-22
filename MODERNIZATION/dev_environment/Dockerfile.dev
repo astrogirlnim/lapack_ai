@@ -1,0 +1,166 @@
+# LAPACK AI Modernization - Development Environment
+# Extends base image with development tools and configurations
+
+# Start from our base image
+FROM lapack-ai-base:latest
+
+# Switch back to root for development setup
+USER root
+
+# Install additional development tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Development and debugging
+    vim \
+    nano \
+    tree \
+    curl \
+    wget \
+    # Network debugging
+    net-tools \
+    iputils-ping \
+    # Process monitoring
+    procps \
+    # File utilities
+    rsync \
+    unzip \
+    # Clean up
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Jupyter and development extensions
+RUN pip install --no-cache-dir \
+    jupyterlab \
+    jupyterlab-git \
+    ipywidgets \
+    plotly \
+    seaborn
+
+# Configure Jupyter for container access
+RUN mkdir -p /home/lapack/.jupyter && \
+    echo "c.ServerApp.ip = '0.0.0.0'" > /home/lapack/.jupyter/jupyter_lab_config.py && \
+    echo "c.ServerApp.port = 8888" >> /home/lapack/.jupyter/jupyter_lab_config.py && \
+    echo "c.ServerApp.open_browser = False" >> /home/lapack/.jupyter/jupyter_lab_config.py && \
+    echo "c.ServerApp.token = ''" >> /home/lapack/.jupyter/jupyter_lab_config.py && \
+    echo "c.ServerApp.password = ''" >> /home/lapack/.jupyter/jupyter_lab_config.py && \
+    chown -R lapack:lapack /home/lapack/.jupyter
+
+# Set up development directories with proper permissions
+RUN mkdir -p /opt/lapack-ai/{notebooks,tests,examples,docs} && \
+    chown -R lapack:lapack /opt/lapack-ai
+
+# Copy development scripts
+COPY MODERNIZATION/dev_environment/setup_env.sh /opt/lapack-ai/setup_env.sh
+RUN chmod +x /opt/lapack-ai/setup_env.sh && \
+    chown lapack:lapack /opt/lapack-ai/setup_env.sh
+
+# Configure environment for GPU development
+ENV NVIDIA_VISIBLE_DEVICES=all \
+    NVIDIA_DRIVER_CAPABILITIES=compute,utility \
+    CUDA_CACHE_PATH=/tmp/cuda_cache \
+    FLASK_ENV=development \
+    FLASK_DEBUG=1
+
+# Create GPU cache directories
+RUN mkdir -p /tmp/cuda_cache && \
+    chown -R lapack:lapack /tmp/cuda_cache && \
+    chmod 755 /tmp/cuda_cache
+
+# Development environment variables
+ENV PYTHONPATH=/opt/lapack-ai/src:/opt/lapack-ai/MODERNIZATION \
+    CMAKE_BUILD_TYPE=Debug \
+    LAPACK_AI_DEBUG=1 \
+    LOG_LEVEL=DEBUG
+
+# Expose ports for development services
+EXPOSE 8888 5000 5001 8080
+
+# Create startup script for development using RUN commands
+RUN echo '#!/bin/bash' > /opt/lapack-ai/dev_startup.sh && \
+    echo 'set -e' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '' >> /opt/lapack-ai/dev_startup.sh && \
+    echo 'echo "=== LAPACK AI Development Environment Starting ==="' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '# Source environment setup' >> /opt/lapack-ai/dev_startup.sh && \
+    echo 'source /opt/lapack-ai/setup_env.sh' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '# Check system information' >> /opt/lapack-ai/dev_startup.sh && \
+    echo 'echo "=== System Information ==="' >> /opt/lapack-ai/dev_startup.sh && \
+    echo "echo \"Python version: \$(python --version)\"" >> /opt/lapack-ai/dev_startup.sh && \
+    echo "echo \"GCC version: \$(gcc --version | head -n1)\"" >> /opt/lapack-ai/dev_startup.sh && \
+    echo "echo \"Gfortran version: \$(gfortran --version | head -n1)\"" >> /opt/lapack-ai/dev_startup.sh && \
+    echo "echo \"CMake version: \$(cmake --version | head -n1)\"" >> /opt/lapack-ai/dev_startup.sh && \
+    echo 'echo "OpenCL info:"' >> /opt/lapack-ai/dev_startup.sh && \
+    echo 'clinfo -l 2>/dev/null || echo "No OpenCL devices found (this is normal without GPU)"' >> /opt/lapack-ai/dev_startup.sh
+
+RUN echo '' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '# Test Python environment' >> /opt/lapack-ai/dev_startup.sh && \
+    echo 'echo "=== Testing Python Environment ==="' >> /opt/lapack-ai/dev_startup.sh && \
+    echo 'python -c "' >> /opt/lapack-ai/dev_startup.sh && \
+    echo 'import numpy as np' >> /opt/lapack-ai/dev_startup.sh && \
+    echo 'import scipy' >> /opt/lapack-ai/dev_startup.sh && \
+    echo 'import pybind11' >> /opt/lapack-ai/dev_startup.sh && \
+    echo 'print(f\"NumPy: {np.__version__}\")' >> /opt/lapack-ai/dev_startup.sh && \
+    echo 'print(f\"SciPy: {scipy.__version__}\")' >> /opt/lapack-ai/dev_startup.sh && \
+    echo 'print(f\"Pybind11: {pybind11.__version__}\")' >> /opt/lapack-ai/dev_startup.sh && \
+    echo 'try:' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '    import pyopencl as cl' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '    print(f\"PyOpenCL: {cl.VERSION_TEXT}\")' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '    platforms = cl.get_platforms()' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '    print(f\"OpenCL platforms: {len(platforms)}\")' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '    for i, platform in enumerate(platforms):' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '        print(f\"  Platform {i}: {platform.name}\")' >> /opt/lapack-ai/dev_startup.sh && \
+    echo 'except Exception as e:' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '    print(f\"PyOpenCL not available: {e}\")' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '"' >> /opt/lapack-ai/dev_startup.sh
+
+RUN echo '' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '# Check file permissions' >> /opt/lapack-ai/dev_startup.sh && \
+    echo 'echo "=== Development Environment Ready ==="' >> /opt/lapack-ai/dev_startup.sh && \
+    echo "echo \"Working directory: \$(pwd)\"" >> /opt/lapack-ai/dev_startup.sh && \
+    echo "echo \"User: \$(whoami)\"" >> /opt/lapack-ai/dev_startup.sh && \
+    echo 'echo "Available services:"' >> /opt/lapack-ai/dev_startup.sh && \
+    echo 'echo "  - Jupyter Lab: http://localhost:8888"' >> /opt/lapack-ai/dev_startup.sh && \
+    echo 'echo "  - Flask Dashboard: http://localhost:5000"' >> /opt/lapack-ai/dev_startup.sh && \
+    echo 'echo "  - Monitoring: http://localhost:5001"' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '' >> /opt/lapack-ai/dev_startup.sh
+
+RUN echo '# Start services based on command line arguments' >> /opt/lapack-ai/dev_startup.sh && \
+    echo "if [ \"\$1\" = \"jupyter\" ]; then" >> /opt/lapack-ai/dev_startup.sh && \
+    echo '    echo "Starting Jupyter Lab..."' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '    jupyter lab --allow-root' >> /opt/lapack-ai/dev_startup.sh && \
+    echo "elif [ \"\$1\" = \"flask\" ]; then" >> /opt/lapack-ai/dev_startup.sh && \
+    echo '    echo "Starting Flask development server..."' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '    cd /opt/lapack-ai && python -m flask run --host=0.0.0.0 --port=5000' >> /opt/lapack-ai/dev_startup.sh && \
+    echo "elif [ \"\$1\" = \"test\" ]; then" >> /opt/lapack-ai/dev_startup.sh && \
+    echo '    echo "Running tests..."' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '    cd /opt/lapack-ai && python -m pytest tests/ -v' >> /opt/lapack-ai/dev_startup.sh && \
+    echo "elif [ \"\$1\" = \"build\" ]; then" >> /opt/lapack-ai/dev_startup.sh && \
+    echo '    echo "Building LAPACK..."' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '    cd /opt/lapack-ai && ./scripts/build_lapack.sh' >> /opt/lapack-ai/dev_startup.sh && \
+    echo 'else' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '    echo "Available commands:"' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '    echo "  jupyter  - Start Jupyter Lab"' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '    echo "  flask    - Start Flask development server"' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '    echo "  test     - Run test suite"' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '    echo "  build    - Build LAPACK"' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '    echo ""' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '    echo "Starting interactive shell..."' >> /opt/lapack-ai/dev_startup.sh && \
+    echo '    exec /bin/bash' >> /opt/lapack-ai/dev_startup.sh && \
+    echo 'fi' >> /opt/lapack-ai/dev_startup.sh
+
+RUN chmod +x /opt/lapack-ai/dev_startup.sh && \
+    chown lapack:lapack /opt/lapack-ai/dev_startup.sh
+
+# Switch back to development user
+USER lapack
+
+# Set working directory for development
+WORKDIR /opt/lapack-ai
+
+# Health check for development environment
+HEALTHCHECK --interval=60s --timeout=30s --start-period=10s --retries=3 \
+    CMD python -c "import numpy, scipy, flask; print('Development environment healthy')" || exit 1
+
+# Default command runs development startup script
+ENTRYPOINT ["/opt/lapack-ai/dev_startup.sh"]
+CMD ["interactive"]

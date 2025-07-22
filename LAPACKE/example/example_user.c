@@ -93,5 +93,3 @@ void print_int_vector( char* desc, lapack_int n, lapack_int* a ) {
         for( j = 0; j < n; j++ ) printf( " %6i", a[j] );
         printf( "\n" );
 }
-
-

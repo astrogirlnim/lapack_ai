@@ -1036,7 +1036,7 @@
 *> \ingroup double_eig
 *
 *  =====================================================================
-      PROGRAM DCHKEE      
+      PROGRAM DCHKEE
 *
 #if defined(_OPENMP)
       use omp_lib
@@ -1111,7 +1111,7 @@
      $                   DDRGEV, DDRGSX, DDRGVX, DDRVBD, DDRVES, DDRVEV,
      $                   DDRVSG, DDRVST, DDRVSX, DDRVVX, DERRBD,
      $                   DERRED, DERRGG, DERRHS, DERRST, ILAVER, XLAENV,
-     $                   DDRGES3, DDRGEV3, 
+     $                   DDRGES3, DDRGEV3,
      $                   DCHKST2STG, DDRVST2STG, DCHKSB2STG, DDRVSG2STG
 *     ..
 *     .. Intrinsic Functions ..
@@ -1137,7 +1137,7 @@
 *     ..
 *     .. Data statements ..
       DATA               INTSTR / '0123456789' /
-      DATA               IOLDSD / 0, 0, 0, 1 /  
+      DATA               IOLDSD / 0, 0, 0, 1 /
 *     ..
 *     .. Allocate memory dynamically ..
 *
@@ -1856,7 +1856,7 @@
      $         WRITE( NOUT, FMT = 9980 )'DCHKHS', INFO
   270    CONTINUE
 *
-      ELSE IF( LSAMEN( 3, C3, 'DST' ) .OR. LSAMEN( 3, C3, 'SEP' ) 
+      ELSE IF( LSAMEN( 3, C3, 'DST' ) .OR. LSAMEN( 3, C3, 'SEP' )
      $                                .OR. LSAMEN( 3, C3, 'SE2' ) ) THEN
 *
 *        ----------------------------------
@@ -2338,7 +2338,7 @@
 *     $                NOUT, A( 1, 1 ), NMAX, D( 1, 1 ), D( 1, 2 ),
 *     $                A( 1, 2 ), NMAX, WORK, LWORK, RESULT, INFO )
          CALL DCHKSB2STG( NN, NVAL, NK, KVAL, MAXTYP, DOTYPE, ISEED,
-     $                 THRESH, NOUT, A( 1, 1 ), NMAX, D( 1, 1 ), 
+     $                 THRESH, NOUT, A( 1, 1 ), NMAX, D( 1, 1 ),
      $                 D( 1, 2 ), D( 1, 3 ), D( 1, 4 ), D( 1, 5 ),
      $                 A( 1, 2 ), NMAX, WORK, LWORK, RESULT, INFO )
          IF( INFO.NE.0 )
@@ -2461,7 +2461,7 @@
   380 CONTINUE
       WRITE( NOUT, FMT = 9994 )
       S2 = DSECND( )
-      WRITE( NOUT, FMT = 9993 )S2 - S1     
+      WRITE( NOUT, FMT = 9993 )S2 - S1
 *
       DEALLOCATE (A, STAT = AllocateStatus)
       DEALLOCATE (B, STAT = AllocateStatus)

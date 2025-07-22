@@ -18,7 +18,7 @@
 *  Definition:
 *  ===========
 *
-*      SUBROUTINE ZHETRS_AA_2STAGE( UPLO, N, NRHS, A, LDA, TB, LTB, IPIV, 
+*      SUBROUTINE ZHETRS_AA_2STAGE( UPLO, N, NRHS, A, LDA, TB, LTB, IPIV,
 *                                   IPIV2, B, LDB, INFO )
 *
 *       .. Scalar Arguments ..
@@ -35,7 +35,7 @@
 *>
 *> \verbatim
 *>
-*> ZHETRS_AA_2STAGE solves a system of linear equations A*X = B with a 
+*> ZHETRS_AA_2STAGE solves a system of linear equations A*X = B with a
 *> hermitian matrix A using the factorization A = U**H*T*U or
 *> A = L*T*L**H computed by ZHETRF_AA_2STAGE.
 *> \endverbatim

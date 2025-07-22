@@ -8,7 +8,7 @@
 *  Definition:
 *  ===========
 *
-*       SUBROUTINE DCHKSY_AA_2STAGE( DOTYPE, NN, NVAL, NNB, NBVAL, 
+*       SUBROUTINE DCHKSY_AA_2STAGE( DOTYPE, NN, NVAL, NNB, NBVAL,
 *                             NNS, NSVAL, THRESH, TSTERR, NMAX, A,
 *                             AFAC, AINV, B, X, XACT, WORK, RWORK,
 *                             IWORK, NOUT )
@@ -422,7 +422,7 @@
 *
                   SRNAMT = 'DSYTRF_AA_2STAGE'
                   LWORK = MIN( MAX( 1, N*NB ), 3*NMAX*NMAX )
-                  CALL DSYTRF_AA_2STAGE( UPLO, N, AFAC, LDA, 
+                  CALL DSYTRF_AA_2STAGE( UPLO, N, AFAC, LDA,
      $                                   AINV, MAX( 1, (3*NB+1)*N ),
      $                                   IWORK, IWORK( 1+N ),
      $                                   WORK, LWORK,

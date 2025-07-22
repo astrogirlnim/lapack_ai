@@ -489,7 +489,7 @@
      $                       B( ISTARTM, K2 ), 1, C1, S1 )
                   CALL SROT( JW, ZC( 1, K2+1-KWTOP+1 ), 1, ZC( 1,
      $                       K2-KWTOP+1 ), 1, C1, S1 )
-            
+
                   CALL SLARTG( A( K2+1, K2 ), A( K2+2, K2 ), C1, S1,
      $                         TEMP )
                   A( K2+1, K2 ) = TEMP

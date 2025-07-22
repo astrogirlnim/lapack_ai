@@ -83,7 +83,7 @@ lapack_int API_SUFFIX(LAPACKE_cgedmd)( int matrix_layout, char jobs, char jobz, 
     /* Query optimal working array(s) size */
     info = API_SUFFIX(LAPACKE_cgedmd_work)( matrix_layout, jobs, jobz, jobr, jobf, whtsvd,
 				m, n, x, ldx, y, ldy, nrnk, tol, k, eigs, z, ldz,
-				res, b, ldb, w, ldw, s, lds, &zwork_query, 
+				res, b, ldb, w, ldw, s, lds, &zwork_query,
 				lzwork, &work_query, lwork, &iwork_query, liwork );
 
     if( info != 0 ) {

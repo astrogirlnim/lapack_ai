@@ -59,7 +59,7 @@
 *> factorization of the pair (B, A) to be subnormally close to singularity without this
 *> subroutine signalling an error. The solutions computed for such almost-rank-deficient
 *> problems may be less accurate due to a loss of numerical precision.
-*> 
+*>
 *> \endverbatim
 *
 *  Arguments:

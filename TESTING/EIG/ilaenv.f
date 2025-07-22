@@ -228,12 +228,12 @@ C        ILAENV = 0
 *
       ELSE IF(( ISPEC.GE.17 ) .AND. (ISPEC.LE.21)) THEN
 *
-*     17 <= ISPEC <= 21: 2stage eigenvalues SVD routines. 
+*     17 <= ISPEC <= 21: 2stage eigenvalues SVD routines.
 *
          IF( ISPEC.EQ.17 ) THEN
              ILAENV = IPARMS( 1 )
          ELSE
-             ILAENV = IPARAM2STAGE( ISPEC, NAME, OPTS, N1, N2, N3, N4 ) 
+             ILAENV = IPARAM2STAGE( ISPEC, NAME, OPTS, N1, N2, N3, N4 )
          ENDIF
 *
       ELSE
@@ -276,14 +276,14 @@ C        ILAENV = 0
 *
       IF(( ISPEC.GE.1 ) .AND. (ISPEC.LE.5)) THEN
 *
-*     1 <= ISPEC <= 5: 2stage eigenvalues SVD routines. 
+*     1 <= ISPEC <= 5: 2stage eigenvalues SVD routines.
 *
          IF( ISPEC.EQ.1 ) THEN
              ILAENV2STAGE = IPARMS( 1 )
          ELSE
              IISPEC = 16 + ISPEC
              ILAENV2STAGE = IPARAM2STAGE( IISPEC, NAME, OPTS,
-     $                                    N1, N2, N3, N4 ) 
+     $                                    N1, N2, N3, N4 )
          ENDIF
 *
       ELSE

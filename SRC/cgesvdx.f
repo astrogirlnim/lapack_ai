@@ -305,7 +305,7 @@
 *     .. External Subroutines ..
       EXTERNAL           CGEBRD, CGELQF, CGEQRF, CLASCL,
      $                   CLASET,
-     $                   CUNMBR, CUNMQR, CUNMLQ, CLACPY, 
+     $                   CUNMBR, CUNMQR, CUNMLQ, CLACPY,
      $                   SBDSVDX, SLASCL, XERBLA
 *     ..
 *     .. External Functions ..

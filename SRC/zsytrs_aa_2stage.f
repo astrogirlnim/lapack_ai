@@ -16,7 +16,7 @@
 *  Definition:
 *  ===========
 *
-*      SUBROUTINE ZSYTRS_AA_2STAGE( UPLO, N, NRHS, A, LDA, TB, LTB, IPIV, 
+*      SUBROUTINE ZSYTRS_AA_2STAGE( UPLO, N, NRHS, A, LDA, TB, LTB, IPIV,
 *                                   IPIV2, B, LDB, INFO )
 *
 *       .. Scalar Arguments ..

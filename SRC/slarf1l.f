@@ -188,7 +188,7 @@
 *
 *        Form  H * C
 *
-         IF( LASTV.EQ.FIRSTV ) THEN        
+         IF( LASTV.EQ.FIRSTV ) THEN
 *
 *           C(lastv,1:lastc) := ( 1 - tau ) * C(lastv,1:lastc)
 *

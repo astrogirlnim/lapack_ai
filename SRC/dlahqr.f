@@ -232,7 +232,7 @@
      $                   SAFMIN, SMLNUM, SN, SUM, T1, T2, T3, TR, TST,
      $                   ULP, V2, V3
       INTEGER            I, I1, I2, ITS, ITMAX, J, K, L, M, NH, NR, NZ,
-     $                   KDEFL 
+     $                   KDEFL
 *     ..
 *     .. Local Arrays ..
       DOUBLE PRECISION   V( 3 )

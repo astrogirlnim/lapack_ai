@@ -7,7 +7,7 @@ module LA_XISNAN
    end interface
 
 contains
-   
+
    logical function SISNAN( x )
    use LA_CONSTANTS, only: wp=>sp
 #ifdef USE_IEEE_INTRINSIC

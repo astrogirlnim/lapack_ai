@@ -1111,7 +1111,7 @@
      $                   SDRGEV, SDRGSX, SDRGVX, SDRVBD, SDRVES, SDRVEV,
      $                   SDRVSG, SDRVST, SDRVSX, SDRVVX, SERRBD,
      $                   SERRED, SERRGG, SERRHS, SERRST, ILAVER, XLAENV,
-     $                   SDRGES3, SDRGEV3, 
+     $                   SDRGES3, SDRGEV3,
      $                   SCHKST2STG, SDRVST2STG, SCHKSB2STG, SDRVSG2STG
 *     ..
 *     .. Intrinsic Functions ..
@@ -1137,7 +1137,7 @@
 *     ..
 *     .. Data statements ..
       DATA               INTSTR / '0123456789' /
-      DATA               IOLDSD / 0, 0, 0, 1 / 
+      DATA               IOLDSD / 0, 0, 0, 1 /
 *     ..
 *     .. Allocate memory dynamically ..
 *
@@ -2341,7 +2341,7 @@
 *     $                NOUT, A( 1, 1 ), NMAX, D( 1, 1 ), D( 1, 2 ),
 *     $                A( 1, 2 ), NMAX, WORK, LWORK, RESULT, INFO )
          CALL SCHKSB2STG( NN, NVAL, NK, KVAL, MAXTYP, DOTYPE, ISEED,
-     $                 THRESH, NOUT, A( 1, 1 ), NMAX, D( 1, 1 ), 
+     $                 THRESH, NOUT, A( 1, 1 ), NMAX, D( 1, 1 ),
      $                 D( 1, 2 ), D( 1, 3 ), D( 1, 4 ), D( 1, 5 ),
      $                 A( 1, 2 ), NMAX, WORK, LWORK, RESULT, INFO )
          IF( INFO.NE.0 )

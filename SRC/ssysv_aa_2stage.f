@@ -109,7 +109,7 @@
 *>          used to select NB such that LTB >= (3*NB+1)*N.
 *>
 *>          If LTB = -1, then a workspace query is assumed; the
-*>          routine only calculates the optimal size of LTB, 
+*>          routine only calculates the optimal size of LTB,
 *>          returns this value as the first entry of TB, and
 *>          no error message related to LTB is issued by XERBLA.
 *> \endverbatim

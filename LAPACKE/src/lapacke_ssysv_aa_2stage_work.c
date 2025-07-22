@@ -34,14 +34,14 @@
 
 lapack_int API_SUFFIX(LAPACKE_ssysv_aa_2stage_work)( int matrix_layout, char uplo, lapack_int n,
                                lapack_int nrhs, float* a, lapack_int lda,
-                               float* tb, lapack_int ltb, lapack_int* ipiv, 
+                               float* tb, lapack_int ltb, lapack_int* ipiv,
                                lapack_int* ipiv2, float* b, lapack_int ldb,
                                float* work, lapack_int lwork )
 {
     lapack_int info = 0;
     if( matrix_layout == LAPACK_COL_MAJOR ) {
         /* Call LAPACK function and adjust info */
-        LAPACK_ssysv_aa_2stage( &uplo, &n, &nrhs, a, &lda, tb, 
+        LAPACK_ssysv_aa_2stage( &uplo, &n, &nrhs, a, &lda, tb,
         				 &ltb, ipiv, ipiv2, b, &ldb, work, &lwork,
                          &info );
         if( info < 0 ) {
@@ -96,7 +96,7 @@ lapack_int API_SUFFIX(LAPACKE_ssysv_aa_2stage_work)( int matrix_layout, char upl
         API_SUFFIX(LAPACKE_ssy_trans)( matrix_layout, uplo, n, a, lda, a_t, lda_t );
         API_SUFFIX(LAPACKE_sge_trans)( matrix_layout, n, nrhs, b, ldb, b_t, ldb_t );
         /* Call LAPACK function and adjust info */
-        LAPACK_ssysv_aa_2stage( &uplo, &n, &nrhs, a_t, &lda_t, 
+        LAPACK_ssysv_aa_2stage( &uplo, &n, &nrhs, a_t, &lda_t,
         			  tb_t, &ltb, ipiv, ipiv2, b_t, &ldb_t, work,
                       &lwork, &info );
         if( info < 0 ) {

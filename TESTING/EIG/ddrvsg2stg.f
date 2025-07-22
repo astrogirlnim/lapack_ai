@@ -10,7 +10,7 @@
 *
 *       SUBROUTINE DDRVSG2STG( NSIZES, NN, NTYPES, DOTYPE, ISEED, THRESH,
 *                              NOUNIT, A, LDA, B, LDB, D, D2, Z, LDZ, AB,
-*                              BB, AP, BP, WORK, NWORK, IWORK, LIWORK, 
+*                              BB, AP, BP, WORK, NWORK, IWORK, LIWORK,
 *                              RESULT, INFO )
 *
 *       IMPLICIT NONE
@@ -357,7 +357,7 @@
 *  =====================================================================
       SUBROUTINE DDRVSG2STG( NSIZES, NN, NTYPES, DOTYPE, ISEED, THRESH,
      $                       NOUNIT, A, LDA, B, LDB, D, D2, Z, LDZ, AB,
-     $                       BB, AP, BP, WORK, NWORK, IWORK, LIWORK, 
+     $                       BB, AP, BP, WORK, NWORK, IWORK, LIWORK,
      $                       RESULT, INFO )
 *
       IMPLICIT NONE
@@ -740,20 +740,20 @@
 *
 C                  CALL DSGT01( IBTYPE, UPLO, N, N, A, LDA, B, LDB, Z,
 C     $                         LDZ, D, WORK, RESULT( NTEST ) )
-*           
+*
 *                 Do Tests | D1 - D2 | / ( |D1| ulp )
 *                 D1 computed using the standard 1-stage reduction as reference
 *                 D2 computed using the 2-stage reduction
-*           
+*
                   TEMP1 = ZERO
                   TEMP2 = ZERO
                   DO 151 J = 1, N
-                     TEMP1 = MAX( TEMP1, ABS( D( J ) ), 
+                     TEMP1 = MAX( TEMP1, ABS( D( J ) ),
      $                                   ABS( D2( J ) ) )
                      TEMP2 = MAX( TEMP2, ABS( D( J )-D2( J ) ) )
   151             CONTINUE
-*           
-                  RESULT( NTEST ) = TEMP2 / 
+*
+                  RESULT( NTEST ) = TEMP2 /
      $                              MAX( UNFL, ULP*MAX( TEMP1, TEMP2 ) )
 *
 *                 Test DSYGVD

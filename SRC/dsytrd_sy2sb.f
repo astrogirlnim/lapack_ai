@@ -1,24 +1,24 @@
 *> \brief \b DSYTRD_SY2SB
 *
 *  @generated from zhetrd_he2hb.f, fortran z -> d, Wed Dec  7 08:22:39 2016
-*      
+*
 *  =========== DOCUMENTATION ===========
 *
-* Online html documentation available at 
-*            http://www.netlib.org/lapack/explore-html/ 
+* Online html documentation available at
+*            http://www.netlib.org/lapack/explore-html/
 *
-*> Download DSYTRD_SY2SB + dependencies 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dsytrd_sy2sb.f"> 
-*> [TGZ]</a> 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dsytrd_sy2sb.f"> 
-*> [ZIP]</a> 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dsytrd_sy2sb.f"> 
+*> Download DSYTRD_SY2SB + dependencies
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dsytrd_sy2sb.f">
+*> [TGZ]</a>
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dsytrd_sy2sb.f">
+*> [ZIP]</a>
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dsytrd_sy2sb.f">
 *> [TXT]</a>
 *
 *  Definition:
 *  ===========
 *
-*       SUBROUTINE DSYTRD_SY2SB( UPLO, N, KD, A, LDA, AB, LDAB, TAU, 
+*       SUBROUTINE DSYTRD_SY2SB( UPLO, N, KD, A, LDA, AB, LDAB, TAU,
 *                              WORK, LWORK, INFO )
 *
 *       IMPLICIT NONE
@@ -28,10 +28,10 @@
 *       INTEGER            INFO, LDA, LDAB, LWORK, N, KD
 *       ..
 *       .. Array Arguments ..
-*       DOUBLE PRECISION   A( LDA, * ), AB( LDAB, * ), 
+*       DOUBLE PRECISION   A( LDA, * ), AB( LDAB, * ),
 *                          TAU( * ), WORK( * )
 *       ..
-*  
+*
 *
 *> \par Purpose:
 *  =============
@@ -153,10 +153,10 @@
 *  Authors:
 *  ========
 *
-*> \author Univ. of Tennessee 
-*> \author Univ. of California Berkeley 
-*> \author Univ. of Colorado Denver 
-*> \author NAG Ltd. 
+*> \author Univ. of Tennessee
+*> \author Univ. of California Berkeley
+*> \author Univ. of Colorado Denver
+*> \author NAG Ltd.
 *
 *> \ingroup hetrd_he2hb
 *
@@ -178,7 +178,7 @@
 *>  http://doi.acm.org/10.1145/2063384.2063394
 *>
 *>  A. Haidar, J. Kurzak, P. Luszczek, 2013.
-*>  An improved parallel singular value algorithm and its implementation 
+*>  An improved parallel singular value algorithm and its implementation
 *>  for multicore hardware, In Proceedings of 2013 International Conference
 *>  for High Performance Computing, Networking, Storage and Analysis (SC '13).
 *>  Denver, Colorado, USA, 2013.
@@ -186,11 +186,11 @@
 *>  http://doi.acm.org/10.1145/2503210.2503292
 *>
 *>  A. Haidar, R. Solca, S. Tomov, T. Schulthess and J. Dongarra.
-*>  A novel hybrid CPU-GPU generalized eigensolver for electronic structure 
+*>  A novel hybrid CPU-GPU generalized eigensolver for electronic structure
 *>  calculations based on fine-grained memory aware tasks.
 *>  International Journal of High Performance Computing Applications.
 *>  Volume 28 Issue 2, Pages 196-209, May 2014.
-*>  http://hpc.sagepub.com/content/28/2/196 
+*>  http://hpc.sagepub.com/content/28/2/196
 *>
 *> \endverbatim
 *>
@@ -238,7 +238,7 @@
 *> \endverbatim
 *>
 *  =====================================================================
-      SUBROUTINE DSYTRD_SY2SB( UPLO, N, KD, A, LDA, AB, LDAB, TAU, 
+      SUBROUTINE DSYTRD_SY2SB( UPLO, N, KD, A, LDA, AB, LDAB, TAU,
      $                         WORK, LWORK, INFO )
 *
       IMPLICIT NONE
@@ -252,7 +252,7 @@
       INTEGER            INFO, LDA, LDAB, LWORK, N, KD
 *     ..
 *     .. Array Arguments ..
-      DOUBLE PRECISION   A( LDA, * ), AB( LDAB, * ), 
+      DOUBLE PRECISION   A( LDA, * ), AB( LDAB, * ),
      $                   TAU( * ), WORK( * )
 *     ..
 *
@@ -269,7 +269,7 @@
 *     .. Local Scalars ..
       LOGICAL            LQUERY, UPPER
       INTEGER            I, J, IINFO, LWMIN, PN, PK, LK,
-     $                   LDT, LDW, LDS2, LDS1, 
+     $                   LDT, LDW, LDS2, LDS1,
      $                   LS2, LS1, LW, LT,
      $                   TPOS, WPOS, S2POS, S1POS
 *     ..
@@ -283,12 +283,12 @@
 *     ..
 *     .. External Functions ..
       LOGICAL            LSAME
-      INTEGER            ILAENV2STAGE 
+      INTEGER            ILAENV2STAGE
       EXTERNAL           LSAME, ILAENV2STAGE
 *     ..
 *     .. Executable Statements ..
 *
-*     Determine the minimal workspace size required 
+*     Determine the minimal workspace size required
 *     and test the input parameters
 *
       INFO   = 0
@@ -323,14 +323,14 @@
          RETURN
       END IF
 *
-*     Quick return if possible        
-*     Copy the upper/lower portion of A into AB 
+*     Quick return if possible
+*     Copy the upper/lower portion of A into AB
 *
       IF( N.LE.KD+1 ) THEN
           IF( UPPER ) THEN
               DO 100 I = 1, N
                   LK = MIN( KD+1, I )
-                  CALL DCOPY( LK, A( I-LK+1, I ), 1, 
+                  CALL DCOPY( LK, A( I-LK+1, I ), 1,
      $                            AB( KD+1-LK+1, I ), 1 )
   100         CONTINUE
           ELSE
@@ -344,18 +344,18 @@
       END IF
 *
 *     Determine the pointer position for the workspace
-*      
+*
       LDT    = KD
       LDS1   = KD
       LT     = LDT*KD
       LW     = N*KD
       LS1    = LDS1*KD
       LS2    = LWMIN - LT - LW - LS1
-*      LS2 = N*MAX(KD,FACTOPTNB) 
+*      LS2 = N*MAX(KD,FACTOPTNB)
       TPOS   = 1
       WPOS   = TPOS  + LT
       S1POS  = WPOS  + LW
-      S2POS  = S1POS + LS1 
+      S2POS  = S1POS + LS1
       IF( UPPER ) THEN
           LDW    = KD
           LDS2   = KD
@@ -367,62 +367,62 @@
 *
 *     Set the workspace of the triangular matrix T to zero once such a
 *     way every time T is generated the upper/lower portion will be always zero
-*   
+*
       CALL DLASET( "A", LDT, KD, ZERO, ZERO, WORK( TPOS ), LDT )
 *
       IF( UPPER ) THEN
           DO 10 I = 1, N - KD, KD
              PN = N-I-KD+1
              PK = MIN( N-I-KD+1, KD )
-*        
+*
 *            Compute the LQ factorization of the current block
-*        
+*
              CALL DGELQF( KD, PN, A( I, I+KD ), LDA,
      $                    TAU( I ), WORK( S2POS ), LS2, IINFO )
-*        
+*
 *            Copy the upper portion of A into AB
-*        
+*
              DO 20 J = I, I+PK-1
                 LK = MIN( KD, N-J ) + 1
                 CALL DCOPY( LK, A( J, J ), LDA, AB( KD+1, J ),
      $                      LDAB-1 )
    20        CONTINUE
-*                
-             CALL DLASET( 'Lower', PK, PK, ZERO, ONE, 
+*
+             CALL DLASET( 'Lower', PK, PK, ZERO, ONE,
      $                    A( I, I+KD ), LDA )
-*        
+*
 *            Form the matrix T
-*        
+*
              CALL DLARFT( 'Forward', 'Rowwise', PN, PK,
-     $                    A( I, I+KD ), LDA, TAU( I ), 
+     $                    A( I, I+KD ), LDA, TAU( I ),
      $                    WORK( TPOS ), LDT )
-*        
+*
 *            Compute W:
-*             
+*
              CALL DGEMM( 'Conjugate', 'No transpose', PK, PN, PK,
      $                   ONE,  WORK( TPOS ), LDT,
      $                         A( I, I+KD ), LDA,
      $                   ZERO, WORK( S2POS ), LDS2 )
-*        
+*
              CALL DSYMM( 'Right', UPLO, PK, PN,
      $                   ONE,  A( I+KD, I+KD ), LDA,
      $                         WORK( S2POS ), LDS2,
      $                   ZERO, WORK( WPOS ), LDW )
-*        
+*
              CALL DGEMM( 'No transpose', 'Conjugate', PK, PK, PN,
      $                   ONE,  WORK( WPOS ), LDW,
      $                         WORK( S2POS ), LDS2,
      $                   ZERO, WORK( S1POS ), LDS1 )
-*        
+*
              CALL DGEMM( 'No transpose', 'No transpose', PK, PN, PK,
-     $                   -HALF, WORK( S1POS ), LDS1, 
+     $                   -HALF, WORK( S1POS ), LDS1,
      $                          A( I, I+KD ), LDA,
      $                   ONE,   WORK( WPOS ), LDW )
-*             
-*        
+*
+*
 *            Update the unreduced submatrix A(i+kd:n,i+kd:n), using
 *            an update of the form:  A := A - V'*W - W'*V
-*        
+*
              CALL DSYR2K( UPLO, 'Conjugate', PN, PK,
      $                    -ONE, A( I, I+KD ), LDA,
      $                          WORK( WPOS ), LDW,
@@ -439,58 +439,58 @@
       ELSE
 *
 *         Reduce the lower triangle of A to lower band matrix
-*        
+*
           DO 40 I = 1, N - KD, KD
              PN = N-I-KD+1
              PK = MIN( N-I-KD+1, KD )
-*        
+*
 *            Compute the QR factorization of the current block
-*        
+*
              CALL DGEQRF( PN, KD, A( I+KD, I ), LDA,
      $                    TAU( I ), WORK( S2POS ), LS2, IINFO )
-*        
-*            Copy the upper portion of A into AB 
-*        
+*
+*            Copy the upper portion of A into AB
+*
              DO 50 J = I, I+PK-1
                 LK = MIN( KD, N-J ) + 1
                 CALL DCOPY( LK, A( J, J ), 1, AB( 1, J ), 1 )
    50        CONTINUE
-*                
-             CALL DLASET( 'Upper', PK, PK, ZERO, ONE, 
+*
+             CALL DLASET( 'Upper', PK, PK, ZERO, ONE,
      $                    A( I+KD, I ), LDA )
-*        
+*
 *            Form the matrix T
-*        
+*
              CALL DLARFT( 'Forward', 'Columnwise', PN, PK,
-     $                    A( I+KD, I ), LDA, TAU( I ), 
+     $                    A( I+KD, I ), LDA, TAU( I ),
      $                    WORK( TPOS ), LDT )
-*        
+*
 *            Compute W:
-*             
+*
              CALL DGEMM( 'No transpose', 'No transpose', PN, PK, PK,
      $                   ONE, A( I+KD, I ), LDA,
      $                         WORK( TPOS ), LDT,
      $                   ZERO, WORK( S2POS ), LDS2 )
-*        
+*
              CALL DSYMM( 'Left', UPLO, PN, PK,
      $                   ONE, A( I+KD, I+KD ), LDA,
      $                         WORK( S2POS ), LDS2,
      $                   ZERO, WORK( WPOS ), LDW )
-*        
+*
              CALL DGEMM( 'Conjugate', 'No transpose', PK, PK, PN,
      $                   ONE, WORK( S2POS ), LDS2,
      $                         WORK( WPOS ), LDW,
      $                   ZERO, WORK( S1POS ), LDS1 )
-*        
+*
              CALL DGEMM( 'No transpose', 'No transpose', PN, PK, PK,
      $                   -HALF, A( I+KD, I ), LDA,
      $                         WORK( S1POS ), LDS1,
      $                   ONE, WORK( WPOS ), LDW )
-*             
-*        
+*
+*
 *            Update the unreduced submatrix A(i+kd:n,i+kd:n), using
 *            an update of the form:  A := A - V*W' - W*V'
-*        
+*
              CALL DSYR2K( UPLO, 'No transpose', PN, PK,
      $                    -ONE, A( I+KD, I ), LDA,
      $                           WORK( WPOS ), LDW,

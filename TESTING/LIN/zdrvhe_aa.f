@@ -199,7 +199,7 @@
 *     .. External Subroutines ..
       EXTERNAL           ALADHD, ALAERH, ALASVM, XLAENV, ZERRVX, ZGET04,
      $                   ZHESV_AA, ZHET01_AA, ZHETRF_AA,
-     $                   ZHETRI2, ZLACPY, ZLAIPD, ZLARHS, ZLATB4, 
+     $                   ZHETRI2, ZLACPY, ZLAIPD, ZLARHS, ZLATB4,
      $                   ZLATMS, ZPOT02
 *     ..
 *     .. Scalars in Common ..

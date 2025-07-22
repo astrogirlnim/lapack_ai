@@ -274,7 +274,7 @@
 *        Compute T(1:i,i)
 *
          CALL ZSCAL( I-1, -TAU( I ), T( 1, I ), 1 )
-         CALL ZTRMV( 'Upper', 'No transpose', 'Non-unit', I-1, T, 
+         CALL ZTRMV( 'Upper', 'No transpose', 'Non-unit', I-1, T,
      $               LDT, T( 1, I ), 1 )
          T( I, I ) = TAU( I )
 *

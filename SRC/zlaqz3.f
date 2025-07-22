@@ -307,7 +307,7 @@
      $              S )
          CALL ZROT( NS+1, QC( 1, 1 ), 1, QC( 1, 2 ), 1, C,
      $              DCONJG( S ) )
-        
+
 *        Chase the shift down
          DO J = 1, NS-I
 
@@ -472,7 +472,7 @@
      $                   A, LDA, B, LDB, NS, IHI-NS+1, QC, LDQC, NS+1,
      $                   IHI-NS, ZC, LDZC )
          END DO
-         
+
       END DO
 
 *     Update rest of the pencil

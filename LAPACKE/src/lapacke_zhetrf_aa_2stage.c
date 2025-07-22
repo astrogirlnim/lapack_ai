@@ -57,7 +57,7 @@ lapack_int API_SUFFIX(LAPACKE_zhetrf_aa_2stage)( int matrix_layout, char uplo, l
     }
 #endif
     /* Query optimal working array(s) size */
-    info = API_SUFFIX(LAPACKE_zhetrf_aa_2stage_work)( matrix_layout, uplo, n,  
+    info = API_SUFFIX(LAPACKE_zhetrf_aa_2stage_work)( matrix_layout, uplo, n,
                                a, lda, tb, ltb, ipiv, ipiv2,
                                &work_query, lwork );
     if( info != 0 ) {

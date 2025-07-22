@@ -1,0 +1,173 @@
+# LAPACK AI Modernization - Production Docker Image
+# Multi-stage optimized build targeting <500MB final image
+
+# Stage 1: Build environment with all dependencies
+FROM python:3.11-slim as builder
+
+# Environment for build optimization
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    cmake \
+    gfortran \
+    gcc \
+    g++ \
+    make \
+    pkg-config \
+    git \
+    opencl-headers \
+    ocl-icd-opencl-dev \
+    libopenblas-dev \
+    liblapack-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment for Python dependencies
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy and install Python requirements
+COPY MODERNIZATION/dev_environment/requirements.txt /tmp/requirements.txt
+
+# Install only production Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir \
+    numpy \
+    scipy \
+    pybind11 \
+    pyopencl \
+    flask \
+    gunicorn \
+    psutil && \
+    # Clean up pip cache
+    rm -rf /root/.cache/pip && \
+    rm /tmp/requirements.txt
+
+# Stage 2: Runtime environment (minimal)
+FROM python:3.11-slim as runtime
+
+# Metadata
+LABEL maintainer="LAPACK AI Modernization Team"
+LABEL description="Production LAPACK AI environment with GPU support"
+LABEL version="1.0.0"
+
+# Runtime environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/opt/venv/bin:$PATH" \
+    PYTHONPATH="/opt/lapack-ai/src"
+
+# Install minimal runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Essential runtime libraries
+    libgfortran5 \
+    libopenblas0 \
+    liblapack3 \
+    # OpenCL runtime (minimal)
+    ocl-icd-libopencl1 \
+    # Clean up immediately to reduce layer size
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /tmp/* \
+    && rm -rf /var/cache/apt/*
+
+# Copy Python virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+
+# Create application user
+RUN groupadd -r lapack && \
+    useradd --no-log-init -r -g lapack lapack && \
+    mkdir -p /opt/lapack-ai && \
+    chown -R lapack:lapack /opt/lapack-ai
+
+# Copy only essential application files
+COPY --chown=lapack:lapack SRC/ /opt/lapack-ai/src/lapack/
+COPY --chown=lapack:lapack BLAS/SRC/ /opt/lapack-ai/src/blas/
+COPY --chown=lapack:lapack LAPACKE/src/ /opt/lapack-ai/src/lapacke/
+
+# Create production startup script
+RUN echo '#!/bin/bash' > /opt/lapack-ai/start.sh && \
+    echo 'set -e' >> /opt/lapack-ai/start.sh && \
+    echo '' >> /opt/lapack-ai/start.sh && \
+    echo 'echo "=== LAPACK AI Production Environment ==="' >> /opt/lapack-ai/start.sh && \
+    echo 'echo "Starting services..."' >> /opt/lapack-ai/start.sh && \
+    echo '' >> /opt/lapack-ai/start.sh && \
+    echo '# Health check' >> /opt/lapack-ai/start.sh && \
+    echo 'python -c "' >> /opt/lapack-ai/start.sh && \
+    echo 'import sys, os' >> /opt/lapack-ai/start.sh && \
+    echo 'try:' >> /opt/lapack-ai/start.sh && \
+    echo '    import numpy as np' >> /opt/lapack-ai/start.sh && \
+    echo '    import scipy' >> /opt/lapack-ai/start.sh && \
+    echo '    import flask' >> /opt/lapack-ai/start.sh && \
+    echo '    print(f\"✓ NumPy {np.__version__}\")' >> /opt/lapack-ai/start.sh && \
+    echo '    print(f\"✓ SciPy {scipy.__version__}\")' >> /opt/lapack-ai/start.sh && \
+    echo '    print(\"✓ Environment healthy\")' >> /opt/lapack-ai/start.sh && \
+    echo 'except Exception as e:' >> /opt/lapack-ai/start.sh && \
+    echo '    print(f\"✗ Environment check failed: {e}\")' >> /opt/lapack-ai/start.sh && \
+    echo '    sys.exit(1)' >> /opt/lapack-ai/start.sh && \
+    echo '"' >> /opt/lapack-ai/start.sh && \
+    echo '' >> /opt/lapack-ai/start.sh
+
+RUN echo '# Start service based on command' >> /opt/lapack-ai/start.sh && \
+    echo "case \"\$1\" in" >> /opt/lapack-ai/start.sh && \
+    echo '    "web")' >> /opt/lapack-ai/start.sh && \
+    echo '        echo "Starting web server on port 5000..."' >> /opt/lapack-ai/start.sh && \
+    echo '        exec gunicorn --bind 0.0.0.0:5000 --workers 2 --timeout 30 app:app' >> /opt/lapack-ai/start.sh && \
+    echo '        ;;' >> /opt/lapack-ai/start.sh && \
+    echo '    "worker")' >> /opt/lapack-ai/start.sh && \
+    echo '        echo "Starting background worker..."' >> /opt/lapack-ai/start.sh && \
+    echo '        exec python -m lapack_ai.worker' >> /opt/lapack-ai/start.sh && \
+    echo '        ;;' >> /opt/lapack-ai/start.sh && \
+    echo '    "health")' >> /opt/lapack-ai/start.sh && \
+    echo '        echo "Health check completed successfully"' >> /opt/lapack-ai/start.sh && \
+    echo '        exit 0' >> /opt/lapack-ai/start.sh && \
+    echo '        ;;' >> /opt/lapack-ai/start.sh && \
+    echo '    *)' >> /opt/lapack-ai/start.sh && \
+    echo '        echo "Usage: start.sh {web|worker|health}"' >> /opt/lapack-ai/start.sh && \
+    echo '        echo "  web    - Start web server"' >> /opt/lapack-ai/start.sh && \
+    echo '        echo "  worker - Start background worker"' >> /opt/lapack-ai/start.sh && \
+    echo '        echo "  health - Run health check"' >> /opt/lapack-ai/start.sh && \
+    echo '        exit 1' >> /opt/lapack-ai/start.sh && \
+    echo '        ;;' >> /opt/lapack-ai/start.sh && \
+    echo 'esac' >> /opt/lapack-ai/start.sh
+
+RUN chmod +x /opt/lapack-ai/start.sh && \
+    chown lapack:lapack /opt/lapack-ai/start.sh
+
+# Configure OpenCL environment for production
+ENV OCL_ENABLE_DEBUG=0 \
+    PYOPENCL_COMPILER_OUTPUT=0 \
+    OCL_CACHE_DIR=/tmp/ocl_cache
+
+# Create cache directory
+RUN mkdir -p /tmp/ocl_cache && \
+    chown lapack:lapack /tmp/ocl_cache && \
+    chmod 755 /tmp/ocl_cache
+
+# Switch to application user
+USER lapack
+WORKDIR /opt/lapack-ai
+
+# Expose application port
+EXPOSE 5000
+
+# Health check for production
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD /opt/lapack-ai/start.sh health
+
+# Default command
+ENTRYPOINT ["/opt/lapack-ai/start.sh"]
+CMD ["web"]
+
+# Image size optimization notes:
+# - Multi-stage build removes build dependencies from final image
+# - Only essential runtime libraries included
+# - Python virtual environment copied from builder
+# - Minimal base image (python:3.11-slim)
+# - Aggressive cleanup of package manager caches
+# - Only core LAPACK source files copied
+# Target size: <500MB

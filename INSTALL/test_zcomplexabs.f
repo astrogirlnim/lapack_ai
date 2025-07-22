@@ -223,7 +223,7 @@
                 if( R .ne. answerC ) then
                     caseCFails = caseCFails + 1
                     if( caseCFails .eq. 1 ) then
-                        print *, 
+                        print *,
      $              "!! Some ABS(x*(3/4+I)) differ from (5/4)*ABS(x)"
                     endif
                     WRITE( 0, FMT = 9999 ) 'c',i, Xj, '(3/4+I)', R,
@@ -262,7 +262,7 @@
                     if( relDiff .ge. (0.5*eps) ) then
                         caseDFails = caseDFails + 1
                         if( caseDFails .eq. 1 ) then
-                            print *, 
+                            print *,
      $                "!! Some ABS(x*(1+I)) differ from sqrt(2)*ABS(x)"
                         endif
                         WRITE( 0, FMT = 9999 ) 'd',i, (oneHalf*Xj),
@@ -271,7 +271,7 @@
                 endif
                 Xj = Xj * stepX(i)
             end do
-        endif 
+        endif
   40  continue
 *
 *     Test (e) Infs

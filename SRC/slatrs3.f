@@ -11,7 +11,7 @@
 *       INTEGER            INFO, LDA, LWORK, LDX, N, NRHS
 *       ..
 *       .. Array Arguments ..
-*       REAL               A( LDA, * ), CNORM( * ), SCALE( * ), 
+*       REAL               A( LDA, * ), CNORM( * ), SCALE( * ),
 *                          WORK( * ), X( LDX, * )
 *       ..
 *

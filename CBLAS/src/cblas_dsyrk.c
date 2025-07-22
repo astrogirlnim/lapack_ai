@@ -105,4 +105,3 @@ void API_SUFFIX(cblas_dsyrk)(const CBLAS_LAYOUT layout, const CBLAS_UPLO Uplo,
    RowMajorStrg = 0;
    return;
 }
-

@@ -88,7 +88,7 @@
      $                   SSPTRS, SSYCON, SSYCON_3, SSYCON_ROOK, SSYRFS,
      $                   SSYTF2_RK, SSYTF2_ROOK, SSYTRF, SSYTRF_RK,
      $                   SSYTRF_ROOK, SSYTRI, SSYTF2, SSYTRI_3,
-     $                   SSYTRI_3X, SSYTRI_ROOK, SSYTRF_AA, SSYTRI2, 
+     $                   SSYTRI_3X, SSYTRI_ROOK, SSYTRF_AA, SSYTRI2,
      $                   SSYTRI2X, SSYTRS, SSYTRS_3, SSYTRS_ROOK,
      $                   SSYTRS_AA, SSYTRF_AA_2STAGE, SSYTRS_AA_2STAGE
 *     ..

@@ -34,7 +34,7 @@
 
 lapack_int API_SUFFIX(LAPACKE_ssysv_aa_2stage)( int matrix_layout, char uplo, lapack_int n,
                           lapack_int nrhs, float* a, lapack_int lda,
-                          float* tb, lapack_int ltb, lapack_int* ipiv, 
+                          float* tb, lapack_int ltb, lapack_int* ipiv,
                           lapack_int* ipiv2, float* b, lapack_int ldb )
 {
     lapack_int info = 0;
@@ -60,7 +60,7 @@ lapack_int API_SUFFIX(LAPACKE_ssysv_aa_2stage)( int matrix_layout, char uplo, la
     }
 #endif
     /* Query optimal working array(s) size */
-    info = API_SUFFIX(LAPACKE_ssysv_aa_2stage_work)( matrix_layout, uplo, n, nrhs, 
+    info = API_SUFFIX(LAPACKE_ssysv_aa_2stage_work)( matrix_layout, uplo, n, nrhs,
     						   a, lda, tb, ltb, ipiv, ipiv2, b,
                                ldb, &work_query, lwork );
     if( info != 0 ) {

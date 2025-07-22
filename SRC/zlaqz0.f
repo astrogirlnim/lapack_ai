@@ -319,7 +319,7 @@
 
 *
 *     Decode wantS,wantQ,wantZ
-*      
+*
       IF( LSAME( WANTS, 'E' ) ) THEN
          ILSCHUR = .FALSE.
          IWANTS = 1
@@ -384,7 +384,7 @@
          CALL XERBLA( 'ZLAQZ0', -INFO )
          RETURN
       END IF
-   
+
 *
 *     Quick return if possible
 *
@@ -407,7 +407,7 @@
       NWR = MIN( IHI-ILO+1, ( N-1 ) / 3, NWR )
 
       NIBBLE = ILAENV( 14, 'ZLAQZ0', JBCMPZ, N, ILO, IHI, LWORK )
-      
+
       NSR = ILAENV( 15, 'ZLAQZ0', JBCMPZ, N, ILO, IHI, LWORK )
       NSR = MIN( NSR, ( N+6 ) / 9, IHI-ILO )
       NSR = MAX( 2, NSR-MOD( NSR, 2 ) )
@@ -475,7 +475,7 @@
       ISTOP = IHI
       MAXIT = 30*( IHI-ILO+1 )
       LD = 0
- 
+
       DO IITER = 1, MAXIT
          IF( IITER .GE. MAXIT ) THEN
             INFO = ISTOP+1
@@ -537,7 +537,7 @@
             IF( ABS( B( K, K ) ) .LT. BTOL ) THEN
 *              A diagonal element of B is negligible, move it
 *              to the top and deflate it
-               
+
                DO K2 = K, ISTART2+1, -1
                   CALL ZLARTG( B( K2-1, K2 ), B( K2-1, K2-1 ), C1,
      $                         S1,
@@ -595,7 +595,7 @@
                END IF
 
                ISTART2 = ISTART2+1
-   
+
             END IF
             K = K-1
          END DO
@@ -655,7 +655,7 @@
          SHIFTPOS = ISTOP-N_UNDEFLATED+1
 
          IF ( MOD( LD, 6 ) .EQ. 0 ) THEN
-* 
+*
 *           Exceptional shift.  Chosen for no particularly good reason.
 *
             IF( ( DBLE( MAXIT )*SAFMIN )*ABS( A( ISTOP,
@@ -690,7 +690,7 @@
    80 CALL ZHGEQZ( WANTS, WANTQ, WANTZ, N, ILO, IHI, A, LDA, B, LDB,
      $             ALPHA, BETA, Q, LDQ, Z, LDZ, WORK, LWORK, RWORK,
      $             NORM_INFO )
-      
+
       INFO = NORM_INFO
 
       END SUBROUTINE

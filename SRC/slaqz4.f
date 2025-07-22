@@ -288,7 +288,7 @@
             SI( I ) = SI( I+1 )
             SI( I+1 ) = SI( I+2 )
             SI( I+2 ) = SWAP
-            
+
             SWAP = SS( I )
             SS( I ) = SS( I+1 )
             SS( I+1 ) = SS( I+2 )
@@ -498,7 +498,7 @@
      $                   A, LDA, B, LDB, NS, IHI-NS+1, QC, LDQC, NS+1,
      $                   IHI-NS, ZC, LDZC )
          END DO
-         
+
       END DO
 
 *     Update rest of the pencil

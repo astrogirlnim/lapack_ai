@@ -403,10 +403,38 @@ def gemm_with_fallback(A, B, device='auto'):
 
 ### AlphaTensor Algorithm Overview
 
-**Algorithm Source**: AlphaTensor DeepMind Research (Page 12, h_1 to h_47 decomposition)  
+**Algorithm Source**: AlphaTensor DeepMind Research (Nature 610, 2022)  
+**Breakthrough**: First AI system to discover novel, faster matrix multiplication algorithms  
 **Target**: 4×4 matrix multiplication optimization  
 **Multiplication Count**: 47 operations (vs standard 64, 26% reduction)  
-**Expected Speedup**: 10-20% for 4×4 matrices common in ML workloads
+**Performance**: 10-20% speedup on NVIDIA V100 GPU and Google TPU v2  
+**Scope**: Works in both mod 2 arithmetic (finite fields) and standard arithmetic
+
+#### Algorithm Discovery Method
+
+AlphaTensor formulates matrix multiplication algorithm discovery as a **single-player game**:
+
+1. **Game State**: 3D tensor (array of numbers) representing "distance from correct algorithm"
+2. **Goal**: Zero out all tensor entries through valid moves (algorithm instructions)
+3. **Search Space**: >10^33 possible moves (30 orders of magnitude larger than Go)
+4. **Training**: AlphaZero-based reinforcement learning with neural networks
+5. **Result**: Thousands of novel algorithms discovered, many superior to human designs
+
+#### The h_1 to h_47 Decomposition
+
+The "47-multiplication decomposition" refers to AlphaTensor's breakthrough algorithm that:
+- **Reduces operations**: From 64 scalar multiplications (standard) to 47 (26% improvement)
+- **Maintains accuracy**: Provably correct results equivalent to standard algorithm  
+- **Optimizes for hardware**: Algorithms adapted for specific GPU/TPU architectures
+- **Multiple variants**: 14,236+ non-equivalent algorithms for same 4×4 multiplication
+
+**Mathematical Representation**:
+```
+Standard 4×4 multiplication: 64 scalar products (h_1, h_2, ..., h_64)
+AlphaTensor optimized:       47 scalar products (h_1, h_2, ..., h_47)
+```
+
+Each h_i represents one scalar multiplication operation in the decomposed algorithm.
 
 ### Current DGEMM Interface (Legacy)
 
@@ -480,11 +508,21 @@ attention_scores = lap.dgemm_alpha_batch(Q, K.T)
 
 ### Implementation Strategy
 
+#### Algorithm Comparison: Standard vs AlphaTensor
+
+| Aspect | Standard DGEMM | DGEMM_ALPHA (AlphaTensor) |
+|--------|----------------|---------------------------|
+| **Operations** | 64 scalar multiplications | 47 scalar multiplications |
+| **Complexity** | Straightforward nested loops | Optimized tensor decomposition |
+| **Applicability** | Any matrix size | Optimized for 4×4 blocks |
+| **Performance** | Baseline | 10-20% faster on target hardware |
+| **Implementation** | Well-established | Novel, requires careful implementation |
+
 #### Phase 1: Algorithm Implementation
-1. **Study AlphaTensor decomposition** (Page 12: h_1 through h_47)
-2. **Implement Fortran version** with 47 multiplications
-3. **Validate numerical accuracy** against reference DGEMM
-4. **Benchmark performance** for 4×4 matrices
+1. **Study AlphaTensor algorithm files** from DeepMind's GitHub repository
+2. **Implement Fortran version** with 47 multiplication decomposition
+3. **Validate numerical accuracy** against reference DGEMM (tolerance: 1e-6)
+4. **Benchmark performance** for 4×4 matrices on target hardware
 
 #### Phase 2: OpenCL Acceleration  
 1. **Create OpenCL kernel** for AlphaTensor algorithm

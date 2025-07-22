@@ -156,20 +156,7 @@ jobs:
 
         # Compile all required modules before syntax checking
         echo "🔧 Compiling required modules..."
-        # Compile LA_XISNAN module if it exists (required by several .f90 files)
-        if [ -f "la_xisnan.F90" ]; then
-          echo "  📦 Compiling LA_XISNAN module..."
-          gfortran -c la_xisnan.F90 2>&1 | tee laxisnan_build.log
-          MODULE_EXIT_CODE=${PIPESTATUS[0]}
-          if [ $MODULE_EXIT_CODE -ne 0 ]; then
-            echo "    ❌ Failed to compile LA_XISNAN module. See output above and in laxisnan_build.log"
-            cat laxisnan_build.log
-            exit 1
-          else
-            echo "    ✅ LA_XISNAN module compiled successfully"
-          fi
-        fi
-        # Compile LA_CONSTANTS module if it exists (required by several .f90 files)
+        # Compile LA_CONSTANTS module FIRST (required by la_xisnan.F90 and other .f90 files)
         if [ -f "la_constants.f90" ]; then
           echo "  📦 Compiling LA_CONSTANTS module..."
           gfortran -c la_constants.f90 2>&1 | tee laconstants_build.log
@@ -180,6 +167,19 @@ jobs:
             exit 1
           else
             echo "    ✅ LA_CONSTANTS module compiled successfully"
+          fi
+        fi
+        # Compile LA_XISNAN module SECOND (depends on LA_CONSTANTS module)
+        if [ -f "la_xisnan.F90" ]; then
+          echo "  📦 Compiling LA_XISNAN module..."
+          gfortran -c la_xisnan.F90 2>&1 | tee laxisnan_build.log
+          MODULE_EXIT_CODE=${PIPESTATUS[0]}
+          if [ $MODULE_EXIT_CODE -ne 0 ]; then
+            echo "    ❌ Failed to compile LA_XISNAN module. See output above and in laxisnan_build.log"
+            cat laxisnan_build.log
+            exit 1
+          else
+            echo "    ✅ LA_XISNAN module compiled successfully"
           fi
         fi
 

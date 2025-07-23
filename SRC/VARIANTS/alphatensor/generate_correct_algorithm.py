@@ -9,7 +9,9 @@ import numpy as np
 
 def load_alphatensor_factors():
     """Load the real AlphaTensor factorization from DeepMind data."""
-    factorizations_path = "/tmp/alphatensor/algorithms/factorizations_r.npz"
+    factorizations_path = (
+        "../../../alphatensor_algo/alphatensor/algorithms/factorizations_r.npz"
+    )
     with open(factorizations_path, "rb") as f:
         factorizations = dict(np.load(f, allow_pickle=True))
 

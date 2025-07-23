@@ -804,4 +804,114 @@ int robust_container_gpu_operation(operation_params_t* params) {
 }
 ```
 
+## 🔬 Critical Discovery: Tensor Factorization Patterns
+
+### AlphaTensor Implementation Lessons Learned
+
+During the AlphaTensor implementation, we discovered a **critical mathematical error** in our understanding of tensor factorization algorithms. This section documents the correct patterns for future tensor-based optimizations.
+
+#### ❌ **Common Mistake: Element-wise Tensor Interpretation**
+
+**Wrong Pattern**: Treating tensor factors as individual element operations
+```fortran
+! INCORRECT: This treats each factor as element-wise multiplication
+SUBROUTINE WRONG_TENSOR_APPROACH()
+    ! For each factor in the tensor decomposition
+    H(1) = A(1,1)*B(1,1) + A(1,1)*B(3,1) + A(3,1)*B(1,1) + A(3,1)*B(3,1)
+    H(2) = A(1,1)*B(1,1) - A(1,1)*B(1,3) + A(1,1)*B(3,1) - A(1,3)*B(1,1) + ...
+    ! This creates individual element multiplications, not tensor factorization
+END SUBROUTINE
+```
+
+**Why This Fails**:
+- Misunderstands the mathematical structure of tensor decomposition  
+- Creates incorrect numerical results (error magnitude ~400+ vs target 1e-6)
+- Framework may work but algorithm is fundamentally wrong
+
+#### ✅ **Correct Pattern: Linear Combination Tensor Factorization**
+
+**Source**: DeepMind's AlphaTensor `algorithm_from_factors` function
+
+**Correct Pattern**: Linear combinations → scalar multiplication → result distribution
+```fortran
+! CORRECT: Linear combination approach from DeepMind's implementation
+SUBROUTINE CORRECT_TENSOR_APPROACH(A, LDA, B, LDB, C, LDC)
+    DOUBLE PRECISION A(LDA,4), B(LDB,4), C(LDC,4)
+    DOUBLE PRECISION LEFT_COMBO, RIGHT_COMBO, SCALAR_RESULT
+    DOUBLE PRECISION TEMP_RESULT(4,4)
+    INTEGER OP
+    
+    ! Initialize result matrix
+    DO J = 1, 4
+        DO I = 1, 4
+            TEMP_RESULT(I,J) = 0.0D0
+        END DO
+    END DO
+    
+    ! For each of the 47 AlphaTensor operations
+    DO OP = 1, 47
+        ! Step 1: Create linear combinations of matrix elements
+        LEFT_COMBO = 0.0D0
+        DO J = 1, 4
+            DO I = 1, 4
+                LEFT_COMBO = LEFT_COMBO + A_FACTORS(I,J,OP) * A(I,J)
+            END DO
+        END DO
+        
+        RIGHT_COMBO = 0.0D0  
+        DO J = 1, 4
+            DO I = 1, 4
+                RIGHT_COMBO = RIGHT_COMBO + B_FACTORS(I,J,OP) * B(I,J)
+            END DO
+        END DO
+        
+        ! Step 2: Multiply the SCALAR results
+        SCALAR_RESULT = LEFT_COMBO * RIGHT_COMBO
+        
+        ! Step 3: Distribute scalar to result matrix  
+        DO K = 1, 4
+            DO I = 1, 4
+                TEMP_RESULT(I,K) = TEMP_RESULT(I,K) + 
+     +                             C_FACTORS(I,K,OP) * SCALAR_RESULT
+            END DO
+        END DO
+    END DO
+    
+    ! Apply final scaling and copy to output
+    DO J = 1, 4
+        DO I = 1, 4
+            C(I,J) = ALPHA * TEMP_RESULT(I,J) + BETA * C(I,J)
+        END DO
+    END DO
+END SUBROUTINE
+```
+
+#### 📊 **Mathematical Comparison**
+
+| Aspect | Wrong Approach | Correct Approach |
+|--------|---------------|------------------|
+| **Tensor Understanding** | Individual element ops | Linear combinations |
+| **Operation Count** | 47 separate multiplications | 47 scalar operations |
+| **Mathematical Structure** | Element-wise | Bilinear form factorization |
+| **Numerical Accuracy** | ~400 error | ~1e-6 accuracy |
+| **Algorithm Source** | Misinterpretation | DeepMind's verified code |
+
+#### 🔧 **Implementation Patterns for Tensor Algorithms**
+
+1. **Always Verify Mathematical Structure**: Test against reference implementation
+2. **Linear Combinations First**: Create scalar combinations before multiplication  
+3. **Scalar Operations**: Multiply scalars, not element arrays
+4. **Result Distribution**: Use factors to distribute scalars to output matrix
+5. **Reference Implementation**: Always compare against proven mathematical code
+
+#### 📚 **Development Lessons**
+
+1. **Infrastructure Success ≠ Algorithm Success**: Framework can work while algorithm is wrong
+2. **Mathematical Validation Critical**: Numerical testing reveals algorithm errors
+3. **Reference Code Analysis**: Study proven implementations before creating your own
+4. **Incremental Testing**: Test mathematical correctness at each step
+5. **Documentation of Failures**: Record wrong approaches to prevent repetition
+
+This discovery demonstrates the importance of mathematical rigor in implementing advanced algorithms, even when the infrastructure and framework integration work perfectly.
+
 This enhanced system patterns document reflects our transition to a fully containerized development and deployment architecture, while maintaining the core LAPACK integration principles and adding robust GPU testing infrastructure capabilities. 

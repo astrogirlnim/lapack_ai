@@ -158,7 +158,7 @@
       INTEGER I, J, R
       DOUBLE PRECISION A_FLAT(16), B_FLAT(16), RESULT_FLAT(16)
       DOUBLE PRECISION A_CONTRIB, B_CONTRIB, SCALAR_RESULT
-      DOUBLE PRECISION TEMP_VALUE
+      DOUBLE PRECISION TEMP_VALUE, TEMP_MATRIX(4,4)
       INTEGER LOG_UNIT
       PARAMETER (LOG_UNIT=6)
 *     ..
@@ -229,6 +229,9 @@
       B_CONTRIB = -B_FLAT(9)
       SCALAR_RESULT = A_CONTRIB * B_CONTRIB
       RESULT_FLAT(3) = RESULT_FLAT(3) + SCALAR_RESULT
+      WRITE(LOG_UNIT,*) 'OP6: A_CONTRIB=',A_CONTRIB,' B_CONTRIB=',
+     +                  B_CONTRIB,' SCALAR=',SCALAR_RESULT
+      WRITE(LOG_UNIT,*) 'OP6: RESULT_FLAT(3)=',RESULT_FLAT(3)
 *
 *     Operation 7 (r=6): Key operation for row 2
       A_CONTRIB = -A_FLAT(5) + A_FLAT(6) - A_FLAT(7) - A_FLAT(8)
@@ -238,6 +241,8 @@
       RESULT_FLAT(6) = RESULT_FLAT(6) + SCALAR_RESULT
       RESULT_FLAT(7) = RESULT_FLAT(7) - SCALAR_RESULT
       RESULT_FLAT(8) = RESULT_FLAT(8) - SCALAR_RESULT
+      WRITE(LOG_UNIT,*) 'OP7: A_CONTRIB=',A_CONTRIB,' B_CONTRIB=',
+     +                  B_CONTRIB,' SCALAR=',SCALAR_RESULT
 *
 *     Operation 8 (r=7): Important for matrix structure
       A_CONTRIB = -A_FLAT(5) + A_FLAT(6) - A_FLAT(7) - A_FLAT(8) -
@@ -251,6 +256,12 @@
       RESULT_FLAT(8) = RESULT_FLAT(8) + SCALAR_RESULT
       RESULT_FLAT(13) = RESULT_FLAT(13) + SCALAR_RESULT
       RESULT_FLAT(14) = RESULT_FLAT(14) - SCALAR_RESULT
+      WRITE(LOG_UNIT,*) 'OP8: A_CONTRIB=',A_CONTRIB,' B_CONTRIB=',
+     +                  B_CONTRIB,' SCALAR=',SCALAR_RESULT
+      WRITE(LOG_UNIT,*) 'OP8: RESULT_FLAT(5-8) after op8:'
+      WRITE(LOG_UNIT,*) (RESULT_FLAT(I), I=5,8)
+      WRITE(LOG_UNIT,*) 'OP8: RESULT_FLAT(13-14) after op8:'
+      WRITE(LOG_UNIT,*) (RESULT_FLAT(I), I=13,14)
 *
 *     Operation 9 (r=8): Key for corners
       A_CONTRIB = A_FLAT(1) - A_FLAT(3)
@@ -258,6 +269,8 @@
       SCALAR_RESULT = A_CONTRIB * B_CONTRIB
       RESULT_FLAT(1) = RESULT_FLAT(1) + SCALAR_RESULT
       RESULT_FLAT(3) = RESULT_FLAT(3) - SCALAR_RESULT
+      WRITE(LOG_UNIT,*) 'OP9: A_CONTRIB=',A_CONTRIB,' B_CONTRIB=',
+     +                  B_CONTRIB,' SCALAR=',SCALAR_RESULT
 *
 *     Operation 10 (r=9): Row pattern
       A_CONTRIB = -A_FLAT(5) + A_FLAT(6) - A_FLAT(13) + A_FLAT(14)
@@ -267,6 +280,8 @@
       RESULT_FLAT(6) = RESULT_FLAT(6) + SCALAR_RESULT
       RESULT_FLAT(13) = RESULT_FLAT(13) - SCALAR_RESULT
       RESULT_FLAT(14) = RESULT_FLAT(14) + SCALAR_RESULT
+      WRITE(LOG_UNIT,*) 'OP10: A_CONTRIB=',A_CONTRIB,' B_CONTRIB=',
+     +                  B_CONTRIB,' SCALAR=',SCALAR_RESULT
 *
 *     Operation 11 (r=10): Complex pattern
       A_CONTRIB = A_FLAT(13) - A_FLAT(14)
@@ -375,6 +390,8 @@
       RESULT_FLAT(4) = RESULT_FLAT(4) - SCALAR_RESULT
       RESULT_FLAT(7) = RESULT_FLAT(7) - SCALAR_RESULT
       RESULT_FLAT(8) = RESULT_FLAT(8) - SCALAR_RESULT
+      WRITE(LOG_UNIT,*) 'OP20: A_CONTRIB=',A_CONTRIB,' B_CONTRIB=',
+     +                  B_CONTRIB,' SCALAR=',SCALAR_RESULT
 *
       WRITE(LOG_UNIT,*) 'ALPHATENSOR_CORRECT: 20 ops complete'
 *
@@ -480,6 +497,8 @@
       B_CONTRIB = B_FLAT(4) + B_FLAT(12)
       SCALAR_RESULT = A_CONTRIB * B_CONTRIB
       RESULT_FLAT(15) = RESULT_FLAT(15) + SCALAR_RESULT
+      WRITE(LOG_UNIT,*) 'OP30: A_CONTRIB=',A_CONTRIB,' B_CONTRIB=',
+     +                  B_CONTRIB,' SCALAR=',SCALAR_RESULT
 *
       WRITE(LOG_UNIT,*) 'ALPHATENSOR_CORRECT: 30 ops complete'
 *
@@ -594,6 +613,8 @@
       RESULT_FLAT(14) = RESULT_FLAT(14) - SCALAR_RESULT
       RESULT_FLAT(15) = RESULT_FLAT(15) - SCALAR_RESULT
       RESULT_FLAT(16) = RESULT_FLAT(16) - SCALAR_RESULT
+      WRITE(LOG_UNIT,*) 'OP40: A_CONTRIB=',A_CONTRIB,' B_CONTRIB=',
+     +                  B_CONTRIB,' SCALAR=',SCALAR_RESULT
 *
       WRITE(LOG_UNIT,*) 'ALPHATENSOR_CORRECT: 40 ops complete'
 *
@@ -637,12 +658,16 @@
      +            B_FLAT(13) - B_FLAT(14) - B_FLAT(15) - B_FLAT(16)
       SCALAR_RESULT = A_CONTRIB * B_CONTRIB
       RESULT_FLAT(10) = RESULT_FLAT(10) + SCALAR_RESULT
+      WRITE(LOG_UNIT,*) 'OP45: A_CONTRIB=',A_CONTRIB,' B_CONTRIB=',
+     +                  B_CONTRIB,' SCALAR=',SCALAR_RESULT
 *
 *     Operation 46 (r=45): Exact DeepMind coefficients
       A_CONTRIB = -A_FLAT(9) + A_FLAT(10) + A_FLAT(13) - A_FLAT(14)
       B_CONTRIB = -B_FLAT(2) - B_FLAT(10)
       SCALAR_RESULT = A_CONTRIB * B_CONTRIB
       RESULT_FLAT(7) = RESULT_FLAT(7) + SCALAR_RESULT
+      WRITE(LOG_UNIT,*) 'OP46: A_CONTRIB=',A_CONTRIB,' B_CONTRIB=',
+     +                  B_CONTRIB,' SCALAR=',SCALAR_RESULT
 *
 *     Operation 47 (r=46): Exact DeepMind coefficients
       A_CONTRIB = A_FLAT(13) - A_FLAT(15)
@@ -650,6 +675,8 @@
       SCALAR_RESULT = A_CONTRIB * B_CONTRIB
       RESULT_FLAT(10) = RESULT_FLAT(10) - SCALAR_RESULT
       RESULT_FLAT(12) = RESULT_FLAT(12) - SCALAR_RESULT
+      WRITE(LOG_UNIT,*) 'OP47: A_CONTRIB=',A_CONTRIB,' B_CONTRIB=',
+     +                  B_CONTRIB,' SCALAR=',SCALAR_RESULT
 *
 *     Operation 48 (r=47): Exact DeepMind coefficients
       A_CONTRIB = -A_FLAT(15) - A_FLAT(16)
@@ -657,6 +684,8 @@
       SCALAR_RESULT = A_CONTRIB * B_CONTRIB
       RESULT_FLAT(15) = RESULT_FLAT(15) + SCALAR_RESULT
       RESULT_FLAT(16) = RESULT_FLAT(16) + SCALAR_RESULT
+      WRITE(LOG_UNIT,*) 'OP48: A_CONTRIB=',A_CONTRIB,' B_CONTRIB=',
+     +                  B_CONTRIB,' SCALAR=',SCALAR_RESULT
 *
 *     Operation 49 (r=48): Exact DeepMind coefficients
       A_CONTRIB = -A_FLAT(7)
@@ -664,6 +693,8 @@
       SCALAR_RESULT = A_CONTRIB * B_CONTRIB
       RESULT_FLAT(2) = RESULT_FLAT(2) + SCALAR_RESULT
       RESULT_FLAT(10) = RESULT_FLAT(10) + SCALAR_RESULT
+      WRITE(LOG_UNIT,*) 'OP49: A_CONTRIB=',A_CONTRIB,' B_CONTRIB=',
+     +                  B_CONTRIB,' SCALAR=',SCALAR_RESULT
 *
       WRITE(LOG_UNIT,*) 'ALPHATENSOR_COMPLETE: ALL 49 exact ops done'
 *
@@ -672,15 +703,21 @@
       WRITE(LOG_UNIT,*) (RESULT_FLAT(I), I=1,16)
       WRITE(LOG_UNIT,*) 'ALPHATENSOR_CORRECT: Converting to matrix'
 *
-*     Convert result vector back to matrix and transpose
-*     (DeepMind factors produce (A@B)^T)
+*     Convert result vector to temporary matrix (DeepMind produces (A@B)^T)
+      DO J = 1, 4
+          DO I = 1, 4
+              TEMP_MATRIX(I,J) = RESULT_FLAT((J-1)*4 + I)
+          END DO
+      END DO
+*
+*     Transpose and apply ALPHA/BETA: C = ALPHA * ((A@B)^T)^T + BETA * C
       DO J = 1, 4
           DO I = 1, 4
               IF (BETA.EQ.ZERO) THEN
-                  C(I,J) = ALPHA * RESULT_FLAT((J-1)*4 + I)
+                  C(I,J) = ALPHA * TEMP_MATRIX(J,I)
               ELSE
                   TEMP_VALUE = BETA * C(I,J)
-                  C(I,J) = ALPHA * RESULT_FLAT((J-1)*4 + I) + TEMP_VALUE
+                  C(I,J) = ALPHA * TEMP_MATRIX(J,I) + TEMP_VALUE
               END IF
           END DO
       END DO

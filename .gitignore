@@ -1,6 +1,9 @@
 # ignore objects and archives, anywhere in the tree.
 *.[oa]
 
+# AlphaTensor algorithm
+alphatensor_algo/
+
 # test in INSTALL
 INSTALL/test*
 

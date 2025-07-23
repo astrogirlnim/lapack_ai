@@ -667,15 +667,15 @@
 *
 *     Apply scaling factors and update C matrix
       WRITE(LOG_UNIT,*) 'ALPHATENSOR_CORRECT: Applying ALPHA/BETA'
-      WRITE(LOG_UNIT,*) 'ALPHATENSOR_CORRECT: Transpose correction'
+      WRITE(LOG_UNIT,*) 'ALPHATENSOR_CORRECT: Using TEMP_RESULT'
 *
       DO J = 1, 4
           DO I = 1, 4
               IF (BETA.EQ.ZERO) THEN
-                  C(I,J) = ALPHA * TRANSPOSED_RESULT(J,I)
+                  C(I,J) = ALPHA * TEMP_RESULT(I,J)
               ELSE
                   TEMP_VALUE = BETA * C(I,J)
-                  C(I,J) = ALPHA * TRANSPOSED_RESULT(J,I) + TEMP_VALUE
+                  C(I,J) = ALPHA * TEMP_RESULT(I,J) + TEMP_VALUE
               END IF
           END DO
       END DO

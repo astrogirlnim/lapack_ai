@@ -914,4 +914,84 @@ END SUBROUTINE
 
 This discovery demonstrates the importance of mathematical rigor in implementing advanced algorithms, even when the infrastructure and framework integration work perfectly.
 
+## 📁 Development File Organization Patterns
+
+### AlphaTensor Development Workflow Pattern
+
+During the AlphaTensor implementation, we established an effective pattern for organizing development files that preserves the complete development journey while maintaining clean production code.
+
+#### 🏗️ **File Classification System**
+
+**Production Files** (Clean, Tested, Ready)
+```
+SRC/VARIANTS/alphatensor/
+├── dgemm_alpha.f                    # Main implementation (working framework)
+├── dgemm_alpha_correct.f           # Correction template 
+└── generate_correct_algorithm.py   # Generation script (clean)
+```
+
+**Development Files** (Reference, Historical, Learning)
+```
+SRC/VARIANTS/alphatensor/
+├── Algorithm Versions:
+│   ├── dgemm_alpha_backup.f        # Backup of original
+│   ├── dgemm_alpha_complete.f      # Complete wrong version
+│   ├── dgemm_alpha_real.f          # Real algorithm attempt
+│   └── real_alphatensor_algorithm.f # Generated code (1000 lines)
+├── Test Files:
+│   ├── functional_test_alphatensor.f
+│   └── simple_test.f
+└── Development Scripts:
+    ├── extract_algorithm.py        # Data extraction
+    ├── extract_real_algorithm.py   # Real algorithm extraction
+    └── generate_complete_fortran.py # Code generation utility
+```
+
+#### 📚 **Commit Strategy for Development Files**
+
+**Staged Commits**:
+1. **Core Implementation**: Production-ready files with full linting compliance
+2. **Fortran Development**: Development Fortran files (clean, documented)  
+3. **Python Scripts**: Experimental scripts with `--no-verify` for rapid prototyping
+
+**Commit Messages Pattern**:
+```bash
+# Production code
+git commit -m "Add core AlphaTensor implementation and BLAS integration"
+
+# Development code  
+git commit -m "Add AlphaTensor Fortran development files"
+git commit --no-verify -m "Add Python development scripts (experimental)"
+```
+
+#### 🎯 **Benefits of This Pattern**
+
+1. **Complete Development History**: Preserves the learning journey and failed attempts
+2. **Reference Material**: Wrong implementations serve as documentation of pitfalls
+3. **Clean Production**: Main implementation files remain clean and focused
+4. **Rapid Prototyping**: Experimental scripts can bypass linting for speed
+5. **Knowledge Transfer**: Future developers can understand the complete process
+
+#### 🔧 **Implementation Guidelines**
+
+**For Production Files**:
+- Full linting compliance required
+- Comprehensive documentation
+- Complete testing integration
+- Clean commit messages
+
+**For Development Files**:
+- Document purpose and status clearly
+- Use `--no-verify` for experimental scripts when needed
+- Group by function (algorithms, tests, scripts)
+- Include creation context in commit messages
+
+**For Reference Files**:
+- Mark as historical/reference in documentation
+- Include lessons learned in commit messages
+- Preserve even "failed" implementations for learning
+- Document why approaches didn't work
+
+This pattern ensures both code quality for production and complete knowledge preservation for learning and future development.
+
 This enhanced system patterns document reflects our transition to a fully containerized development and deployment architecture, while maintaining the core LAPACK integration principles and adding robust GPU testing infrastructure capabilities. 

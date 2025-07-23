@@ -101,6 +101,23 @@ for operation in range(47):
 - 🔄 `SRC/VARIANTS/alphatensor/generate_correct_algorithm.py` - Generation script
 - 📋 `SRC/VARIANTS/alphatensor/dgemm_alpha_final.f` - Target for complete correct implementation
 
+### 📚 **DEVELOPMENT FILES** (Reference/Historical)
+- 📚 `SRC/VARIANTS/alphatensor/dgemm_alpha_backup.f` - Backup of original algorithm
+- 📚 `SRC/VARIANTS/alphatensor/dgemm_alpha_complete.f` - Complete wrong algorithm version
+- 📚 `SRC/VARIANTS/alphatensor/dgemm_alpha_real.f` - Real algorithm attempt with DeepMind data
+- 📚 `SRC/VARIANTS/alphatensor/real_alphatensor_algorithm.f` - Generated algorithm (1000 lines)
+- 📚 `SRC/VARIANTS/alphatensor/functional_test_alphatensor.f` - Functional testing
+- 📚 `SRC/VARIANTS/alphatensor/simple_test.f` - Simple test harness
+- 📚 `SRC/VARIANTS/alphatensor/extract_algorithm.py` - Algorithm extraction script
+- 📚 `SRC/VARIANTS/alphatensor/extract_real_algorithm.py` - Real algorithm extraction
+- 📚 `SRC/VARIANTS/alphatensor/generate_complete_fortran.py` - Fortran generation utility
+
+### 🎯 **COMMIT HISTORY** (Recent Development)
+- ✅ `af6a9404a` - Python development scripts (experimental)
+- ✅ `035f16d32` - Fortran development files  
+- ✅ `109a4fd4a` - Core implementation and BLAS integration
+- ✅ `219c5c2e0` - Memory bank with algorithm discovery
+
 ## Next Session Priorities
 
 1. **🔄 ALGORITHM CORRECTION** (CRITICAL)

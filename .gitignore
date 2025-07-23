@@ -53,3 +53,7 @@ SRC/la_xisnan.mod
 
 # Cursor rules files
 .cursor/
+
+# Compiled test executables
+SRC/VARIANTS/alphatensor/comprehensive_test*
+SRC/VARIANTS/alphatensor/test_*

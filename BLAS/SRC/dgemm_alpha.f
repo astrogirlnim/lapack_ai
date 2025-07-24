@@ -32,7 +32,8 @@
       EXTERNAL LSAME
 *     ..
 *     .. External Subroutines ..
-      EXTERNAL XERBLA, DGEMM
+      EXTERNAL XERBLA
+      EXTERNAL DGEMM
 *     ..
 *     .. Intrinsic Functions ..
       INTRINSIC MAX

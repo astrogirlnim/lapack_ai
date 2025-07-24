@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/Users/ns/Development/GauntletAI/lapack_ai/SRC/VARIANTS/alphatensor/extract_exact_coefficients.py", line 4, in <module>
+    import numpy as np
+ModuleNotFoundError: No module named 'numpy'

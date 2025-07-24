@@ -345,13 +345,13 @@
             CALL DCHK3( SNAMES( ISNUM ), EPS, THRESH, NOUT, NTRA, TRACE,
      $                  REWI, FATAL, NIDIM, IDIM, NKB, KB, NINC, INC,
      $                  NMAX, INCMAX, A, AA, AS, Y, YY, YS, YT, G, Z,
-     $			0 )
+     $                  0 )
             END IF
             IF (RORDER) THEN
             CALL DCHK3( SNAMES( ISNUM ), EPS, THRESH, NOUT, NTRA, TRACE,
      $                  REWI, FATAL, NIDIM, IDIM, NKB, KB, NINC, INC,
      $                  NMAX, INCMAX, A, AA, AS, Y, YY, YS, YT, G, Z,
-     $			1 )
+     $                  1 )
             END IF
             GO TO 200
 *           Test DGER, 12.
@@ -517,6 +517,8 @@
          NARGS = 11
       ELSE IF( BANDED )THEN
          NARGS = 13
+      ELSE
+         NARGS = 11
       END IF
 *
       NC = 0
@@ -879,6 +881,8 @@
          NARGS = 11
       ELSE IF( PACKED )THEN
          NARGS = 9
+      ELSE
+         NARGS = 10
       END IF
 *
       NC = 0
@@ -1004,7 +1008,7 @@
      $                           REWIND NTRA
                               CALL CDSBMV( IORDER, UPLO, N, K, ALPHA,
      $                                    AA, LDA, XX, INCX, BETA, YY,
-     $					  INCY )
+     $                                    INCY )
                            ELSE IF( PACKED )THEN
                               IF( TRACE )
      $                           WRITE( NTRA, FMT = 9995 )NC, SNAME,
@@ -1191,7 +1195,7 @@
 *     .. Scalar Arguments ..
       DOUBLE PRECISION   EPS, THRESH
       INTEGER            INCMAX, NIDIM, NINC, NKB, NMAX, NOUT, NTRA,
-     $			 IORDER
+     $                   IORDER
       LOGICAL            FATAL, REWI, TRACE
       CHARACTER*12       SNAME
 *     .. Array Arguments ..
@@ -1216,7 +1220,7 @@
       EXTERNAL           LDE, LDERES
 *     .. External Subroutines ..
       EXTERNAL           DMAKE, DMVCH, CDTBMV, CDTBSV, CDTPMV,
-     $			 CDTPSV, CDTRMV,  CDTRSV
+     $                   CDTPSV, CDTRMV,  CDTRSV
 *     .. Intrinsic Functions ..
       INTRINSIC          ABS, MAX
 *     .. Scalars in Common ..
@@ -1237,6 +1241,8 @@
          NARGS = 9
       ELSE IF( PACKED )THEN
          NARGS = 7
+      ELSE
+         NARGS = 8
       END IF
 *
       NC = 0
@@ -1579,7 +1585,7 @@
 *     .. Scalar Arguments ..
       DOUBLE PRECISION   EPS, THRESH
       INTEGER            INCMAX, NALF, NIDIM, NINC, NMAX, NOUT, NTRA,
-     $			 IORDER
+     $                   IORDER
       LOGICAL            FATAL, REWI, TRACE
       CHARACTER*12       SNAME
 *     .. Array Arguments ..
@@ -1851,7 +1857,7 @@
 *     .. Scalar Arguments ..
       DOUBLE PRECISION   EPS, THRESH
       INTEGER            INCMAX, NALF, NIDIM, NINC, NMAX, NOUT, NTRA,
-     $			 IORDER
+     $                   IORDER
       LOGICAL            FATAL, REWI, TRACE
       CHARACTER*12       SNAME
 *     .. Array Arguments ..
@@ -1894,6 +1900,8 @@
          NARGS = 7
       ELSE IF( PACKED )THEN
          NARGS = 6
+      ELSE
+         NARGS = 7
       END IF
 *
       NC = 0
@@ -1973,7 +1981,7 @@
                      IF( REWI )
      $                  REWIND NTRA
                      CALL CDSYR( IORDER, UPLO, N, ALPHA, XX, INCX,
-     $				  AA, LDA )
+     $                   AA, LDA )
                   ELSE IF( PACKED )THEN
                      IF( TRACE )
      $                  WRITE( NTRA, FMT = 9994 )NC, SNAME, CUPLO, N,
@@ -2147,7 +2155,7 @@
 *     .. Scalar Arguments ..
       DOUBLE PRECISION   EPS, THRESH
       INTEGER            INCMAX, NALF, NIDIM, NINC, NMAX, NOUT, NTRA,
-     $			 IORDER
+     $                   IORDER
       LOGICAL            FATAL, REWI, TRACE
       CHARACTER*12       SNAME
 *     .. Array Arguments ..
@@ -2191,6 +2199,8 @@
          NARGS = 9
       ELSE IF( PACKED )THEN
          NARGS = 8
+      ELSE
+         NARGS = 9
       END IF
 *
       NC = 0

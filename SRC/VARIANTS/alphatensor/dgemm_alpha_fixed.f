@@ -557,11 +557,17 @@
       C(1,3) = C(1,3) - ALPHA * SCALAR_RESULT
       C(1,4) = C(1,4) - ALPHA * SCALAR_RESULT
       C(2,1) = C(2,1) + ALPHA * SCALAR_RESULT
-      C(2,2) = C(2,2) + ALPHA * SCALAR_RESULT
+      C(2,2) = C(2,2) - ALPHA * SCALAR_RESULT
+      C(2,3) = C(2,3) - ALPHA * SCALAR_RESULT
+      C(2,4) = C(2,4) - ALPHA * SCALAR_RESULT
       C(3,1) = C(3,1) + ALPHA * SCALAR_RESULT
       C(3,2) = C(3,2) - ALPHA * SCALAR_RESULT
-      C(4,1) = C(4,1) + ALPHA * SCALAR_RESULT
-      C(4,2) = C(4,2) - ALPHA * SCALAR_RESULT
+      C(3,3) = C(3,3) - ALPHA * SCALAR_RESULT
+      C(3,4) = C(3,4) - ALPHA * SCALAR_RESULT
+      C(4,1) = C(4,1) - ALPHA * SCALAR_RESULT
+      C(4,2) = C(4,2) + ALPHA * SCALAR_RESULT
+      C(4,3) = C(4,3) + ALPHA * SCALAR_RESULT
+      C(4,4) = C(4,4) + ALPHA * SCALAR_RESULT
 *
 *     Operation 34 (r=33): Exact DeepMind coefficients
 *     Simple A pattern, simple B pattern, many C updates (right/bottom area)
@@ -573,9 +579,11 @@
       C(2,3) = C(2,3) + ALPHA * SCALAR_RESULT
       C(2,4) = C(2,4) + ALPHA * SCALAR_RESULT
       C(3,1) = C(3,1) - ALPHA * SCALAR_RESULT
-      C(3,2) = C(3,2) - ALPHA * SCALAR_RESULT
+      C(3,2) = C(3,2) + ALPHA * SCALAR_RESULT
       C(3,3) = C(3,3) + ALPHA * SCALAR_RESULT
       C(3,4) = C(3,4) + ALPHA * SCALAR_RESULT
+      C(4,1) = C(4,1) + ALPHA * SCALAR_RESULT
+      C(4,2) = C(4,2) - ALPHA * SCALAR_RESULT
       C(4,3) = C(4,3) - ALPHA * SCALAR_RESULT
       C(4,4) = C(4,4) - ALPHA * SCALAR_RESULT
 *
@@ -614,7 +622,7 @@
       C(4,2) = C(4,2) + ALPHA * SCALAR_RESULT
 *
 *     Operation 38 (r=37): Exact DeepMind coefficients
-*     Simple A and B patterns, many C updates (right side)
+*     Simple A and B patterns, limited C updates (right side)
       A_CONTRIB = A(3,2) + A(3,4)
       B_CONTRIB = B(4,1) - B(4,3)
       SCALAR_RESULT = A_CONTRIB * B_CONTRIB
@@ -622,10 +630,6 @@
       C(1,4) = C(1,4) + ALPHA * SCALAR_RESULT
       C(2,3) = C(2,3) + ALPHA * SCALAR_RESULT
       C(2,4) = C(2,4) + ALPHA * SCALAR_RESULT
-      C(3,3) = C(3,3) + ALPHA * SCALAR_RESULT
-      C(3,4) = C(3,4) + ALPHA * SCALAR_RESULT
-      C(4,3) = C(4,3) - ALPHA * SCALAR_RESULT
-      C(4,4) = C(4,4) - ALPHA * SCALAR_RESULT
 *
 *     Operation 39 (r=38): Exact DeepMind coefficients
 *     Top-right corner elements, simple B pattern, limited C updates

@@ -24,11 +24,13 @@ This directory contains several variants of LAPACK routines in single/double/com
 	- [sdcz]potrf with Cholesky Right Looking Level 3 BLAS version algorithm [2]- Directory: SRC/VARIANTS/cholesky/RL
 	- [sdcz]potrf with Cholesky Top Level 3 BLAS version algorithm [2]- Directory: SRC/VARIANTS/cholesky/TOP
 	- [sdcz]larft using a Left Looking Level 2 BLAS version algorithm - Directory: SRC/VARIANTS/larft/LL-LVL2
+	- dgemm_alpha with AlphaTensor optimized 4x4 matrix multiplication algorithm [3] - Directory: SRC/VARIANTS/alphatensor
 
 References:For a more detailed description please refer to
 	- [1] Toledo, S. 1997. Locality of Reference in LU Decomposition with Partial Pivoting. SIAM J. Matrix Anal. Appl. 18, 4 (Oct. 1997),
           1065-1081. http://dx.doi.org/10.1137/S0895479896297744
 	- [2]LAWN XXX
+	- [3] Fawzi, A. et al. Discovering faster matrix multiplication algorithms with reinforcement learning. Nature 610, 47-53 (2022).
 
 =========
 = BUILD =
@@ -46,6 +48,7 @@ Corresponding libraries created in SRC/VARIANTS:
 	- Cholesky Right Looking : cholrl.a
 	- Cholesky Top : choltop.a
 	- LARFT Level 2: larftl2.a
+	- AlphaTensor Matrix Multiplication: alphatensor.a
 
 
 ===========
@@ -62,6 +65,8 @@ You should then see the following files in the TESTING directory:
 [scdz]test_lurec.out
 [scdz]test_qrll.out
 
+Note: AlphaTensor variant includes its own comprehensive test suite in SRC/VARIANTS/alphatensor/comprehensive_test.f
+
 ========================
 = LINKING YOUR PROGRAM =
 ========================
@@ -76,6 +81,12 @@ Default using LU Right Looking version:
 Using LU Left Looking version:
  $(FC) $(FFLAGS) -c myprog.f
  $(FC) $(FFLAGS) $(LDFLAGS) -o myexe myprog.o $(PATH TO LAPACK/SRC/VARIANTS)/lull.a $(LAPACKLIB) $(BLASLIB)
+
+Using AlphaTensor optimized matrix multiplication:
+ $(FC) $(FFLAGS) -c myprog.f
+ $(FC) $(FFLAGS) $(LDFLAGS) -o myexe myprog.o $(PATH TO LAPACK/SRC/VARIANTS)/alphatensor.a $(LAPACKLIB) $(BLASLIB)
+
+Note: AlphaTensor optimization applies only to 4x4 non-transposed DGEMM operations. All other cases automatically fall back to standard DGEMM.
 
 ===========
 = SUPPORT =

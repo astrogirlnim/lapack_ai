@@ -1,6 +1,9 @@
 # ignore objects and archives, anywhere in the tree.
 *.[oa]
 
+# AlphaTensor algorithm
+alphatensor_algo/
+
 # test in INSTALL
 INSTALL/test*
 
@@ -50,3 +53,7 @@ SRC/la_xisnan.mod
 
 # Cursor rules files
 .cursor/
+
+# Compiled test executables
+SRC/VARIANTS/alphatensor/comprehensive_test*
+SRC/VARIANTS/alphatensor/test_*

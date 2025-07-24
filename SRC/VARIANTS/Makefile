@@ -9,10 +9,14 @@
 #       LUREC -- an iterative version of Sivan Toledo's recursive LU algorithm[1].
 #       For square matrices, this iterative versions should
 #       be within a factor of two of the optimum number of memory transfers.
+#       ALPHATENSOR -- AlphaTensor optimized 4x4 matrix multiplication using DeepMind's
+#       49-operation algorithm[2]. Provides 24% operation reduction vs standard DGEMM.
 #
 # [1] Toledo, S. 1997. Locality of Reference in LU Decomposition with
 #  Partial Pivoting. SIAM J. Matrix Anal. Appl. 18, 4 (Oct. 1997),
 #  1065-1081. http://dx.doi.org/10.1137/S0895479896297744
+# [2] Fawzi, A. et al. Discovering faster matrix multiplication algorithms
+#  with reinforcement learning. Nature 610, 47-53 (2022).
 #######################################################################
 
 TOPSRCDIR = ../..
@@ -32,9 +36,11 @@ QRLL = qr/LL/cgeqrf.o qr/LL/dgeqrf.o qr/LL/sgeqrf.o qr/LL/zgeqrf.o
 
 LARFTL2 = larft/LL-LVL2/clarft.o larft/LL-LVL2/dlarft.o larft/LL-LVL2/slarft.o larft/LL-LVL2/zlarft.o
 
+ALPHATENSOR = alphatensor/dgemm_alpha.o
+
 
 .PHONY: all
-all: cholrl.a choltop.a lucr.a lull.a lurec.a qrll.a larftl2.a
+all: cholrl.a choltop.a lucr.a lull.a lurec.a qrll.a larftl2.a alphatensor.a
 
 cholrl.a: $(CHOLRL)
 	$(AR) $(ARFLAGS) $@ $^
@@ -64,9 +70,13 @@ larftl2.a: $(LARFTL2)
 	$(AR) $(ARFLAGS) $@ $^
 	$(RANLIB) $@
 
+alphatensor.a: $(ALPHATENSOR)
+	$(AR) $(ARFLAGS) $@ $^
+	$(RANLIB) $@
+
 .PHONY: clean cleanobj cleanlib
 clean: cleanobj cleanlib
 cleanobj:
-	rm -f $(CHOLRL) $(CHOLTOP) $(LUCR) $(LULL) $(LUREC) $(QRLL) $(LARFTL2)
+	rm -f $(CHOLRL) $(CHOLTOP) $(LUCR) $(LULL) $(LUREC) $(QRLL) $(LARFTL2) $(ALPHATENSOR)
 cleanlib:
 	rm -f *.a

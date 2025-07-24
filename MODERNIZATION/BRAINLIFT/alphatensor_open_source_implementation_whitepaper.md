@@ -212,7 +212,7 @@ SUBROUTINE DGEMM_ALPHA(TRANSA,TRANSB,M,N,K,ALPHA,A,LDA,B,LDB,BETA,C,LDC)
 
 ### 5.2 Key Components
 
-**Primary Implementation**: `SRC/VARIANTS/alphatensor/dgemm_alpha_transpose_fix.f`
+**Primary Implementation**: `SRC/VARIANTS/alphatensor/dgemm_alpha.f`
 - 49-operation core algorithm
 - Transpose correction logic
 - Professional precision handling
@@ -395,10 +395,10 @@ The successful completion of this project opens new possibilities for computatio
 
 ```
 SRC/VARIANTS/alphatensor/
-├── dgemm_alpha_transpose_fix.f     # Core 49-operation algorithm
+├── dgemm_alpha.f                   # Core 49-operation algorithm
 ├── comprehensive_test.f            # Validation test suite
 ├── coefficient_analysis_summary.md # Mathematical verification
-└── alphatensor_original_data/      # DeepMind published data
+└── all_correct_c_mappings.txt      # Reference coefficient mappings
 
 MODERNIZATION/BRAINLIFT/
 ├── alphatensor_paper.md

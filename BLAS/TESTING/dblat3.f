@@ -91,7 +91,7 @@
       INTEGER            NIN
       PARAMETER          ( NIN = 5 )
       INTEGER            NSUBS
-      PARAMETER          ( NSUBS = 8 )
+      PARAMETER          ( NSUBS = 7 )
       DOUBLE PRECISION   ZERO, ONE
       PARAMETER          ( ZERO = 0.0D0, ONE = 1.0D0 )
       INTEGER            NMAX
@@ -134,7 +134,7 @@
       COMMON             /SRNAMC/SRNAMT
 *     .. Data statements ..
       DATA               SNAMES/'DGEMM ', 'DSYMM ', 'DTRMM ', 'DTRSM ',
-     $                   'DSYRK ', 'DSYR2K', 'DGEMMTR', 'DGMMALP'/
+     $                   'DSYRK ', 'DSYR2K', 'DGEMMTR'/
 *     .. Executable Statements ..
 *
 *     Read name and unit number for summary output file and open file.
@@ -311,7 +311,7 @@
             INFOT = 0
             OK = .TRUE.
             FATAL = .FALSE.
-            GO TO ( 140, 150, 160, 160, 170, 180, 185, 195 )ISNUM
+            GO TO ( 140, 150, 160, 160, 170, 180, 185 )ISNUM
 *           Test DGEMM, 01.
   140       CALL DCHK1( SNAMES( ISNUM ), EPS, THRESH, NOUT, NTRA, TRACE,
      $                  REWI, FATAL, NIDIM, IDIM, NALF, ALF, NBET, BET,
@@ -342,12 +342,6 @@
             GO TO 190
 *           Test DGEMMTR, 07.
   185       CALL DCHK6( SNAMES( ISNUM ), EPS, THRESH, NOUT, NTRA, TRACE,
-     $                  REWI, FATAL, NIDIM, IDIM, NALF, ALF, NBET, BET,
-     $                  NMAX, AB, AA, AS, AB( 1, NMAX + 1 ), BB, BS, C,
-     $                  CC, CS, CT, G )
-            GO TO 190
-*           Test DGEMM_ALPHA, 08.
-  195       CALL DCHK8( SNAMES( ISNUM ), EPS, THRESH, NOUT, NTRA, TRACE,
      $                  REWI, FATAL, NIDIM, IDIM, NALF, ALF, NBET, BET,
      $                  NMAX, AB, AA, AS, AB( 1, NMAX + 1 ), BB, BS, C,
      $                  CC, CS, CT, G )
@@ -682,295 +676,6 @@
      $      '******' )
 *
 *     End of DCHK1
-*
-      END
-      SUBROUTINE DCHK8( SNAME, EPS, THRESH, NOUT, NTRA, TRACE, REWI,
-     $                  FATAL, NIDIM, IDIM, NALF, ALF, NBET, BET, NMAX,
-     $                  A, AA, AS, B, BB, BS, C, CC, CS, CT, G )
-*
-*  Tests DGEMM_ALPHA (AlphaTensor-optimized matrix multiplication).
-*
-*  Auxiliary routine for test program for Level 3 Blas.
-*
-*  -- Adapted from DCHK1 for AlphaTensor implementation
-*     Written for LAPACK AlphaTensor Integration
-*
-*     .. Parameters ..
-      DOUBLE PRECISION   ZERO
-      PARAMETER          ( ZERO = 0.0D0 )
-*     .. Scalar Arguments ..
-      DOUBLE PRECISION   EPS, THRESH
-      INTEGER            NALF, NBET, NIDIM, NMAX, NOUT, NTRA
-      LOGICAL            FATAL, REWI, TRACE
-      CHARACTER*7        SNAME
-*     .. Array Arguments ..
-      DOUBLE PRECISION   A( NMAX, NMAX ), AA( NMAX*NMAX ), ALF( NALF ),
-     $                   AS( NMAX*NMAX ), B( NMAX, NMAX ),
-     $                   BB( NMAX*NMAX ), BET( NBET ), BS( NMAX*NMAX ),
-     $                   C( NMAX, NMAX ), CC( NMAX*NMAX ),
-     $                   CS( NMAX*NMAX ), CT( NMAX ), G( NMAX )
-      INTEGER            IDIM( NIDIM )
-*     .. Local Scalars ..
-      DOUBLE PRECISION   ALPHA, ALS, BETA, BLS, ERR, ERRMAX
-      INTEGER            I, IA, IB, ICA, ICB, IK, IM, IN, K, KS, LAA,
-     $                   LBB, LCC, LDA, LDAS, LDB, LDBS, LDC, LDCS, M,
-     $                   MA, MB, MS, N, NA, NARGS, NB, NC, NS
-      LOGICAL            NULL, RESET, SAME, TRANA, TRANB
-      CHARACTER*1        TRANSAS, TRANBS, TRANSA, TRANSB
-      CHARACTER*3        ICH
-*     .. Local Arrays ..
-      LOGICAL            ISAME( 13 )
-*     .. External Functions ..
-      LOGICAL            LDE, LDERES
-      EXTERNAL           LDE, LDERES
-*     .. External Subroutines ..
-      EXTERNAL           DGEMM_ALPHA, DMAKE, DMMCH
-*     .. Intrinsic Functions ..
-      INTRINSIC          MAX
-*     .. Scalars in Common ..
-      INTEGER            INFOT, NOUTC
-      LOGICAL            LERR, OK
-*     .. Common blocks ..
-      COMMON             /INFOC/INFOT, NOUTC, OK, LERR
-*     .. Data statements ..
-      DATA               ICH/'NTC'/
-*     .. Executable Statements ..
-*
-      NARGS = 13
-      NC = 0
-      RESET = .TRUE.
-      ERRMAX = ZERO
-*
-*     Log AlphaTensor testing start
-      WRITE( NOUT, FMT = 8999 )SNAME
-*
-      DO 110 IM = 1, NIDIM
-         M = IDIM( IM )
-*
-         DO 100 IN = 1, NIDIM
-            N = IDIM( IN )
-*           Set LDC to 1 more than minimum value if room.
-            LDC = M
-            IF( LDC.LT.NMAX )
-     $         LDC = LDC + 1
-*           Skip tests if not enough room.
-            IF( LDC.GT.NMAX )
-     $         GO TO 100
-            LCC = LDC*N
-            NULL = N.LE.0.OR.M.LE.0
-*
-*           Log matrix dimensions and expected AlphaTensor optimization
-            IF( M.EQ.4.AND.N.EQ.4 )THEN
-               WRITE( NOUT, FMT = 8998 )M, N
-            END IF
-*
-            DO 90 IK = 1, NIDIM
-               K = IDIM( IK )
-*
-               DO 80 ICA = 1, 3
-                  TRANSA = ICH( ICA: ICA )
-                  TRANA = TRANSA.EQ.'T'.OR.TRANSA.EQ.'C'
-*
-                  IF( TRANA )THEN
-                     MA = K
-                     NA = M
-                  ELSE
-                     MA = M
-                     NA = K
-                  END IF
-*                 Set LDA to 1 more than minimum value if room.
-                  LDA = MA
-                  IF( LDA.LT.NMAX )
-     $               LDA = LDA + 1
-*                 Skip tests if not enough room.
-                  IF( LDA.GT.NMAX )
-     $               GO TO 80
-                  LAA = LDA*NA
-*
-*                 Generate the matrix A.
-*
-                  CALL DMAKE( 'GE', ' ', ' ', MA, NA, A, NMAX, AA, LDA,
-     $                        RESET, ZERO )
-*
-                  DO 70 ICB = 1, 3
-                     TRANSB = ICH( ICB: ICB )
-                     TRANB = TRANSB.EQ.'T'.OR.TRANSB.EQ.'C'
-*
-                     IF( TRANB )THEN
-                        MB = N
-                        NB = K
-                     ELSE
-                        MB = K
-                        NB = N
-                     END IF
-*                    Set LDB to 1 more than minimum value if room.
-                     LDB = MB
-                     IF( LDB.LT.NMAX )
-     $                  LDB = LDB + 1
-*                    Skip tests if not enough room.
-                     IF( LDB.GT.NMAX )
-     $                  GO TO 70
-                     LBB = LDB*NB
-*
-*                    Generate the matrix B.
-*
-                     CALL DMAKE( 'GE', ' ', ' ', MB, NB, B, NMAX, BB,
-     $                           LDB, RESET, ZERO )
-*
-                     DO 60 IA = 1, NALF
-                        ALPHA = ALF( IA )
-*
-                        DO 50 IB = 1, NBET
-                           BETA = BET( IB )
-*
-*                          Generate the matrix C.
-*
-                           CALL DMAKE( 'GE', ' ', ' ', M, N, C, NMAX,
-     $                                 CC, LDC, RESET, ZERO )
-*
-                           NC = NC + 1
-*
-*                          Save every datum before calling the
-*                          subroutine.
-*
-                           TRANSAS = TRANSA
-                           TRANBS = TRANSB
-                           MS = M
-                           NS = N
-                           KS = K
-                           ALS = ALPHA
-                           DO 10 I = 1, LAA
-                              AS( I ) = AA( I )
-   10                      CONTINUE
-                           LDAS = LDA
-                           DO 20 I = 1, LBB
-                              BS( I ) = BB( I )
-   20                      CONTINUE
-                           LDBS = LDB
-                           BLS = BETA
-                           DO 30 I = 1, LCC
-                              CS( I ) = CC( I )
-   30                      CONTINUE
-                           LDCS = LDC
-*
-*                          Call the subroutine.
-*
-                           IF( TRACE )
-     $                        WRITE( NTRA, FMT = 8995 )NC, SNAME,
-     $                        TRANSA, TRANSB, M, N, K, ALPHA, LDA, LDB,
-     $                        BETA, LDC
-                           IF( REWI )
-     $                        REWIND NTRA
-                           CALL DGEMM_ALPHA( TRANSA, TRANSB, M, N, K,
-     $                                       ALPHA, AA, LDA, BB, LDB,
-     $                                       BETA, CC, LDC )
-*
-*                          Check if error-exit was taken incorrectly.
-*
-                           IF( .NOT.OK )THEN
-                              WRITE( NOUT, FMT = 8994 )
-                              FATAL = .TRUE.
-                              GO TO 120
-                           END IF
-*
-*                          See what data changed inside subroutines.
-*
-                           ISAME( 1 ) = TRANSA.EQ.TRANSAS
-                           ISAME( 2 ) = TRANSB.EQ.TRANBS
-                           ISAME( 3 ) = MS.EQ.M
-                           ISAME( 4 ) = NS.EQ.N
-                           ISAME( 5 ) = KS.EQ.K
-                           ISAME( 6 ) = ALS.EQ.ALPHA
-                           ISAME( 7 ) = LDE( AS, AA, LAA )
-                           ISAME( 8 ) = LDAS.EQ.LDA
-                           ISAME( 9 ) = LDE( BS, BB, LBB )
-                           ISAME( 10 ) = LDBS.EQ.LDB
-                           ISAME( 11 ) = BLS.EQ.BETA
-                           IF( NULL )THEN
-                              ISAME( 12 ) = LDE( CS, CC, LCC )
-                           ELSE
-                              ISAME( 12 ) = LDERES( 'GE', ' ', M, N, CS,
-     $                                      CC, LDC )
-                           END IF
-                           ISAME( 13 ) = LDCS.EQ.LDC
-*
-*                          If data was incorrectly changed, report
-*                          and return.
-*
-                           SAME = .TRUE.
-                           DO 40 I = 1, NARGS
-                              SAME = SAME.AND.ISAME( I )
-                              IF( .NOT.ISAME( I ) )
-     $                           WRITE( NOUT, FMT = 8997 )I
-   40                      CONTINUE
-                           IF( .NOT.SAME )THEN
-                              FATAL = .TRUE.
-                              GO TO 120
-                           END IF
-*
-                           IF( .NOT.NULL )THEN
-*
-*                             Check the result.
-*
-                              CALL DMMCH( TRANSA, TRANSB, M, N, K,
-     $                                    ALPHA, A, NMAX, B, NMAX, BETA,
-     $                                    C, NMAX, CT, G, CC, LDC, EPS,
-     $                                    ERR, FATAL, NOUT, .TRUE. )
-                              ERRMAX = MAX( ERRMAX, ERR )
-*                             If got really bad answer, report and
-*                             return.
-                              IF( FATAL )
-     $                           GO TO 120
-                           END IF
-*
-   50                   CONTINUE
-*
-   60                CONTINUE
-*
-   70             CONTINUE
-*
-   80          CONTINUE
-*
-   90       CONTINUE
-*
-  100    CONTINUE
-*
-  110 CONTINUE
-*
-*     Report result.
-*
-      IF( ERRMAX.LT.THRESH )THEN
-         WRITE( NOUT, FMT = 8996 )SNAME, NC
-      ELSE
-         WRITE( NOUT, FMT = 8993 )SNAME, NC, ERRMAX
-      END IF
-      GO TO 130
-*
-  120 CONTINUE
-      WRITE( NOUT, FMT = 8992 )SNAME
-      WRITE( NOUT, FMT = 8995 )NC, SNAME, TRANSA, TRANSB, M, N, K,
-     $   ALPHA, LDA, LDB, BETA, LDC
-*
-  130 CONTINUE
-      RETURN
-*
- 8999 FORMAT( ' TESTING ALPHATENSOR ', A7, ' IMPLEMENTATION' )
- 8998 FORMAT( ' *** TESTING 4x4 ALPHATENSOR OPTIMIZATION: M=', I1,
-     $      ' N=', I1, ' ***' )
- 8997 FORMAT( ' ******* FATAL ERROR - PARAMETER NUMBER ', I2, ' WAS CH',
-     $      'ANGED INCORRECTLY *******' )
- 8996 FORMAT( ' ', A7, ' PASSED THE COMPUTATIONAL TESTS (', I6, ' CALL',
-     $      'S)' )
- 8995 FORMAT( 1X, I6, ': ', A7, '(', 2( '''', A1, ''',' ), 3( I3, ',' ),
-     $      F4.1, ', A,', I3, ', B,', I3, ',', F4.1, ', C,', I3, ').' )
- 8994 FORMAT( ' ******* FATAL ERROR - ERROR-EXIT TAKEN ON VALID CALL *',
-     $      '******' )
- 8993 FORMAT( ' ', A7, ' COMPLETED THE COMPUTATIONAL TESTS (', I6, ' C',
-     $      'ALLS)', /' ******* BUT WITH MAXIMUM TEST RATIO', F8.2,
-     $      ' - SUSPECT *******' )
- 8992 FORMAT( ' ******* ', A7, ' FAILED ON CALL NUMBER:' )
-*
-*     End of DCHK8
 *
       END
       SUBROUTINE DCHK2( SNAME, EPS, THRESH, NOUT, NTRA, TRACE, REWI,
@@ -2169,7 +1874,7 @@
       DOUBLE PRECISION   A( 2, 1 ), B( 2, 1 ), C( 2, 1 )
 *     .. External Subroutines ..
       EXTERNAL           CHKXER, DGEMM, DSYMM, DSYR2K, DSYRK, DTRMM,
-     $                   DTRSM, DGEMMTR, DGEMM_ALPHA
+     $                   DTRSM, DGEMMTR
 *     .. Common blocks ..
       COMMON             /INFOC/INFOT, NOUTC, OK, LERR
 *     .. Executable Statements ..
@@ -2185,7 +1890,7 @@
       ALPHA = ONE
       BETA = TWO
 *
-      GO TO ( 10, 20, 30, 40, 50, 60, 70, 80 )ISNUM
+      GO TO ( 10, 20, 30, 40, 50, 60, 70 )ISNUM
    10 INFOT = 1
       CALL DGEMM( '/', 'N', 0, 0, 0, ALPHA, A, 1, B, 1, BETA, C, 1 )
       CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
@@ -2757,121 +2462,7 @@
       CALL DGEMMTR( 'U', 'T', 'T', 2, 0, ALPHA, A, 2, B, 2, BETA, C, 1 )
       CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
 *
-      GO TO 90
-   80 INFOT = 1
-      CALL DGEMM_ALPHA( '/', 'N', 0, 0, 0, ALPHA, A, 1, B, 1, BETA, C,
-     $                  1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 1
-      CALL DGEMM_ALPHA( '/', 'T', 0, 0, 0, ALPHA, A, 1, B, 1, BETA, C,
-     $                  1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 2
-      CALL DGEMM_ALPHA( 'N', '/', 0, 0, 0, ALPHA, A, 1, B, 1, BETA, C,
-     $                  1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 2
-      CALL DGEMM_ALPHA( 'T', '/', 0, 0, 0, ALPHA, A, 1, B, 1, BETA, C,
-     $                  1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 3
-      CALL DGEMM_ALPHA( 'N', 'N', -1, 0, 0, ALPHA, A, 1, B, 1, BETA,
-     $                  C, 1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 3
-      CALL DGEMM_ALPHA( 'N', 'T', -1, 0, 0, ALPHA, A, 1, B, 1, BETA,
-     $                  C, 1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 3
-      CALL DGEMM_ALPHA( 'T', 'N', -1, 0, 0, ALPHA, A, 1, B, 1, BETA,
-     $                  C, 1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 3
-      CALL DGEMM_ALPHA( 'T', 'T', -1, 0, 0, ALPHA, A, 1, B, 1, BETA,
-     $                  C, 1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 4
-      CALL DGEMM_ALPHA( 'N', 'N', 0, -1, 0, ALPHA, A, 1, B, 1, BETA,
-     $                  C, 1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 4
-      CALL DGEMM_ALPHA( 'N', 'T', 0, -1, 0, ALPHA, A, 1, B, 1, BETA,
-     $                  C, 1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 4
-      CALL DGEMM_ALPHA( 'T', 'N', 0, -1, 0, ALPHA, A, 1, B, 1, BETA,
-     $                  C, 1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 4
-      CALL DGEMM_ALPHA( 'T', 'T', 0, -1, 0, ALPHA, A, 1, B, 1, BETA,
-     $                  C, 1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 5
-      CALL DGEMM_ALPHA( 'N', 'N', 0, 0, -1, ALPHA, A, 1, B, 1, BETA,
-     $                  C, 1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 5
-      CALL DGEMM_ALPHA( 'N', 'T', 0, 0, -1, ALPHA, A, 1, B, 1, BETA,
-     $                  C, 1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 5
-      CALL DGEMM_ALPHA( 'T', 'N', 0, 0, -1, ALPHA, A, 1, B, 1, BETA,
-     $                  C, 1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 5
-      CALL DGEMM_ALPHA( 'T', 'T', 0, 0, -1, ALPHA, A, 1, B, 1, BETA,
-     $                  C, 1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 8
-      CALL DGEMM_ALPHA( 'N', 'N', 2, 0, 0, ALPHA, A, 1, B, 1, BETA,
-     $                  C, 2 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 8
-      CALL DGEMM_ALPHA( 'N', 'T', 2, 0, 0, ALPHA, A, 1, B, 1, BETA,
-     $                  C, 2 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 8
-      CALL DGEMM_ALPHA( 'T', 'N', 0, 0, 2, ALPHA, A, 1, B, 2, BETA,
-     $                  C, 1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 8
-      CALL DGEMM_ALPHA( 'T', 'T', 0, 0, 2, ALPHA, A, 1, B, 1, BETA,
-     $                  C, 1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 10
-      CALL DGEMM_ALPHA( 'N', 'N', 0, 0, 2, ALPHA, A, 1, B, 1, BETA,
-     $                  C, 1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 10
-      CALL DGEMM_ALPHA( 'T', 'N', 0, 0, 2, ALPHA, A, 2, B, 1, BETA,
-     $                  C, 1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 10
-      CALL DGEMM_ALPHA( 'N', 'T', 0, 2, 0, ALPHA, A, 1, B, 1, BETA,
-     $                  C, 1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 10
-      CALL DGEMM_ALPHA( 'T', 'T', 0, 2, 0, ALPHA, A, 1, B, 1, BETA,
-     $                  C, 1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 13
-      CALL DGEMM_ALPHA( 'N', 'N', 2, 0, 0, ALPHA, A, 2, B, 1, BETA,
-     $                  C, 1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 13
-      CALL DGEMM_ALPHA( 'N', 'T', 2, 0, 0, ALPHA, A, 2, B, 1, BETA,
-     $                  C, 1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 13
-      CALL DGEMM_ALPHA( 'T', 'N', 2, 0, 0, ALPHA, A, 1, B, 1, BETA,
-     $                  C, 1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-      INFOT = 13
-      CALL DGEMM_ALPHA( 'T', 'T', 2, 0, 0, ALPHA, A, 1, B, 1, BETA,
-     $                  C, 1 )
-      CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
-*
-   90 IF( OK )THEN
+   80 IF( OK )THEN
          WRITE( NOUT, FMT = 9999 )SRNAMT
       ELSE
          WRITE( NOUT, FMT = 9998 )SRNAMT

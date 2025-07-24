@@ -11,7 +11,8 @@
       DOUBLE PRECISION ZERO, ONE, TWO
       PARAMETER (ZERO = 0.0D+0, ONE = 1.0D+0, TWO = 2.0D+0)
       DOUBLE PRECISION TOLERANCE
-      PARAMETER (TOLERANCE = 1.0D-12)
+*     Use LAPACK-standard tolerance: 150 * machine epsilon (professional grade)
+      PARAMETER (TOLERANCE = 3.3D-14)
 *
 *     .. Local Scalars ..
       INTEGER I, J, K, TEST_COUNT, PASS_COUNT

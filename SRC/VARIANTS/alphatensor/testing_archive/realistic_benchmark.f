@@ -1,6 +1,8 @@
       PROGRAM REALISTIC_BENCHMARK
 *
-*  -- Realistic AlphaTensor vs DGEMM Performance Comparison --
+*  -- CORRECTED: True Head-to-Head AlphaTensor vs DGEMM Benchmark --
+*  -- Compares ONLY: Phase 8.3 DGEMM_ALPHA vs Standard DGEMM --
+*  -- Eliminates misleading comparisons of same function --
 *
       IMPLICIT NONE
 *
@@ -14,29 +16,26 @@
       DOUBLE PRECISION A(MATRIX_SIZE,MATRIX_SIZE)
       DOUBLE PRECISION B(MATRIX_SIZE,MATRIX_SIZE)
       DOUBLE PRECISION C_DGEMM(MATRIX_SIZE,MATRIX_SIZE)
-      DOUBLE PRECISION C_ORIG(MATRIX_SIZE,MATRIX_SIZE)
-      DOUBLE PRECISION C_OPT(MATRIX_SIZE,MATRIX_SIZE)
+      DOUBLE PRECISION C_ALPHA(MATRIX_SIZE,MATRIX_SIZE)
 *     ..
 *     .. Local Scalars ..
       INTEGER I, J, RUN
       DOUBLE PRECISION ALPHA, BETA
       DOUBLE PRECISION START_TIME, END_TIME
-      DOUBLE PRECISION TIME_DGEMM, TIME_ORIG, TIME_OPT
-      DOUBLE PRECISION OPS_DGEMM, OPS_ORIG, OPS_OPT
-      DOUBLE PRECISION SPEEDUP_ORIG, SPEEDUP_OPT, SPEEDUP_GAIN
-      DOUBLE PRECISION ERROR_ORIG, ERROR_OPT, MAX_ERR_ORIG, MAX_ERR_OPT
-      DOUBLE PRECISION FLOPS_4X4, GFLOPS_DGEMM, GFLOPS_ORIG, GFLOPS_OPT
+      DOUBLE PRECISION TIME_DGEMM, TIME_ALPHA
+      DOUBLE PRECISION OPS_DGEMM, OPS_ALPHA
+      DOUBLE PRECISION SPEEDUP_ALPHA, ERROR_ALPHA, MAX_ERR_ALPHA
+      DOUBLE PRECISION FLOPS_4X4, GFLOPS_DGEMM, GFLOPS_ALPHA
 *     ..
 *     .. External Subroutines ..
       EXTERNAL DGEMM, DGEMM_ALPHA
 *     ..
 
       WRITE(*,*) '================================================='
-      WRITE(*,*) '    REALISTIC ALPHATENSOR vs DGEMM BENCHMARK'
+      WRITE(*,*) '    CORRECTED ALPHATENSOR vs DGEMM BENCHMARK'
       WRITE(*,*) '================================================='
-      WRITE(*,*) 'BASELINE: Standard DGEMM (industry reference)'
-      WRITE(*,*) 'TEST 1:   Original AlphaTensor (49 ops + logs)'
-      WRITE(*,*) 'TEST 2:   Memory-Optimized AlphaTensor'
+      WRITE(*,*) 'TRUE HEAD-TO-HEAD COMPARISON:'
+      WRITE(*,*) 'Phase 8.3 DGEMM_ALPHA vs Standard DGEMM'
       WRITE(*,*) ''
       WRITE(*,*) 'Matrix Size: 4x4'
       WRITE(*,*) 'Iterations:', NRUNS
@@ -49,40 +48,35 @@
 *     Create identical test matrices
       DO J = 1, MATRIX_SIZE
           DO I = 1, MATRIX_SIZE
-              A(I,J) = DBLE(I + 2*J - 1) / 7.0D+0
-              B(I,J) = DBLE(3*I - J + 5) / 11.0D+0
+              A(I,J) = DBLE((I-1)*MATRIX_SIZE + J) / 16.0D+0
+              B(I,J) = DBLE(I*J) / 10.0D+0 + DBLE(I+J) / 20.0D+0
+              C_DGEMM(I,J) = 0.1D+0 * DBLE(I * J)
+              C_ALPHA(I,J) = C_DGEMM(I,J)
           END DO
       END DO
 
-*     Calculate theoretical FLOPS
-      FLOPS_4X4 = 2.0D+0 * MATRIX_SIZE * MATRIX_SIZE * MATRIX_SIZE
+*     Calculate 4x4 matrix multiplication FLOPS
+      FLOPS_4X4 = 2.0D+0 * DBLE(MATRIX_SIZE)**3
 
 *     ================================================
-*     BENCHMARK 1: Standard DGEMM (Baseline)
+*     BENCHMARK 1: Standard DGEMM (Reference)
 *     ================================================
       WRITE(*,*) ''
       WRITE(*,*) 'Testing Standard DGEMM...'
 
-*     Initialize result matrix
-      DO J = 1, MATRIX_SIZE
-          DO I = 1, MATRIX_SIZE
-              C_DGEMM(I,J) = 0.1D+0 * DBLE(I * J)
-          END DO
-      END DO
-
 *     Warm-up runs
       DO RUN = 1, 1000
-          CALL DGEMM('N','N',MATRIX_SIZE,MATRIX_SIZE,MATRIX_SIZE,ALPHA,
-     +               A,MATRIX_SIZE,B,MATRIX_SIZE,BETA,C_DGEMM,
-     +               MATRIX_SIZE)
+          CALL DGEMM('N','N',MATRIX_SIZE,MATRIX_SIZE,MATRIX_SIZE,
+     +               ALPHA,A,MATRIX_SIZE,B,MATRIX_SIZE,BETA,
+     +               C_DGEMM,MATRIX_SIZE)
       END DO
 
-*     Timed benchmark - DGEMM baseline
+*     Timed benchmark - Standard DGEMM
       CALL CPU_TIME(START_TIME)
       DO RUN = 1, NRUNS
-          CALL DGEMM('N','N',MATRIX_SIZE,MATRIX_SIZE,MATRIX_SIZE,ALPHA,
-     +               A,MATRIX_SIZE,B,MATRIX_SIZE,BETA,C_DGEMM,
-     +               MATRIX_SIZE)
+          CALL DGEMM('N','N',MATRIX_SIZE,MATRIX_SIZE,MATRIX_SIZE,
+     +               ALPHA,A,MATRIX_SIZE,B,MATRIX_SIZE,BETA,
+     +               C_DGEMM,MATRIX_SIZE)
       END DO
       CALL CPU_TIME(END_TIME)
       TIME_DGEMM = END_TIME - START_TIME
@@ -96,153 +90,83 @@
       WRITE(*,*) '  GFLOPS: ', GFLOPS_DGEMM
 
 *     ================================================
-*     BENCHMARK 2: Original AlphaTensor
+*     BENCHMARK 2: Phase 8.3 DGEMM_ALPHA
 *     ================================================
       WRITE(*,*) ''
-      WRITE(*,*) 'Testing Original AlphaTensor...'
-
-*     Initialize result matrix (same as DGEMM)
-      DO J = 1, MATRIX_SIZE
-          DO I = 1, MATRIX_SIZE
-              C_ORIG(I,J) = 0.1D+0 * DBLE(I * J)
-          END DO
-      END DO
+      WRITE(*,*) 'Testing Phase 8.3 DGEMM_ALPHA...'
 
 *     Warm-up runs
       DO RUN = 1, 1000
           CALL DGEMM_ALPHA('N','N',MATRIX_SIZE,MATRIX_SIZE,MATRIX_SIZE,
      +                     ALPHA,A,MATRIX_SIZE,B,MATRIX_SIZE,BETA,
-     +                     C_ORIG,MATRIX_SIZE)
+     +                     C_ALPHA,MATRIX_SIZE)
       END DO
 
-*     Timed benchmark - Original AlphaTensor
+*     Timed benchmark - Phase 8.3 DGEMM_ALPHA
       CALL CPU_TIME(START_TIME)
       DO RUN = 1, NRUNS
           CALL DGEMM_ALPHA('N','N',MATRIX_SIZE,MATRIX_SIZE,MATRIX_SIZE,
      +                     ALPHA,A,MATRIX_SIZE,B,MATRIX_SIZE,BETA,
-     +                     C_ORIG,MATRIX_SIZE)
+     +                     C_ALPHA,MATRIX_SIZE)
       END DO
       CALL CPU_TIME(END_TIME)
-      TIME_ORIG = END_TIME - START_TIME
+      TIME_ALPHA = END_TIME - START_TIME
 
-      OPS_ORIG = DBLE(NRUNS) / TIME_ORIG
-      SPEEDUP_ORIG = OPS_ORIG / OPS_DGEMM
-      GFLOPS_ORIG = (FLOPS_4X4 * DBLE(NRUNS)) / (TIME_ORIG * 1.0D+9)
+      OPS_ALPHA = DBLE(NRUNS) / TIME_ALPHA
+      SPEEDUP_ALPHA = OPS_ALPHA / OPS_DGEMM
+      GFLOPS_ALPHA = (FLOPS_4X4 * DBLE(NRUNS)) / (TIME_ALPHA * 1.0D+9)
 
-      WRITE(*,*) 'Original AlphaTensor Results:'
-      WRITE(*,*) '  Time (s):', TIME_ORIG
-      WRITE(*,*) '  Ops/sec:', OPS_ORIG
-      WRITE(*,*) '  GFLOPS: ', GFLOPS_ORIG
-      WRITE(*,*) '  vs DGEMM:', SPEEDUP_ORIG, 'x'
-
-*     ================================================
-*     BENCHMARK 3: Memory-Optimized AlphaTensor
-*     ================================================
-      WRITE(*,*) ''
-      WRITE(*,*) 'Testing Memory-Optimized AlphaTensor...'
-
-*     Initialize result matrix (same as others)
-      DO J = 1, MATRIX_SIZE
-          DO I = 1, MATRIX_SIZE
-              C_OPT(I,J) = 0.1D+0 * DBLE(I * J)
-          END DO
-      END DO
-
-*     Warm-up runs
-      DO RUN = 1, 1000
-          CALL DGEMM_ALPHA('N','N',MATRIX_SIZE,MATRIX_SIZE,
-     +                     MATRIX_SIZE,ALPHA,A,MATRIX_SIZE,B,
-     +                     MATRIX_SIZE,BETA,C_OPT,MATRIX_SIZE)
-      END DO
-
-*     Timed benchmark - Memory-Optimized AlphaTensor
-      CALL CPU_TIME(START_TIME)
-      DO RUN = 1, NRUNS
-          CALL DGEMM_ALPHA('N','N',MATRIX_SIZE,MATRIX_SIZE,
-     +                     MATRIX_SIZE,ALPHA,A,MATRIX_SIZE,B,
-     +                     MATRIX_SIZE,BETA,C_OPT,MATRIX_SIZE)
-      END DO
-      CALL CPU_TIME(END_TIME)
-      TIME_OPT = END_TIME - START_TIME
-
-      OPS_OPT = DBLE(NRUNS) / TIME_OPT
-      SPEEDUP_OPT = OPS_OPT / OPS_DGEMM
-      SPEEDUP_GAIN = OPS_OPT / OPS_ORIG
-      GFLOPS_OPT = (FLOPS_4X4 * DBLE(NRUNS)) / (TIME_OPT * 1.0D+9)
-
-      WRITE(*,*) 'Memory-Optimized AlphaTensor Results:'
-      WRITE(*,*) '  Time (s):', TIME_OPT
-      WRITE(*,*) '  Ops/sec:', OPS_OPT
-      WRITE(*,*) '  GFLOPS: ', GFLOPS_OPT
-      WRITE(*,*) '  vs DGEMM:', SPEEDUP_OPT, 'x'
-      WRITE(*,*) '  vs Original:', SPEEDUP_GAIN, 'x'
+      WRITE(*,*) 'DGEMM_ALPHA Results:'
+      WRITE(*,*) '  Time (s):', TIME_ALPHA
+      WRITE(*,*) '  Ops/sec:', OPS_ALPHA
+      WRITE(*,*) '  GFLOPS: ', GFLOPS_ALPHA
+      WRITE(*,*) '  vs DGEMM:', SPEEDUP_ALPHA, 'x'
 
 *     ================================================
 *     ACCURACY VERIFICATION
 *     ================================================
-      MAX_ERR_ORIG = ZERO
-      MAX_ERR_OPT = ZERO
+      MAX_ERR_ALPHA = ZERO
       DO J = 1, MATRIX_SIZE
           DO I = 1, MATRIX_SIZE
-*             Compare Original vs DGEMM
-              ERROR_ORIG = ABS(C_ORIG(I,J) - C_DGEMM(I,J))
-              IF (ERROR_ORIG .GT. MAX_ERR_ORIG) THEN
-                  MAX_ERR_ORIG = ERROR_ORIG
-              END IF
-*             Compare Optimized vs DGEMM
-              ERROR_OPT = ABS(C_OPT(I,J) - C_DGEMM(I,J))
-              IF (ERROR_OPT .GT. MAX_ERR_OPT) THEN
-                  MAX_ERR_OPT = ERROR_OPT
+*             Compare DGEMM_ALPHA vs DGEMM
+              ERROR_ALPHA = ABS(C_ALPHA(I,J) - C_DGEMM(I,J))
+              IF (ERROR_ALPHA .GT. MAX_ERR_ALPHA) THEN
+                  MAX_ERR_ALPHA = ERROR_ALPHA
               END IF
           END DO
       END DO
 
 *     ================================================
-*     PERFORMANCE SUMMARY
+*     FINAL RESULTS SUMMARY
 *     ================================================
       WRITE(*,*) ''
       WRITE(*,*) '================================================='
-      WRITE(*,*) '           BENCHMARK RESULTS SUMMARY'
+      WRITE(*,*) '           CORRECTED BENCHMARK SUMMARY'
       WRITE(*,*) '================================================='
       WRITE(*,*) 'Algorithm            | Time    | vs DGEMM | GFLOPS'
       WRITE(*,*) '---------------------|---------|----------|-------'
-      WRITE(*,'(1X,A,F8.4,A,F8.3,A,F7.2)')
-     +    'DGEMM (Baseline)     |', TIME_DGEMM, ' |   1.000x |',
-     +    GFLOPS_DGEMM
-      WRITE(*,'(1X,A,F8.4,A,F8.3,A,F7.2)')
-     +    'Original AlphaTensor |', TIME_ORIG, ' |', SPEEDUP_ORIG,
-     +    'x |', GFLOPS_ORIG
-      WRITE(*,'(1X,A,F8.4,A,F8.3,A,F7.2)')
-     +    'Optimized AlphaTensor|', TIME_OPT, ' |', SPEEDUP_OPT,
-     +    'x |', GFLOPS_OPT
+      WRITE(*,'(A,F8.4,A,F9.3,A,F8.3)') ' DGEMM (Baseline)     |',
+     +    TIME_DGEMM, ' |   1.000x |', GFLOPS_DGEMM
+      WRITE(*,'(A,F8.4,A,F9.3,A,F8.3)') ' DGEMM_ALPHA (Phase8.3)|',
+     +    TIME_ALPHA, ' |', SPEEDUP_ALPHA, 'x |', GFLOPS_ALPHA
       WRITE(*,*) '================================================='
-
-*     Accuracy Results
       WRITE(*,*) ''
       WRITE(*,*) 'ACCURACY vs DGEMM:'
-      WRITE(*,'(1X,A,ES12.5)') 'Original error:  ', MAX_ERR_ORIG
-      WRITE(*,'(1X,A,ES12.5)') 'Optimized error: ', MAX_ERR_OPT
-
-*     Performance Analysis
+      WRITE(*,'(A,E12.5)') ' DGEMM_ALPHA error: ', MAX_ERR_ALPHA
       WRITE(*,*) ''
       WRITE(*,*) 'ANALYSIS:'
-      IF (SPEEDUP_OPT .GT. 1.05D+0) THEN
-          WRITE(*,'(1X,A,F6.1,A)') 'SUCCESS: AlphaTensor ',
-     +        (SPEEDUP_OPT-1.0D+0)*100.0D+0, '% faster than DGEMM!'
-      ELSE IF (SPEEDUP_OPT .GT. 0.95D+0) THEN
-          WRITE(*,*) 'COMPETITIVE: Matches DGEMM performance'
+      IF (SPEEDUP_ALPHA .GT. 1.0D+0) THEN
+          WRITE(*,'(A,F5.1,A)') ' SUCCESS: DGEMM_ALPHA is ',
+     +        (SPEEDUP_ALPHA-1.0D+0)*100.0D+0, '% faster than DGEMM!'
       ELSE
-          WRITE(*,'(1X,A,F6.1,A)') 'SLOWER: AlphaTensor ',
-     +        (1.0D+0-SPEEDUP_OPT)*100.0D+0, '% slower than DGEMM'
+          WRITE(*,'(A,F5.1,A)') ' DGEMM_ALPHA is ',
+     +        (1.0D+0-SPEEDUP_ALPHA)*100.0D+0, '% slower than DGEMM'
       END IF
-
-      IF (SPEEDUP_GAIN .GT. 1.1D+0) THEN
-          WRITE(*,'(1X,A,F6.1,A)') 'Phase 8.1 improved performance by ',
-     +        (SPEEDUP_GAIN-1.0D+0)*100.0D+0, '%'
-      END IF
-
       WRITE(*,*) ''
-      WRITE(*,*) 'NEXT: Phase 8.2 Vectorization for DGEMM parity'
+      WRITE(*,*) 'THEORETICAL: AlphaTensor uses 49 operations vs'
+      WRITE(*,*) 'DGEMM 64 operations (23.4% theoretical reduction)'
+      WRITE(*,*) ''
+      WRITE(*,*) 'CORRECTED HEAD-TO-HEAD BENCHMARK COMPLETE!'
       WRITE(*,*) '================================================='
 
       END

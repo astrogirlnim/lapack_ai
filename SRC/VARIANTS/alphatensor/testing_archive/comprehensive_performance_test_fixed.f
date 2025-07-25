@@ -1,50 +1,41 @@
       PROGRAM COMPREHENSIVE_PERFORMANCE_TEST
 *
-*  Comprehensive AlphaTensor Performance, Accuracy, and Speed Test
-*  Tests optimized AlphaTensor vs standard DGEMM vs original AlphaTensor
-*  Measures: execution time, accuracy, throughput, and operation efficiency
+*  -- CORRECTED: True Head-to-Head Comprehensive Performance Test --
+*  -- Compares ONLY: Phase 8.3 DGEMM_ALPHA vs Standard DGEMM --
+*  -- Eliminates misleading comparisons of same function --
 *
       IMPLICIT NONE
 *
-*     Test parameters
-      INTEGER NRUNS_QUICK, NRUNS_FULL, LDIM
-      PARAMETER (NRUNS_QUICK=1000, NRUNS_FULL=10000, LDIM=4)
+*     .. Test Parameters ..
+      INTEGER LDIM, QUICK_RUNS, FULL_RUNS
+      PARAMETER (LDIM = 4, QUICK_RUNS = 1000, FULL_RUNS = 10000)
       DOUBLE PRECISION TOLERANCE
-      PARAMETER (TOLERANCE=1.0D-12)
+      PARAMETER (TOLERANCE = 1.0D-12)
 *
-*     Test matrices and variables
+*     .. Arrays ..
       DOUBLE PRECISION A(LDIM,LDIM), B(LDIM,LDIM)
-      DOUBLE PRECISION C_OPT(LDIM,LDIM), C_STD(LDIM,LDIM)
-      DOUBLE PRECISION C_ORIG(LDIM,LDIM)
-      DOUBLE PRECISION ALPHA, BETA
-      DOUBLE PRECISION MAX_ERROR_OPT, MAX_ERROR_ORIG, ERROR
-      INTEGER I, J, RUN, TEST_NUM, PASS_COUNT
+      DOUBLE PRECISION C_ALPHA(LDIM,LDIM), C_DGEMM(LDIM,LDIM)
 *
-*     Timing variables (using loop counts as proxy for timing)
-      INTEGER OPT_COMPLETED, STD_COMPLETED, ORIG_COMPLETED
+*     .. Scalars ..
+      DOUBLE PRECISION ALPHA, BETA, ERROR, MAXERR
+      INTEGER I, J, TEST_NUM, PASS_COUNT, RUN
 *
-*     External subroutines
+*     .. External Subroutines ..
       EXTERNAL DGEMM, DGEMM_ALPHA
 *
       WRITE(*,*) '=============================================='
-      WRITE(*,*) 'COMPREHENSIVE ALPHATENSOR PERFORMANCE TEST'
+      WRITE(*,*) 'CORRECTED COMPREHENSIVE PERFORMANCE TEST'
       WRITE(*,*) '=============================================='
+      WRITE(*,*) 'TRUE HEAD-TO-HEAD: DGEMM_ALPHA vs DGEMM'
       WRITE(*,*) 'Testing: Accuracy + Speed + Throughput'
       WRITE(*,*) 'Matrix Size: 4x4'
-      WRITE(*,*) 'Quick runs:', NRUNS_QUICK
-      WRITE(*,*) 'Full runs:', NRUNS_FULL
+      WRITE(*,*) 'Quick runs:', QUICK_RUNS
+      WRITE(*,*) 'Full runs: ', FULL_RUNS
       WRITE(*,*) ''
-*
-*     Initialize test matrices
-      DO I = 1, LDIM
-          DO J = 1, LDIM
-              A(I,J) = DBLE(I*J) / 10.0D+0
-              B(I,J) = DBLE(I+J) / 5.0D+0
-          END DO
-      END DO
-      ALPHA = 1.5D+0
-      BETA = 0.5D+0
-*
+
+      TEST_NUM = 0
+      PASS_COUNT = 0
+
 *     ============================================
 *     TEST 1: ACCURACY VALIDATION
 *     ============================================
@@ -52,9 +43,6 @@
       WRITE(*,*) 'TEST 1: ACCURACY VALIDATION'
       WRITE(*,*) '=============================================='
 
-      TEST_NUM = 0
-      PASS_COUNT = 0
-*
 *     Test Case 1.1: Identity matrices
       TEST_NUM = TEST_NUM + 1
       DO I = 1, LDIM
@@ -66,192 +54,141 @@
                   A(I,J) = 0.0D+0
                   B(I,J) = 0.0D+0
               END IF
-              C_OPT(I,J) = 0.0D+0
-              C_STD(I,J) = 0.0D+0
-              C_ORIG(I,J) = 0.0D+0
+              C_ALPHA(I,J) = 0.0D+0
+              C_DGEMM(I,J) = 0.0D+0
           END DO
       END DO
       ALPHA = 1.0D+0
       BETA = 0.0D+0
-*
+
       CALL DGEMM_ALPHA('N','N',LDIM,LDIM,LDIM,
-     $     ALPHA,A,LDIM,B,LDIM,BETA,C_OPT,LDIM)
+     $     ALPHA,A,LDIM,B,LDIM,BETA,C_ALPHA,LDIM)
       CALL DGEMM('N','N',LDIM,LDIM,LDIM,
-     $     ALPHA,A,LDIM,B,LDIM,BETA,C_STD,LDIM)
-      CALL DGEMM_ALPHA('N','N',LDIM,LDIM,LDIM,
-     $     ALPHA,A,LDIM,B,LDIM,BETA,C_ORIG,LDIM)
-*
-      MAX_ERROR_OPT = 0.0D+0
-      MAX_ERROR_ORIG = 0.0D+0
+     $     ALPHA,A,LDIM,B,LDIM,BETA,C_DGEMM,LDIM)
+
+      MAXERR = 0.0D+0
       DO I = 1, LDIM
           DO J = 1, LDIM
-              ERROR = ABS(C_OPT(I,J) - C_STD(I,J))
-              IF (ERROR .GT. MAX_ERROR_OPT) MAX_ERROR_OPT = ERROR
-              ERROR = ABS(C_ORIG(I,J) - C_STD(I,J))
-              IF (ERROR .GT. MAX_ERROR_ORIG) MAX_ERROR_ORIG = ERROR
+              ERROR = ABS(C_ALPHA(I,J) - C_DGEMM(I,J))
+              IF (ERROR .GT. MAXERR) MAXERR = ERROR
           END DO
       END DO
-*
-      WRITE(*,*) 'Test 1.1 (Identity): Optimized error:', MAX_ERROR_OPT
-      WRITE(*,*) 'Test 1.1 (Identity): Original error: ', MAX_ERROR_ORIG
-      IF (MAX_ERROR_OPT .LT. TOLERANCE .AND.
-     $    MAX_ERROR_ORIG .LT. TOLERANCE) THEN
+
+      WRITE(*,*) 'Test 1.1 (Identity): DGEMM_ALPHA error:', MAXERR
+      IF (MAXERR .LT. TOLERANCE) THEN
           WRITE(*,*) 'Test 1.1: PASSED'
           PASS_COUNT = PASS_COUNT + 1
       ELSE
           WRITE(*,*) 'Test 1.1: FAILED'
       END IF
-*
+
 *     Test Case 1.2: Random values
       TEST_NUM = TEST_NUM + 1
       DO I = 1, LDIM
           DO J = 1, LDIM
               A(I,J) = DBLE(I+J) / 10.0D+0
               B(I,J) = DBLE(I*J) / 5.0D+0
-              C_OPT(I,J) = DBLE(I-J) / 3.0D+0
-              C_STD(I,J) = C_OPT(I,J)
-              C_ORIG(I,J) = C_OPT(I,J)
+              C_ALPHA(I,J) = DBLE(I-J) / 3.0D+0
+              C_DGEMM(I,J) = C_ALPHA(I,J)
           END DO
       END DO
       ALPHA = 2.0D+0
       BETA = 1.0D+0
-*
+
       CALL DGEMM_ALPHA('N','N',LDIM,LDIM,LDIM,
-     $     ALPHA,A,LDIM,B,LDIM,BETA,C_OPT,LDIM)
+     $     ALPHA,A,LDIM,B,LDIM,BETA,C_ALPHA,LDIM)
       CALL DGEMM('N','N',LDIM,LDIM,LDIM,
-     $     ALPHA,A,LDIM,B,LDIM,BETA,C_STD,LDIM)
-      CALL DGEMM_ALPHA('N','N',LDIM,LDIM,LDIM,
-     $     ALPHA,A,LDIM,B,LDIM,BETA,C_ORIG,LDIM)
-*
-      MAX_ERROR_OPT = 0.0D+0
-      MAX_ERROR_ORIG = 0.0D+0
+     $     ALPHA,A,LDIM,B,LDIM,BETA,C_DGEMM,LDIM)
+
+      MAXERR = 0.0D+0
       DO I = 1, LDIM
           DO J = 1, LDIM
-              ERROR = ABS(C_OPT(I,J) - C_STD(I,J))
-              IF (ERROR .GT. MAX_ERROR_OPT) MAX_ERROR_OPT = ERROR
-              ERROR = ABS(C_ORIG(I,J) - C_STD(I,J))
-              IF (ERROR .GT. MAX_ERROR_ORIG) MAX_ERROR_ORIG = ERROR
+              ERROR = ABS(C_ALPHA(I,J) - C_DGEMM(I,J))
+              IF (ERROR .GT. MAXERR) MAXERR = ERROR
           END DO
       END DO
-*
-      WRITE(*,*) 'Test 1.2 (Random): Optimized error:', MAX_ERROR_OPT
-      WRITE(*,*) 'Test 1.2 (Random): Original error: ', MAX_ERROR_ORIG
-      IF (MAX_ERROR_OPT .LT. TOLERANCE .AND.
-     $    MAX_ERROR_ORIG .LT. TOLERANCE) THEN
+
+      WRITE(*,*) 'Test 1.2 (Random): DGEMM_ALPHA error:', MAXERR
+      IF (MAXERR .LT. TOLERANCE) THEN
           WRITE(*,*) 'Test 1.2: PASSED'
           PASS_COUNT = PASS_COUNT + 1
       ELSE
           WRITE(*,*) 'Test 1.2: FAILED'
       END IF
-*
+
       WRITE(*,*) ''
       WRITE(*,*) 'ACCURACY SUMMARY:'
       WRITE(*,*) 'Tests passed:', PASS_COUNT, '/', TEST_NUM
-      WRITE(*,*) ''
-*
+
 *     ============================================
 *     TEST 2: THROUGHPUT COMPARISON
 *     ============================================
+      WRITE(*,*) ''
       WRITE(*,*) '=============================================='
       WRITE(*,*) 'TEST 2: THROUGHPUT COMPARISON'
       WRITE(*,*) '=============================================='
-*
-*     Reset matrices for throughput test
+
+*     Initialize test matrices
       DO I = 1, LDIM
           DO J = 1, LDIM
-              A(I,J) = DBLE(I*J) / 10.0D+0
-              B(I,J) = DBLE(I+J) / 5.0D+0
+              A(I,J) = DBLE(I*J) / 12.0D+0
+              B(I,J) = DBLE(I+J) / 8.0D+0
+              C_ALPHA(I,J) = 0.5D+0
+              C_DGEMM(I,J) = 0.5D+0
           END DO
       END DO
       ALPHA = 1.5D+0
-      BETA = 0.5D+0
-*
-*     Throughput Test 1: Optimized AlphaTensor
-      WRITE(*,*) 'Running Optimized AlphaTensor throughput...'
-      OPT_COMPLETED = 0
-      DO RUN = 1, NRUNS_FULL
-          DO I = 1, LDIM
-              DO J = 1, LDIM
-                  C_OPT(I,J) = DBLE(I+J)
-              END DO
-          END DO
+      BETA = 0.75D+0
+
+      WRITE(*,*) 'Running DGEMM_ALPHA throughput...'
+      DO RUN = 1, FULL_RUNS
           CALL DGEMM_ALPHA('N','N',LDIM,LDIM,LDIM,
-     $         ALPHA,A,LDIM,B,LDIM,BETA,C_OPT,LDIM)
-          OPT_COMPLETED = OPT_COMPLETED + 1
+     $         ALPHA,A,LDIM,B,LDIM,BETA,C_ALPHA,LDIM)
       END DO
-*
-*     Throughput Test 2: Standard DGEMM
+
       WRITE(*,*) 'Running Standard DGEMM throughput...'
-      STD_COMPLETED = 0
-      DO RUN = 1, NRUNS_FULL
-          DO I = 1, LDIM
-              DO J = 1, LDIM
-                  C_STD(I,J) = DBLE(I+J)
-              END DO
-          END DO
+      DO RUN = 1, FULL_RUNS
           CALL DGEMM('N','N',LDIM,LDIM,LDIM,
-     $         ALPHA,A,LDIM,B,LDIM,BETA,C_STD,LDIM)
-          STD_COMPLETED = STD_COMPLETED + 1
+     $         ALPHA,A,LDIM,B,LDIM,BETA,C_DGEMM,LDIM)
       END DO
-*
-*     Throughput Test 3: Original AlphaTensor (fewer iterations)
-      WRITE(*,*) 'Running Original AlphaTensor throughput...'
-      ORIG_COMPLETED = 0
-      DO RUN = 1, NRUNS_QUICK
-          DO I = 1, LDIM
-              DO J = 1, LDIM
-                  C_ORIG(I,J) = DBLE(I+J)
-              END DO
-          END DO
-          CALL DGEMM_ALPHA('N','N',LDIM,LDIM,LDIM,
-     $         ALPHA,A,LDIM,B,LDIM,BETA,C_ORIG,LDIM)
-          ORIG_COMPLETED = ORIG_COMPLETED + 1
-      END DO
-*
+
       WRITE(*,*) ''
       WRITE(*,*) 'THROUGHPUT RESULTS:'
-      WRITE(*,*) 'Optimized completed:', OPT_COMPLETED, 'operations'
-      WRITE(*,*) 'Standard completed: ', STD_COMPLETED, 'operations'
-      WRITE(*,*) 'Original completed: ', ORIG_COMPLETED, 'operations'
-      WRITE(*,*) ''
-*
+      WRITE(*,*) 'DGEMM_ALPHA completed:', FULL_RUNS, 'operations'
+      WRITE(*,*) 'Standard DGEMM completed:', FULL_RUNS, 'operations'
+
 *     ============================================
 *     TEST 3: OPERATION EFFICIENCY ANALYSIS
 *     ============================================
+      WRITE(*,*) ''
       WRITE(*,*) '=============================================='
       WRITE(*,*) 'TEST 3: OPERATION EFFICIENCY ANALYSIS'
       WRITE(*,*) '=============================================='
       WRITE(*,*) ''
       WRITE(*,*) 'ALGORITHM COMPARISON:'
-      WRITE(*,*) 'Optimized AlphaTensor: 49 operations per multiply'
-      WRITE(*,*) 'Standard DGEMM:        64 operations per multiply'
-      WRITE(*,*) 'Original AlphaTensor:  49 operations + overhead'
+      WRITE(*,*) 'DGEMM_ALPHA (Phase 8.3): 49 operations per multiply'
+      WRITE(*,*) 'Standard DGEMM:           64 operations per multiply'
       WRITE(*,*) ''
       WRITE(*,*) 'THEORETICAL EFFICIENCY:'
       WRITE(*,*) 'AlphaTensor vs DGEMM: 23.4% fewer operations'
-      WRITE(*,*) 'Optimized vs Original: Massive improvement'
       WRITE(*,*) ''
-*
+
 *     Final accuracy check
-      MAX_ERROR_OPT = 0.0D+0
-      MAX_ERROR_ORIG = 0.0D+0
+      MAXERR = 0.0D+0
       DO I = 1, LDIM
           DO J = 1, LDIM
-              ERROR = ABS(C_OPT(I,J) - C_STD(I,J))
-              IF (ERROR .GT. MAX_ERROR_OPT) MAX_ERROR_OPT = ERROR
-              ERROR = ABS(C_ORIG(I,J) - C_STD(I,J))
-              IF (ERROR .GT. MAX_ERROR_ORIG) MAX_ERROR_ORIG = ERROR
+              ERROR = ABS(C_ALPHA(I,J) - C_DGEMM(I,J))
+              IF (ERROR .GT. MAXERR) MAXERR = ERROR
           END DO
       END DO
-*
+
       WRITE(*,*) 'FINAL ACCURACY CHECK:'
-      WRITE(*,*) 'Optimized final error:', MAX_ERROR_OPT
-      WRITE(*,*) 'Original final error: ', MAX_ERROR_ORIG
-      WRITE(*,*) ''
-*
+      WRITE(*,*) 'DGEMM_ALPHA final error:', MAXERR
+
 *     ============================================
 *     COMPREHENSIVE RESULTS SUMMARY
 *     ============================================
+      WRITE(*,*) ''
       WRITE(*,*) '=============================================='
       WRITE(*,*) 'COMPREHENSIVE RESULTS SUMMARY'
       WRITE(*,*) '=============================================='
@@ -264,9 +201,7 @@
       END IF
       WRITE(*,*) ''
       WRITE(*,*) 'THROUGHPUT RESULTS:'
-      WRITE(*,*) 'All implementations completed successfully'
-      WRITE(*,*) 'Optimized: No logging overhead'
-      WRITE(*,*) 'Original: Heavy logging overhead visible'
+      WRITE(*,*) 'Both implementations completed successfully'
       WRITE(*,*) ''
       WRITE(*,*) 'PERFORMANCE NOTES:'
       WRITE(*,*) 'For 4x4 matrices:'
@@ -282,5 +217,5 @@
       WRITE(*,*) 'Perfect numerical accuracy maintained!'
       WRITE(*,*) 'Comprehensive performance testing complete!'
       WRITE(*,*) '=============================================='
-*
+
       END

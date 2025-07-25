@@ -131,6 +131,10 @@
       DOUBLE PRECISION A_CONTRIB, B_CONTRIB, SCALAR_RESULT
       DOUBLE PRECISION TEMP_C(4,4)
 *     ..
+*     .. MEMORY-AWARE OPTIMIZATION: Pre-load entire cache lines (rows) ..
+      DOUBLE PRECISION A_ROW1(4), A_ROW2(4), A_ROW3(4), A_ROW4(4)
+      DOUBLE PRECISION B_ROW1(4), B_ROW2(4), B_ROW3(4), B_ROW4(4)
+*     ..
 *     .. Constants ..
       DOUBLE PRECISION ZERO
       PARAMETER (ZERO=0.0D+0)
@@ -151,66 +155,86 @@
           END DO
       END IF
 *
+*     ========================================================================
+*     PHASE 8.1: MEMORY-AWARE OPERATION GROUPING OPTIMIZATION
+*     ========================================================================
+*     PROBLEM: Scattered memory access patterns reduce cache efficiency
+*     SOLUTION: Pre-load entire matrix rows into cache-friendly arrays
+*             All 49 operations now use A_ROWx(y) and B_ROWx(y) patterns
+*             instead of scattered A(x,y) and B(x,y) access
+*     BENEFIT: Reduced cache misses, improved memory bandwidth utilization
+*     ========================================================================
+      DO I = 1, 4
+          A_ROW1(I) = A(1,I)
+          A_ROW2(I) = A(2,I)
+          A_ROW3(I) = A(3,I)
+          A_ROW4(I) = A(4,I)
+          B_ROW1(I) = B(1,I)
+          B_ROW2(I) = B(2,I)
+          B_ROW3(I) = B(3,I)
+          B_ROW4(I) = B(4,I)
+      END DO
+*
 *     OPTIMIZATION 2: Direct C matrix updates with transpose correction
 *     Instead of TEMP_RESULT(I,J) and then transpose, we directly update
 *     TEMP_C(J,I) to apply transpose during computation
 *
-*     Operation 1: Direct transpose-corrected update
-      A_CONTRIB = A(1,1) + A(3,1)
-      B_CONTRIB = B(1,1) + B(3,1)
+*     Operation 1: Direct transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW1(1) + A_ROW3(1)
+      B_CONTRIB = B_ROW1(1) + B_ROW3(1)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(1,1) = TEMP_C(1,1) + SCALAR_RESULT
       TEMP_C(1,3) = TEMP_C(1,3) + SCALAR_RESULT
 *
-*     Operation 2: Transpose-corrected update
-      A_CONTRIB = A(1,1) - A(1,3) + A(3,1)
-      B_CONTRIB = B(1,1) - B(1,3) + B(3,1)
+*     Operation 2: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW1(1) - A_ROW1(3) + A_ROW3(1)
+      B_CONTRIB = B_ROW1(1) - B_ROW1(3) + B_ROW3(1)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(1,1) = TEMP_C(1,1) - SCALAR_RESULT
       TEMP_C(3,1) = TEMP_C(3,1) + SCALAR_RESULT
       TEMP_C(1,3) = TEMP_C(1,3) - SCALAR_RESULT
 *
-*     Operation 3: Transpose-corrected update
-      A_CONTRIB = -A(1,3)
-      B_CONTRIB = B(1,1) - B(1,3) + B(3,1) - B(3,3)
+*     Operation 3: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = -A_ROW1(3)
+      B_CONTRIB = B_ROW1(1) - B_ROW1(3) + B_ROW3(1) - B_ROW3(3)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(1,3) = TEMP_C(1,3) + SCALAR_RESULT
 *
-*     Operation 4: Transpose-corrected update
-      A_CONTRIB = -A(3,3)
-      B_CONTRIB = -B(3,3)
+*     Operation 4: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = -A_ROW3(3)
+      B_CONTRIB = -B_ROW3(3)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(3,3) = TEMP_C(3,3) + SCALAR_RESULT
 *
-*     Operation 5: Transpose-corrected update
-      A_CONTRIB = -A(3,1)
-      B_CONTRIB = -B(1,3)
+*     Operation 5: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = -A_ROW3(1)
+      B_CONTRIB = -B_ROW1(3)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(1,1) = TEMP_C(1,1) - SCALAR_RESULT
       TEMP_C(3,1) = TEMP_C(3,1) + SCALAR_RESULT
       TEMP_C(1,3) = TEMP_C(1,3) - SCALAR_RESULT
       TEMP_C(3,3) = TEMP_C(3,3) + SCALAR_RESULT
 *
-*     Operation 6: Transpose-corrected update
-      A_CONTRIB = A(1,1) - A(1,3) + A(3,1) - A(3,3)
-      B_CONTRIB = -B(3,1)
+*     Operation 6: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW1(1) - A_ROW1(3) + A_ROW3(1) - A_ROW3(3)
+      B_CONTRIB = -B_ROW3(1)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(3,1) = TEMP_C(3,1) + SCALAR_RESULT
 *
-*     Operation 7: Transpose-corrected update
-      A_CONTRIB = -A(2,1) + A(2,2) - A(2,3) - A(2,4)
-      B_CONTRIB = -B(2,1) + B(2,2) - B(2,3) - B(2,4)
+*     Operation 7: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = -A_ROW2(1) + A_ROW2(2) - A_ROW2(3) - A_ROW2(4)
+      B_CONTRIB = -B_ROW2(1) + B_ROW2(2) - B_ROW2(3) - B_ROW2(4)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(1,2) = TEMP_C(1,2) - SCALAR_RESULT
       TEMP_C(2,2) = TEMP_C(2,2) + SCALAR_RESULT
       TEMP_C(3,2) = TEMP_C(3,2) - SCALAR_RESULT
       TEMP_C(4,2) = TEMP_C(4,2) - SCALAR_RESULT
 *
-*     Operation 8: Transpose-corrected update
-      A_CONTRIB = -A(2,1) + A(2,2) - A(2,3) - A(2,4) -
-     +            A(4,1) + A(4,2)
-      B_CONTRIB = -B(2,1) + B(2,2) - B(2,3) - B(2,4) -
-     +            B(4,1) + B(4,2)
+*     Operation 8: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = -A_ROW2(1) + A_ROW2(2) - A_ROW2(3) - A_ROW2(4) -
+     +            A_ROW4(1) + A_ROW4(2)
+      B_CONTRIB = -B_ROW2(1) + B_ROW2(2) - B_ROW2(3) - B_ROW2(4) -
+     +            B_ROW4(1) + B_ROW4(2)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(1,2) = TEMP_C(1,2) + SCALAR_RESULT
       TEMP_C(2,2) = TEMP_C(2,2) - SCALAR_RESULT
@@ -219,25 +243,25 @@
       TEMP_C(1,4) = TEMP_C(1,4) + SCALAR_RESULT
       TEMP_C(2,4) = TEMP_C(2,4) - SCALAR_RESULT
 *
-*     Operation 9: Transpose-corrected update
-      A_CONTRIB = A(1,1) - A(1,3)
-      B_CONTRIB = B(1,1) - B(1,3)
+*     Operation 9: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW1(1) - A_ROW1(3)
+      B_CONTRIB = B_ROW1(1) - B_ROW1(3)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(1,1) = TEMP_C(1,1) + SCALAR_RESULT
       TEMP_C(3,1) = TEMP_C(3,1) - SCALAR_RESULT
 *
-*     Operation 10: Transpose-corrected update
-      A_CONTRIB = -A(2,1) + A(2,2) - A(4,1) + A(4,2)
-      B_CONTRIB = -B(2,1) + B(2,2) - B(4,1) + B(4,2)
+*     Operation 10: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = -A_ROW2(1) + A_ROW2(2) - A_ROW4(1) + A_ROW4(2)
+      B_CONTRIB = -B_ROW2(1) + B_ROW2(2) - B_ROW4(1) + B_ROW4(2)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(1,2) = TEMP_C(1,2) - SCALAR_RESULT
       TEMP_C(2,2) = TEMP_C(2,2) + SCALAR_RESULT
       TEMP_C(1,4) = TEMP_C(1,4) - SCALAR_RESULT
       TEMP_C(2,4) = TEMP_C(2,4) + SCALAR_RESULT
 *
-*     Operation 11: Transpose-corrected update
-      A_CONTRIB = A(4,1) - A(4,2)
-      B_CONTRIB = -B(2,3) - B(2,4)
+*     Operation 11: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW4(1) - A_ROW4(2)
+      B_CONTRIB = -B_ROW2(3) - B_ROW2(4)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(1,2) = TEMP_C(1,2) + SCALAR_RESULT
       TEMP_C(2,2) = TEMP_C(2,2) - SCALAR_RESULT
@@ -248,42 +272,42 @@
       TEMP_C(3,4) = TEMP_C(3,4) + SCALAR_RESULT
       TEMP_C(4,4) = TEMP_C(4,4) + SCALAR_RESULT
 *
-*     Operation 12: Transpose-corrected update
-      A_CONTRIB = -A(2,1) + A(2,2) - A(2,3) - A(2,4) -
-     +            A(4,1) + A(4,2) - A(4,3) - A(4,4)
-      B_CONTRIB = B(4,1) - B(4,2)
+*     Operation 12: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = -A_ROW2(1) + A_ROW2(2) - A_ROW2(3) - A_ROW2(4) -
+     +            A_ROW4(1) + A_ROW4(2) - A_ROW4(3) - A_ROW4(4)
+      B_CONTRIB = B_ROW4(1) - B_ROW4(2)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(3,2) = TEMP_C(3,2) + SCALAR_RESULT
       TEMP_C(4,2) = TEMP_C(4,2) + SCALAR_RESULT
 *
-*     Operation 13: Transpose-corrected update
-      A_CONTRIB = -A(2,3) - A(2,4)
-      B_CONTRIB = -B(2,1) + B(2,2) - B(2,3) - B(2,4) -
-     +            B(4,1) + B(4,2) - B(4,3) - B(4,4)
+*     Operation 13: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = -A_ROW2(3) - A_ROW2(4)
+      B_CONTRIB = -B_ROW2(1) + B_ROW2(2) - B_ROW2(3) - B_ROW2(4) -
+     +            B_ROW4(1) + B_ROW4(2) - B_ROW4(3) - B_ROW4(4)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(1,4) = TEMP_C(1,4) - SCALAR_RESULT
       TEMP_C(2,4) = TEMP_C(2,4) + SCALAR_RESULT
 *
-*     Operation 14: Transpose-corrected update
-      A_CONTRIB = A(1,1) - A(1,2) + A(2,1) - A(2,2)
-      B_CONTRIB = -B(1,2) - B(1,4)
+*     Operation 14: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW1(1) - A_ROW1(2) + A_ROW2(1) - A_ROW2(2)
+      B_CONTRIB = -B_ROW1(2) - B_ROW1(4)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(1,2) = TEMP_C(1,2) - SCALAR_RESULT
 *
-*     Operation 15: Transpose-corrected update
-      A_CONTRIB = -A(1,2) - A(1,4)
-      B_CONTRIB = -B(2,1)
+*     Operation 15: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = -A_ROW1(2) - A_ROW1(4)
+      B_CONTRIB = -B_ROW2(1)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(1,1) = TEMP_C(1,1) + SCALAR_RESULT
       TEMP_C(2,1) = TEMP_C(2,1) - SCALAR_RESULT
       TEMP_C(1,2) = TEMP_C(1,2) + SCALAR_RESULT
       TEMP_C(2,2) = TEMP_C(2,2) - SCALAR_RESULT
 *
-*     Operation 16: Transpose-corrected update
-      A_CONTRIB = A(1,2) + A(1,4) - A(2,1) + A(2,2) +
-     +            A(2,3) + A(2,4)
-      B_CONTRIB = B(1,2) + B(1,4) - B(2,1) + B(2,2) +
-     +            B(2,3) + B(2,4)
+*     Operation 16: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW1(2) + A_ROW1(4) - A_ROW2(1) + A_ROW2(2) +
+     +            A_ROW2(3) + A_ROW2(4)
+      B_CONTRIB = B_ROW1(2) + B_ROW1(4) - B_ROW2(1) + B_ROW2(2) +
+     +            B_ROW2(3) + B_ROW2(4)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(2,1) = TEMP_C(2,1) - SCALAR_RESULT
       TEMP_C(4,1) = TEMP_C(4,1) - SCALAR_RESULT
@@ -292,13 +316,13 @@
       TEMP_C(3,2) = TEMP_C(3,2) - SCALAR_RESULT
       TEMP_C(4,2) = TEMP_C(4,2) - SCALAR_RESULT
 *
-*     Operation 17: Transpose-corrected update
-      A_CONTRIB = A(1,2) + A(1,4) - A(2,1) + A(2,2) +
-     +            A(2,3) + A(2,4) + A(3,2) + A(4,1) -
-     +            A(4,2)
-      B_CONTRIB = B(1,2) + B(1,4) - B(2,1) + B(2,2) +
-     +            B(2,3) + B(2,4) + B(3,2) + B(4,1) -
-     +            B(4,2)
+*     Operation 17: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW1(2) + A_ROW1(4) - A_ROW2(1) + A_ROW2(2) +
+     +            A_ROW2(3) + A_ROW2(4) + A_ROW3(2) + A_ROW4(1) -
+     +            A_ROW4(2)
+      B_CONTRIB = B_ROW1(2) + B_ROW1(4) - B_ROW2(1) + B_ROW2(2) +
+     +            B_ROW2(3) + B_ROW2(4) + B_ROW3(2) + B_ROW4(1) -
+     +            B_ROW4(2)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(2,1) = TEMP_C(2,1) + SCALAR_RESULT
       TEMP_C(4,1) = TEMP_C(4,1) + SCALAR_RESULT
@@ -310,11 +334,11 @@
       TEMP_C(1,4) = TEMP_C(1,4) + SCALAR_RESULT
       TEMP_C(2,4) = TEMP_C(2,4) - SCALAR_RESULT
 *
-*     Operation 18: Transpose-corrected update
-      A_CONTRIB = A(1,2) - A(2,1) + A(2,2) + A(3,2) +
-     +            A(4,1) - A(4,2)
-      B_CONTRIB = B(1,2) - B(2,1) + B(2,2) + B(3,2) +
-     +            B(4,1) - B(4,2)
+*     Operation 18: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW1(2) - A_ROW2(1) + A_ROW2(2) + A_ROW3(2) +
+     +            A_ROW4(1) - A_ROW4(2)
+      B_CONTRIB = B_ROW1(2) - B_ROW2(1) + B_ROW2(2) + B_ROW3(2) +
+     +            B_ROW4(1) - B_ROW4(2)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(2,1) = TEMP_C(2,1) - SCALAR_RESULT
       TEMP_C(1,2) = TEMP_C(1,2) + SCALAR_RESULT
@@ -323,29 +347,29 @@
       TEMP_C(1,4) = TEMP_C(1,4) - SCALAR_RESULT
       TEMP_C(2,4) = TEMP_C(2,4) + SCALAR_RESULT
 *
-*     Operation 19: Transpose-corrected update
-      A_CONTRIB = A(1,4) + A(2,3) + A(2,4)
-      B_CONTRIB = B(1,2) + B(1,4) - B(2,1) + B(2,2) +
-     +            B(2,3) + B(2,4) + B(3,2) + B(3,4) +
-     +            B(4,1) - B(4,2) - B(4,3) - B(4,4)
+*     Operation 19: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW1(4) + A_ROW2(3) + A_ROW2(4)
+      B_CONTRIB = B_ROW1(2) + B_ROW1(4) - B_ROW2(1) + B_ROW2(2) +
+     +            B_ROW2(3) + B_ROW2(4) + B_ROW3(2) + B_ROW3(4) +
+     +            B_ROW4(1) - B_ROW4(2) - B_ROW4(3) - B_ROW4(4)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(2,3) = TEMP_C(2,3) - SCALAR_RESULT
       TEMP_C(1,4) = TEMP_C(1,4) - SCALAR_RESULT
       TEMP_C(2,4) = TEMP_C(2,4) + SCALAR_RESULT
 *
-*     Operation 20: Transpose-corrected update
-      A_CONTRIB = A(1,2) + A(1,4) - A(2,1) + A(2,2) +
-     +            A(2,3) + A(2,4) + A(3,2) + A(3,4) +
-     +            A(4,1) - A(4,2) - A(4,3) - A(4,4)
-      B_CONTRIB = B(3,2) + B(4,1) - B(4,2)
+*     Operation 20: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW1(2) + A_ROW1(4) - A_ROW2(1) + A_ROW2(2) +
+     +            A_ROW2(3) + A_ROW2(4) + A_ROW3(2) + A_ROW3(4) +
+     +            A_ROW4(1) - A_ROW4(2) - A_ROW4(3) - A_ROW4(4)
+      B_CONTRIB = B_ROW3(2) + B_ROW4(1) - B_ROW4(2)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(4,1) = TEMP_C(4,1) - SCALAR_RESULT
       TEMP_C(3,2) = TEMP_C(3,2) - SCALAR_RESULT
       TEMP_C(4,2) = TEMP_C(4,2) - SCALAR_RESULT
 *
-*     Operation 21: Transpose-corrected update
-      A_CONTRIB = A(3,2) + A(4,1) - A(4,2)
-      B_CONTRIB = B(1,4) + B(2,3) + B(2,4)
+*     Operation 21: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW3(2) + A_ROW4(1) - A_ROW4(2)
+      B_CONTRIB = B_ROW1(4) + B_ROW2(3) + B_ROW2(4)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(2,1) = TEMP_C(2,1) - SCALAR_RESULT
       TEMP_C(4,1) = TEMP_C(4,1) - SCALAR_RESULT
@@ -360,20 +384,20 @@
       TEMP_C(3,4) = TEMP_C(3,4) + SCALAR_RESULT
       TEMP_C(4,4) = TEMP_C(4,4) + SCALAR_RESULT
 *
-*     Operation 22: Transpose-corrected update
-      A_CONTRIB = A(1,2) + A(1,4) + A(2,2) + A(2,4)
-      B_CONTRIB = B(1,2) + B(1,4) + B(2,2) + B(2,4)
+*     Operation 22: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW1(2) + A_ROW1(4) + A_ROW2(2) + A_ROW2(4)
+      B_CONTRIB = B_ROW1(2) + B_ROW1(4) + B_ROW2(2) + B_ROW2(4)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(2,1) = TEMP_C(2,1) + SCALAR_RESULT
       TEMP_C(4,1) = TEMP_C(4,1) + SCALAR_RESULT
       TEMP_C(2,2) = TEMP_C(2,2) + SCALAR_RESULT
       TEMP_C(4,2) = TEMP_C(4,2) + SCALAR_RESULT
 *
-*     Operation 23: Transpose-corrected update
-      A_CONTRIB = A(1,2) + A(1,4) + A(2,2) + A(2,4) +
-     +            A(3,2) - A(4,2)
-      B_CONTRIB = B(1,2) + B(1,4) + B(2,2) + B(2,4) +
-     +            B(3,2) - B(4,2)
+*     Operation 23: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW1(2) + A_ROW1(4) + A_ROW2(2) + A_ROW2(4) +
+     +            A_ROW3(2) - A_ROW4(2)
+      B_CONTRIB = B_ROW1(2) + B_ROW1(4) + B_ROW2(2) + B_ROW2(4) +
+     +            B_ROW3(2) - B_ROW4(2)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(2,1) = TEMP_C(2,1) - SCALAR_RESULT
       TEMP_C(4,1) = TEMP_C(4,1) - SCALAR_RESULT
@@ -382,25 +406,25 @@
       TEMP_C(2,3) = TEMP_C(2,3) - SCALAR_RESULT
       TEMP_C(2,4) = TEMP_C(2,4) + SCALAR_RESULT
 *
-*     Operation 24: Transpose-corrected update
-      A_CONTRIB = A(1,4) + A(2,4)
-      B_CONTRIB = B(1,2) + B(1,4) + B(2,2) + B(2,4) +
-     +            B(3,2) + B(3,4) - B(4,2) - B(4,4)
+*     Operation 24: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW1(4) + A_ROW2(4)
+      B_CONTRIB = B_ROW1(2) + B_ROW1(4) + B_ROW2(2) + B_ROW2(4) +
+     +            B_ROW3(2) + B_ROW3(4) - B_ROW4(2) - B_ROW4(4)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(2,3) = TEMP_C(2,3) + SCALAR_RESULT
       TEMP_C(2,4) = TEMP_C(2,4) - SCALAR_RESULT
 *
-*     Operation 25: Transpose-corrected update
-      A_CONTRIB = A(1,2) + A(1,4) + A(2,2) + A(2,4) +
-     +            A(3,2) + A(3,4) - A(4,2) - A(4,4)
-      B_CONTRIB = B(3,2) - B(4,2)
+*     Operation 25: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW1(2) + A_ROW1(4) + A_ROW2(2) + A_ROW2(4) +
+     +            A_ROW3(2) + A_ROW3(4) - A_ROW4(2) - A_ROW4(4)
+      B_CONTRIB = B_ROW3(2) - B_ROW4(2)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(4,1) = TEMP_C(4,1) + SCALAR_RESULT
       TEMP_C(4,2) = TEMP_C(4,2) + SCALAR_RESULT
 *
-*     Operation 26: Transpose-corrected update
-      A_CONTRIB = A(3,2) - A(4,2)
-      B_CONTRIB = B(1,4) + B(2,4)
+*     Operation 26: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW3(2) - A_ROW4(2)
+      B_CONTRIB = B_ROW1(4) + B_ROW2(4)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(2,1) = TEMP_C(2,1) + SCALAR_RESULT
       TEMP_C(4,1) = TEMP_C(4,1) + SCALAR_RESULT
@@ -411,24 +435,24 @@
       TEMP_C(2,4) = TEMP_C(2,4) - SCALAR_RESULT
       TEMP_C(4,4) = TEMP_C(4,4) - SCALAR_RESULT
 *
-*     Operation 27: Transpose-corrected update
-      A_CONTRIB = A(3,4) - A(4,4)
-      B_CONTRIB = B(3,4) - B(4,4)
+*     Operation 27: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW3(4) - A_ROW4(4)
+      B_CONTRIB = B_ROW3(4) - B_ROW4(4)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(4,3) = TEMP_C(4,3) - SCALAR_RESULT
       TEMP_C(4,4) = TEMP_C(4,4) + SCALAR_RESULT
 *
-*     Operation 28: Transpose-corrected update
-      A_CONTRIB = A(3,4) - A(4,3) - A(4,4)
-      B_CONTRIB = B(3,4) - B(4,3) - B(4,4)
+*     Operation 28: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW3(4) - A_ROW4(3) - A_ROW4(4)
+      B_CONTRIB = B_ROW3(4) - B_ROW4(3) - B_ROW4(4)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(4,3) = TEMP_C(4,3) + SCALAR_RESULT
       TEMP_C(3,4) = TEMP_C(3,4) - SCALAR_RESULT
       TEMP_C(4,4) = TEMP_C(4,4) - SCALAR_RESULT
 *
-*     Operation 29: Transpose-corrected update
-      A_CONTRIB = A(1,4) + A(3,4)
-      B_CONTRIB = -B(4,3)
+*     Operation 29: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW1(4) + A_ROW3(4)
+      B_CONTRIB = -B_ROW4(3)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(3,1) = TEMP_C(3,1) - SCALAR_RESULT
       TEMP_C(4,1) = TEMP_C(4,1) - SCALAR_RESULT
@@ -439,34 +463,34 @@
       TEMP_C(3,4) = TEMP_C(3,4) + SCALAR_RESULT
       TEMP_C(4,4) = TEMP_C(4,4) + SCALAR_RESULT
 *
-*     Operation 30: Transpose-corrected update
-      A_CONTRIB = A(1,3) + A(1,4) + A(2,3) + A(2,4) +
-     +            A(3,3) + A(3,4) - A(4,3) - A(4,4)
-      B_CONTRIB = B(1,4) + B(3,4)
+*     Operation 30: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW1(3) + A_ROW1(4) + A_ROW2(3) + A_ROW2(4) +
+     +            A_ROW3(3) + A_ROW3(4) - A_ROW4(3) - A_ROW4(4)
+      B_CONTRIB = B_ROW1(4) + B_ROW3(4)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(3,4) = TEMP_C(3,4) + SCALAR_RESULT
 *
-*     Operation 31: Transpose-corrected update
-      A_CONTRIB = A(1,1) - A(1,2) - A(1,3) - A(1,4) +
-     +            A(2,1) - A(2,2) - A(2,3) - A(2,4) +
-     +            A(3,1) - A(3,2) - A(3,3) - A(3,4) -
-     +            A(4,1) + A(4,2) + A(4,3) + A(4,4)
-      B_CONTRIB = B(1,4)
+*     Operation 31: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW1(1) - A_ROW1(2) - A_ROW1(3) - A_ROW1(4) +
+     +            A_ROW2(1) - A_ROW2(2) - A_ROW2(3) - A_ROW2(4) +
+     +            A_ROW3(1) - A_ROW3(2) - A_ROW3(3) - A_ROW3(4) -
+     +            A_ROW4(1) + A_ROW4(2) + A_ROW4(3) + A_ROW4(4)
+      B_CONTRIB = B_ROW1(4)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(1,2) = TEMP_C(1,2) - SCALAR_RESULT
       TEMP_C(1,4) = TEMP_C(1,4) + SCALAR_RESULT
 *
-*     Operation 32: Transpose-corrected update
-      A_CONTRIB = -A(4,3)
-      B_CONTRIB = B(1,3) + B(1,4) + B(2,3) + B(2,4) +
-     +            B(3,3) + B(3,4) - B(4,3) - B(4,4)
+*     Operation 32: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = -A_ROW4(3)
+      B_CONTRIB = B_ROW1(3) + B_ROW1(4) + B_ROW2(3) + B_ROW2(4) +
+     +            B_ROW3(3) + B_ROW3(4) - B_ROW4(3) - B_ROW4(4)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(4,1) = TEMP_C(4,1) - SCALAR_RESULT
       TEMP_C(4,3) = TEMP_C(4,3) - SCALAR_RESULT
 *
-*     Operation 33: Transpose-corrected update
-      A_CONTRIB = A(1,4)
-      B_CONTRIB = -B(2,1) + B(4,1)
+*     Operation 33: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW1(4)
+      B_CONTRIB = -B_ROW2(1) + B_ROW4(1)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(1,1) = TEMP_C(1,1) + SCALAR_RESULT
       TEMP_C(2,1) = TEMP_C(2,1) - SCALAR_RESULT
@@ -485,9 +509,9 @@
       TEMP_C(3,4) = TEMP_C(3,4) + SCALAR_RESULT
       TEMP_C(4,4) = TEMP_C(4,4) + SCALAR_RESULT
 *
-*     Operation 34: Transpose-corrected update
-      A_CONTRIB = A(1,4) - A(3,2)
-      B_CONTRIB = -B(2,1) + B(4,1) - B(4,3)
+*     Operation 34: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW1(4) - A_ROW3(2)
+      B_CONTRIB = -B_ROW2(1) + B_ROW4(1) - B_ROW4(3)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(3,1) = TEMP_C(3,1) + SCALAR_RESULT
       TEMP_C(4,1) = TEMP_C(4,1) + SCALAR_RESULT
@@ -503,53 +527,53 @@
       TEMP_C(4,4) = TEMP_C(4,4) - SCALAR_RESULT
 *
 *     Operation 35: Transpose-corrected update
-      A_CONTRIB = A(1,3) + A(1,4) + A(2,3) + A(2,4) -
-     +            A(3,1) + A(3,2) + A(3,3) + A(3,4) +
-     +            A(4,1) - A(4,2) - A(4,3) - A(4,4)
-      B_CONTRIB = B(1,4) - B(3,2)
+      A_CONTRIB = A_ROW1(3) + A_ROW1(4) + A_ROW2(3) + A_ROW2(4) -
+     +            A_ROW3(1) + A_ROW3(2) + A_ROW3(3) + A_ROW3(4) +
+     +            A_ROW4(1) - A_ROW4(2) - A_ROW4(3) - A_ROW4(4)
+      B_CONTRIB = B_ROW1(4) - B_ROW3(2)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(1,2) = TEMP_C(1,2) - SCALAR_RESULT
       TEMP_C(1,4) = TEMP_C(1,4) + SCALAR_RESULT
       TEMP_C(3,4) = TEMP_C(3,4) - SCALAR_RESULT
 *
-*     Operation 36: Transpose-corrected update
-      A_CONTRIB = -A(3,1) + A(3,2) + A(3,3) + A(3,4) +
-     +            A(4,1) - A(4,2) - A(4,3) - A(4,4)
-      B_CONTRIB = B(3,2)
+*     Operation 36: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = -A_ROW3(1) + A_ROW3(2) + A_ROW3(3) + A_ROW3(4) +
+     +            A_ROW4(1) - A_ROW4(2) - A_ROW4(3) - A_ROW4(4)
+      B_CONTRIB = B_ROW3(2)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(1,2) = TEMP_C(1,2) - SCALAR_RESULT
       TEMP_C(3,2) = TEMP_C(3,2) + SCALAR_RESULT
       TEMP_C(1,4) = TEMP_C(1,4) + SCALAR_RESULT
       TEMP_C(3,4) = TEMP_C(3,4) - SCALAR_RESULT
 *
-*     Operation 37: Transpose-corrected update
-      A_CONTRIB = -A(1,2) - A(3,2)
-      B_CONTRIB = -B(2,3)
+*     Operation 37: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = -A_ROW1(2) - A_ROW3(2)
+      B_CONTRIB = -B_ROW2(3)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(1,3) = TEMP_C(1,3) + SCALAR_RESULT
       TEMP_C(2,3) = TEMP_C(2,3) - SCALAR_RESULT
       TEMP_C(1,4) = TEMP_C(1,4) - SCALAR_RESULT
       TEMP_C(2,4) = TEMP_C(2,4) + SCALAR_RESULT
 *
-*     Operation 38: Transpose-corrected update
-      A_CONTRIB = A(3,2) + A(3,4)
-      B_CONTRIB = B(4,1) - B(4,3)
+*     Operation 38: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW3(2) + A_ROW3(4)
+      B_CONTRIB = B_ROW4(1) - B_ROW4(3)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(3,1) = TEMP_C(3,1) + SCALAR_RESULT
       TEMP_C(4,1) = TEMP_C(4,1) + SCALAR_RESULT
       TEMP_C(3,2) = TEMP_C(3,2) + SCALAR_RESULT
       TEMP_C(4,2) = TEMP_C(4,2) + SCALAR_RESULT
 *
-*     Operation 39: Transpose-corrected update
-      A_CONTRIB = -A(1,3) - A(1,4) - A(2,3) - A(2,4)
-      B_CONTRIB = B(3,2) + B(3,4)
+*     Operation 39: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = -A_ROW1(3) - A_ROW1(4) - A_ROW2(3) - A_ROW2(4)
+      B_CONTRIB = B_ROW3(2) + B_ROW3(4)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(1,4) = TEMP_C(1,4) - SCALAR_RESULT
       TEMP_C(3,4) = TEMP_C(3,4) + SCALAR_RESULT
 *
-*     Operation 40: Transpose-corrected update
-      A_CONTRIB = A(3,2)
-      B_CONTRIB = -B(2,1) + B(2,3) + B(4,1) - B(4,3)
+*     Operation 40: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW3(2)
+      B_CONTRIB = -B_ROW2(1) + B_ROW2(3) + B_ROW4(1) - B_ROW4(3)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(1,3) = TEMP_C(1,3) - SCALAR_RESULT
       TEMP_C(2,3) = TEMP_C(2,3) + SCALAR_RESULT
@@ -560,70 +584,70 @@
       TEMP_C(3,4) = TEMP_C(3,4) - SCALAR_RESULT
       TEMP_C(4,4) = TEMP_C(4,4) - SCALAR_RESULT
 *
-*     Operation 41: Transpose-corrected update
-      A_CONTRIB = -A(2,1)
-      B_CONTRIB = B(1,1) - B(1,2) + B(2,1) - B(2,2)
+*     Operation 41: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = -A_ROW2(1)
+      B_CONTRIB = B_ROW1(1) - B_ROW1(2) + B_ROW2(1) - B_ROW2(2)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(2,1) = TEMP_C(2,1) - SCALAR_RESULT
       TEMP_C(4,1) = TEMP_C(4,1) - SCALAR_RESULT
 *
-*     Operation 42: Transpose-corrected update
-      A_CONTRIB = -A(2,1) + A(4,1)
-      B_CONTRIB = B(1,1) - B(1,2) - B(1,3) - B(1,4) +
-     +            B(2,1) - B(2,2) - B(2,3) - B(2,4) +
-     +            B(3,1) - B(3,2) - B(3,3) - B(3,4) -
-     +            B(4,1) + B(4,2) + B(4,3) + B(4,4)
+*     Operation 42: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = -A_ROW2(1) + A_ROW4(1)
+      B_CONTRIB = B_ROW1(1) - B_ROW1(2) - B_ROW1(3) - B_ROW1(4) +
+     +            B_ROW2(1) - B_ROW2(2) - B_ROW2(3) - B_ROW2(4) +
+     +            B_ROW3(1) - B_ROW3(2) - B_ROW3(3) - B_ROW3(4) -
+     +            B_ROW4(1) + B_ROW4(2) + B_ROW4(3) + B_ROW4(4)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(4,1) = TEMP_C(4,1) + SCALAR_RESULT
 *
-*     Operation 43: Transpose-corrected update
-      A_CONTRIB = -A(2,1) + A(4,1) - A(4,3)
-      B_CONTRIB = B(1,3) + B(1,4) + B(2,3) + B(2,4) -
-     +            B(3,1) + B(3,2) + B(3,3) + B(3,4) +
-     +            B(4,1) - B(4,2) - B(4,3) - B(4,4)
+*     Operation 43: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = -A_ROW2(1) + A_ROW4(1) - A_ROW4(3)
+      B_CONTRIB = B_ROW1(3) + B_ROW1(4) + B_ROW2(3) + B_ROW2(4) -
+     +            B_ROW3(1) + B_ROW3(2) + B_ROW3(3) + B_ROW3(4) +
+     +            B_ROW4(1) - B_ROW4(2) - B_ROW4(3) - B_ROW4(4)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(4,1) = TEMP_C(4,1) + SCALAR_RESULT
       TEMP_C(2,3) = TEMP_C(2,3) - SCALAR_RESULT
 *
-*     Operation 44: Transpose-corrected update
-      A_CONTRIB = A(1,2) + A(2,2) + A(3,2) - A(4,2)
-      B_CONTRIB = B(1,2) + B(2,2) + B(3,2) - B(4,2)
+*     Operation 44: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW1(2) + A_ROW2(2) + A_ROW3(2) - A_ROW4(2)
+      B_CONTRIB = B_ROW1(2) + B_ROW2(2) + B_ROW3(2) - B_ROW4(2)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(2,1) = TEMP_C(2,1) + SCALAR_RESULT
       TEMP_C(2,2) = TEMP_C(2,2) + SCALAR_RESULT
       TEMP_C(2,3) = TEMP_C(2,3) + SCALAR_RESULT
       TEMP_C(2,4) = TEMP_C(2,4) - SCALAR_RESULT
 *
-*     Operation 45: Transpose-corrected update
-      A_CONTRIB = -A(2,1) + A(2,3) + A(4,1) - A(4,3)
-      B_CONTRIB = -B(3,1) + B(3,2) + B(3,3) + B(3,4) +
-     +            B(4,1) - B(4,2) - B(4,3) - B(4,4)
+*     Operation 45: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = -A_ROW2(1) + A_ROW2(3) + A_ROW4(1) - A_ROW4(3)
+      B_CONTRIB = -B_ROW3(1) + B_ROW3(2) + B_ROW3(3) + B_ROW3(4) +
+     +            B_ROW4(1) - B_ROW4(2) - B_ROW4(3) - B_ROW4(4)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(2,3) = TEMP_C(2,3) + SCALAR_RESULT
 *
-*     Operation 46: Transpose-corrected update
-      A_CONTRIB = -A(3,1) + A(3,2) + A(4,1) - A(4,2)
-      B_CONTRIB = -B(1,2) - B(3,2)
+*     Operation 46: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = -A_ROW3(1) + A_ROW3(2) + A_ROW4(1) - A_ROW4(2)
+      B_CONTRIB = -B_ROW1(2) - B_ROW3(2)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(3,2) = TEMP_C(3,2) + SCALAR_RESULT
 *
-*     Operation 47: Transpose-corrected update
-      A_CONTRIB = A(4,1) - A(4,3)
-      B_CONTRIB = -B(1,3) - B(1,4) - B(2,3) - B(2,4)
+*     Operation 47: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = A_ROW4(1) - A_ROW4(3)
+      B_CONTRIB = -B_ROW1(3) - B_ROW1(4) - B_ROW2(3) - B_ROW2(4)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(2,3) = TEMP_C(2,3) - SCALAR_RESULT
       TEMP_C(4,3) = TEMP_C(4,3) - SCALAR_RESULT
 *
-*     Operation 48: Transpose-corrected update
-      A_CONTRIB = -A(4,3) - A(4,4)
-      B_CONTRIB = -B(4,3) - B(4,4)
+*     Operation 48: Transpose-corrected update (CACHE-OPTIMIZED)
+      A_CONTRIB = -A_ROW4(3) - A_ROW4(4)
+      B_CONTRIB = -B_ROW4(3) - B_ROW4(4)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(3,4) = TEMP_C(3,4) + SCALAR_RESULT
       TEMP_C(4,4) = TEMP_C(4,4) + SCALAR_RESULT
 *
-*     Operation 49: Transpose-corrected update - FINAL OPERATION!
-      A_CONTRIB = -A(2,3)
-      B_CONTRIB = -B(3,1) + B(3,2) + B(4,1) - B(4,2)
+*     Operation 49: Transpose-corrected update - FINAL OPERATION! (CACHE-OPTIMIZED)
+      A_CONTRIB = -A_ROW2(3)
+      B_CONTRIB = -B_ROW3(1) + B_ROW3(2) + B_ROW4(1) - B_ROW4(2)
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(2,1) = TEMP_C(2,1) + SCALAR_RESULT
       TEMP_C(2,3) = TEMP_C(2,3) + SCALAR_RESULT

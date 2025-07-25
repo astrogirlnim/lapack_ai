@@ -26,7 +26,7 @@
       REAL SPEEDUP_OPT_VS_STD, SPEEDUP_OPT_VS_ORIG
 *
 *     External subroutines
-      EXTERNAL DGEMM, DGEMM_ALPHA, DGEMM_ALPHA_OPTIMIZED
+      EXTERNAL DGEMM, DGEMM_ALPHA
 *
       WRITE(*,*) '=============================================='
       WRITE(*,*) 'ALPHATENSOR SPEED BENCHMARK'
@@ -54,7 +54,7 @@
 *     ============================================
       WRITE(*,*) 'Warming up CPU caches...'
       DO RUN = 1, WARMUP_RUNS
-          CALL DGEMM_ALPHA_OPTIMIZED('N','N',LDIM,LDIM,LDIM,
+          CALL DGEMM_ALPHA('N','N',LDIM,LDIM,LDIM,
      $         ALPHA,A,LDIM,B,LDIM,BETA,C_OPT,LDIM)
           CALL DGEMM('N','N',LDIM,LDIM,LDIM,
      $         ALPHA,A,LDIM,B,LDIM,BETA,C_STD,LDIM)
@@ -69,7 +69,7 @@
       CALL CPU_TIME(START_TIME)
 
       DO RUN = 1, NRUNS_TIMING
-          CALL DGEMM_ALPHA_OPTIMIZED('N','N',LDIM,LDIM,LDIM,
+          CALL DGEMM_ALPHA('N','N',LDIM,LDIM,LDIM,
      $         ALPHA,A,LDIM,B,LDIM,BETA,C_OPT,LDIM)
       END DO
 

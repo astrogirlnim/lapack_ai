@@ -17,7 +17,7 @@
       DOUBLE PRECISION A(LDIM,LDIM), B(LDIM,LDIM)
       DOUBLE PRECISION C_ALPHA(LDIM,LDIM), C_STD(LDIM,LDIM)
 *
-      EXTERNAL DGEMM_ALPHA_OPTIMIZED, DGEMM, CPU_TIME
+      EXTERNAL DGEMM_ALPHA, DGEMM, CPU_TIME
 *
       WRITE(*,*) '================================================='
       WRITE(*,*) 'PHASE 5.2 CPU PERFORMANCE BENCHMARK'
@@ -47,7 +47,7 @@
                   C_ALPHA(I,J) = DBLE(I+J)
               END DO
           END DO
-          CALL DGEMM_ALPHA_OPTIMIZED('N','N',LDIM,LDIM,LDIM,
+          CALL DGEMM_ALPHA('N','N',LDIM,LDIM,LDIM,
      $         ALPHA,A,LDIM,B,LDIM,BETA,C_ALPHA,LDIM)
       END DO
       CALL CPU_TIME(END_TIME)

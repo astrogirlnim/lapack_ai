@@ -28,7 +28,7 @@
       DOUBLE PRECISION FLOPS_4X4, GFLOPS_DGEMM, GFLOPS_ORIG, GFLOPS_OPT
 *     ..
 *     .. External Subroutines ..
-      EXTERNAL DGEMM, DGEMM_ALPHA, DGEMM_ALPHA_OPTIMIZED
+      EXTERNAL DGEMM, DGEMM_ALPHA
 *     ..
 
       WRITE(*,*) '================================================='
@@ -150,17 +150,17 @@
 
 *     Warm-up runs
       DO RUN = 1, 1000
-          CALL DGEMM_ALPHA_OPTIMIZED('N','N',MATRIX_SIZE,MATRIX_SIZE,
-     +                               MATRIX_SIZE,ALPHA,A,MATRIX_SIZE,B,
-     +                               MATRIX_SIZE,BETA,C_OPT,MATRIX_SIZE)
+          CALL DGEMM_ALPHA('N','N',MATRIX_SIZE,MATRIX_SIZE,
+     +                     MATRIX_SIZE,ALPHA,A,MATRIX_SIZE,B,
+     +                     MATRIX_SIZE,BETA,C_OPT,MATRIX_SIZE)
       END DO
 
 *     Timed benchmark - Memory-Optimized AlphaTensor
       CALL CPU_TIME(START_TIME)
       DO RUN = 1, NRUNS
-          CALL DGEMM_ALPHA_OPTIMIZED('N','N',MATRIX_SIZE,MATRIX_SIZE,
-     +                               MATRIX_SIZE,ALPHA,A,MATRIX_SIZE,B,
-     +                               MATRIX_SIZE,BETA,C_OPT,MATRIX_SIZE)
+          CALL DGEMM_ALPHA('N','N',MATRIX_SIZE,MATRIX_SIZE,
+     +                     MATRIX_SIZE,ALPHA,A,MATRIX_SIZE,B,
+     +                     MATRIX_SIZE,BETA,C_OPT,MATRIX_SIZE)
       END DO
       CALL CPU_TIME(END_TIME)
       TIME_OPT = END_TIME - START_TIME

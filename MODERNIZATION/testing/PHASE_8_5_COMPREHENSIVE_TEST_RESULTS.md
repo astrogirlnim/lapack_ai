@@ -52,13 +52,13 @@ Machine Epsilon:  0.11102E-15
 Tolerance:  0.50000E-13
 
 TEST 1: Identity-like matrices...
-   ✅ PASSED - Max error: 0.0000000000000000     
+   PASSED - Max error: 0.0000000000000000     
 TEST 2: Random-like matrices...
-   ✅ PASSED - Max error: 5.3290705182007514E-015
+   PASSED - Max error: 5.3290705182007514E-015
 TEST 3: Edge case ALPHA=0...
-   ✅ PASSED - Max error: 0.0000000000000000     
+   PASSED - Max error: 0.0000000000000000     
 TEST 4: Complex coefficients...
-   ✅ PASSED - Max error: 1.4210854715202004E-014
+   PASSED - Max error: 1.4210854715202004E-014
 
 ===============================================
 COMPREHENSIVE TEST RESULTS
@@ -66,7 +66,7 @@ COMPREHENSIVE TEST RESULTS
 Tests Passed: 4 / 4
 Maximum Error: 1.4210854715202004E-014
 Tolerance: 5.0000000000000002E-014
-🎉 ✅ ALL TESTS PASSED!
+ALL TESTS PASSED!
 REAL AlphaTensor algorithm is CORRECT!
 ===============================================
 ```
@@ -87,7 +87,7 @@ Phase 8.5 Speed Test (100K iterations)
 DGEMM_ALPHA Time:   0.0545s
 DGEMM Time:         0.1165s
 Speedup:             2.137x
-✅ Phase 8.5 FASTER than DGEMM!
+Phase 8.5 FASTER than DGEMM!
 ```
 
 #### Multi-Size Comprehensive Benchmark - **1.176x AVERAGE SPEEDUP**
@@ -270,18 +270,18 @@ Perfect numerical accuracy maintained!
 
 ### Key Findings:
 
-**✅ IMPROVEMENTS in Phase 8.5:**
+**IMPROVEMENTS in Phase 8.5:**
 - **Peak Performance**: 324% improvement (7.254x vs 1.712x)
 - **Average Performance**: 13% improvement (1.176x vs 1.040x)
 - **Win Rate**: 4% improvement (54% vs 50%)
 - **Compiler Readiness**: Advanced optimization infrastructure
 
-**❌ DEGRADATIONS in Phase 8.5:**
+**DEGRADATIONS in Phase 8.5:**
 - **Speed Benchmark**: 40% degradation (0.764x vs 1.274x)
 - **Performance Consistency**: Higher variance in results
 - **Some Individual Tests**: Context-dependent performance loss
 
-**🔄 UNCHANGED in Phase 8.5:**
+**UNCHANGED in Phase 8.5:**
 - **Accuracy**: Perfect numerical precision maintained
 - **Code Quality**: Production-ready implementation
 - **Integration**: Seamless LAPACK compatibility
@@ -292,12 +292,12 @@ Perfect numerical accuracy maintained!
 
 ### Success Metrics Analysis
 
-1. **Numerical Accuracy**: ✅ Perfect precision maintained (1.42e-14 max error)
-2. **Peak Performance**: ✅ Exceptional 7.254x speedup achieved
-3. **Average Performance**: ✅ 13% improvement over Phase 8.4
-4. **Compiler Optimization**: ✅ Advanced cross-compiler directives implemented
-5. **Code Quality**: ✅ Production-ready, maintainable implementation
-6. **Testing Validation**: ✅ 100% test pass rate across comprehensive scenarios
+1. **Numerical Accuracy**: Perfect precision maintained (1.42e-14 max error)
+2. **Peak Performance**: Exceptional 7.254x speedup achieved
+3. **Average Performance**: 13% improvement over Phase 8.4
+4. **Compiler Optimization**: Advanced cross-compiler directives implemented
+5. **Code Quality**: Production-ready, maintainable implementation
+6. **Testing Validation**: 100% test pass rate across comprehensive scenarios
 
 ### Real-World Application Recommendations
 

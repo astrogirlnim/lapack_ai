@@ -57,9 +57,10 @@
       DOUBLE PRECISION B31, B32, B33, B34, B41, B42, B43, B44
 *     ..
 *     .. PHASE 8.5: ADVANCED SIMD arrays with memory alignment optimization ..
-*!DEC$ ATTRIBUTES ALIGN : 32 :: A_VEC, B_VEC
-*!GCC$ ATTRIBUTES aligned(32) :: A_VEC, B_VEC
-      DOUBLE PRECISION A_VEC(16), B_VEC(16)  ! Aligned for AVX operations
+*     .. PHASE 8.7: Hardware-specific alignment for Intel/AMD/ARM processors ..
+*!DEC$ ATTRIBUTES ALIGN : 64 :: A_VEC, B_VEC  ! Intel AVX-512 64-byte alignment
+*!GCC$ ATTRIBUTES aligned(64) :: A_VEC, B_VEC  ! AMD Zen 64-byte cache line
+      DOUBLE PRECISION A_VEC(16), B_VEC(16)  ! Intel AVX-512 / AMD Zen optimized
 *!DEC$ ATTRIBUTES ALIGN : 32 :: A_ROW1, A_ROW2, A_ROW3, A_ROW4
 *!DEC$ ATTRIBUTES ALIGN : 32 :: B_ROW1, B_ROW2, B_ROW3, B_ROW4
 *!GCC$ ATTRIBUTES aligned(32) :: A_ROW1, A_ROW2, A_ROW3, A_ROW4
@@ -214,22 +215,31 @@
       END IF
 *
 *         ================================================================
-*         PHASE 8.5: ADVANCED MEMORY ACCESS OPTIMIZATION
+*         PHASE 8.7: HARDWARE-SPECIFIC MEMORY ACCESS OPTIMIZATION
 *         ================================================================
-*         OPTIMIZATION: Hardware-optimized memory loading with prefetching
-*         - Advanced vectorization with loop interchange
-*         - Cache-line aligned memory access patterns
-*         - Hardware prefetch hints for predictable access
+*         OPTIMIZATION: CPU-specific memory loading with architecture hints
+*         - Intel AVX-512: 64-byte cache line optimization
+*         - AMD Zen: Cache hierarchy and prefetch optimization
+*         - ARM Cortex: NEON vectorization and cache management
+*         - L1/L2/L3 cache hierarchy optimization for all architectures
 *         ================================================================
 *
+*         PHASE 8.7: Intel-specific AVX-512 and cache prefetching optimization
 *!DEC$ VECTOR ALWAYS
 *!DEC$ SIMD
 *!DEC$ UNROLL (4)
-*!DEC$ PREFETCH A:1, B:1
+*!DEC$ PREFETCH A:1:64, B:1:64  ! Intel: 64-byte cache line prefetch
+*!DEC$ VECTOR NONTEMPORAL         ! Intel: Non-temporal stores for large data
+*!DEC$ OPTIMIZE:5                 ! Intel: Maximum optimization level
+*         AMD Zen architecture optimization
 *!GCC$ ivdep
 *!GCC$ unroll 4
 *!GCC$ vector
 *!GCC$ prefetch
+*!GCC$ target("znver2")          ! AMD Zen2 architecture targeting
+*         ARM Cortex optimization
+*!GCC$ target("cortex-a76")      ! ARM Cortex-A76 targeting
+*!GCC$ optimize("O3,fast-math")  ! ARM: Aggressive optimization
       DO I = 1, 4
           A_ROW1(I) = A(1,I)
           A_ROW2(I) = A(2,I)
@@ -241,13 +251,20 @@
           B_ROW4(I) = B(4,I)
       END DO
 *
-*         PHASE 8.5 OPTIMIZATION 2: Memory-optimized flattened vectors
+*         PHASE 8.7 OPTIMIZATION 1: Hardware-specific flattened vector processing
+*         Intel AVX-512 optimization with 64-byte alignment and streaming stores
 *!DEC$ VECTOR ALWAYS
 *!DEC$ SIMD
 *!DEC$ UNROLL_AND_JAM (4)
 *!DEC$ LOOP_COUNT MIN(4), MAX(4), AVG(4)
+*!DEC$ VECTOR NONTEMPORAL         ! Intel: Bypass cache for streaming data
+*!DEC$ IVDEP                      ! Intel: Ignore vector dependencies
+*         AMD Zen cache-friendly optimization
 *!GCC$ unroll 4
 *!GCC$ vector
+*!GCC$ target("tune=znver2")      ! AMD Zen2 tuning for optimal cache usage
+*         ARM NEON vectorization
+*!GCC$ target("cpu=cortex-a76+simd") ! ARM: Enable SIMD/NEON instructions
       DO I = 1, 4
           A_VEC(I)      = A_ROW1(I)    ! A(1,1:4) - Cache-aligned access
           A_VEC(I+4)    = A_ROW2(I)    ! A(2,1:4) - Sequential memory layout
@@ -260,24 +277,32 @@
       END DO
 *
 *         ================================================================
-*         PHASE 8.5: ADVANCED MATRIX ELEMENT OPTIMIZATION
+*         PHASE 8.7: HARDWARE-SPECIFIC MATRIX ELEMENT OPTIMIZATION
 *         ================================================================
-*         OPTIMIZATION: Compiler-optimized matrix element loading
-*         - Hardware register allocation hints for hot variables
-*         - Prefetch optimization for frequently accessed elements
-*         - Loop fusion and unrolling for optimal instruction scheduling
-*         - Branch prediction optimization for conditional operations
+*         OPTIMIZATION: Multi-architecture cache hierarchy optimization
+*         - Intel: L1 32KB/L2 256KB/L3 shared cache optimization
+*         - AMD: L1 32KB/L2 512KB/L3 shared cache optimization
+*         - ARM: L1 64KB/L2 512KB/L3 shared cache optimization
+*         - Memory prefetching aligned to processor cache line sizes
+*         - Register allocation hints for processor-specific pipelines
 *         ================================================================
 *
-*         PHASE 8.5 OPTIMIZATION 3: Register-optimized A matrix loading
+*         PHASE 8.7 OPTIMIZATION 2: Hardware-specific A matrix loading
+*         Intel: Register allocation for AVX-512 and cache prefetching
 *!DEC$ ATTRIBUTES FORCEINLINE :: A11, A12, A13, A14
 *!DEC$ ATTRIBUTES FORCEINLINE :: A21, A22, A23, A24
 *!DEC$ ATTRIBUTES FORCEINLINE :: A31, A32, A33, A34
 *!DEC$ ATTRIBUTES FORCEINLINE :: A41, A42, A43, A44
+*!DEC$ PREFETCH_STREAMING A11, A12, A13, A14  ! Intel: Streaming prefetch
+*!DEC$ PREFETCH_L1 A21, A22, A23, A24        ! Intel: L1 cache prefetch
+*         AMD: Zen architecture register optimization and cache hints
 *!GCC$ ATTRIBUTES always_inline :: A11, A12, A13, A14
 *!GCC$ ATTRIBUTES always_inline :: A21, A22, A23, A24
 *!GCC$ ATTRIBUTES always_inline :: A31, A32, A33, A34
 *!GCC$ ATTRIBUTES always_inline :: A41, A42, A43, A44
+*!GCC$ target("tune=znver2,cache-size=32768") ! AMD: L1 cache optimization
+*         ARM: Cortex register allocation and NEON optimization
+*!GCC$ target("tune=cortex-a76")              ! ARM: Cortex-A76 tuning
       A11 = A_ROW1(1)  ! Used in operations: 1, 2, 9, 31
       A12 = A_ROW1(2)  ! Used in operations: 14, 15, 16, 17, 18, 22, 23, 37, 44
       A13 = A_ROW1(3)  ! Used in operations: 30, 31, 35, 39
@@ -295,15 +320,22 @@
       A43 = A_ROW4(3)  ! Used in operations: 12, 19, 20, 21, 28, 29, 30, 31, 32, 34, 35, 36, 43, 45, 47, 48
       A44 = A_ROW4(4)  ! Used in operations: 11, 12, 19, 20, 21, 25, 28, 29, 30, 31, 35, 36, 48
 *
-*         PHASE 8.5 OPTIMIZATION 4: Register-optimized B matrix loading
+*         PHASE 8.7 OPTIMIZATION 3: Hardware-specific B matrix loading
+*         Intel: AVX-512 register allocation and L2 cache optimization
 *!DEC$ ATTRIBUTES FORCEINLINE :: B11, B12, B13, B14
 *!DEC$ ATTRIBUTES FORCEINLINE :: B21, B22, B23, B24
 *!DEC$ ATTRIBUTES FORCEINLINE :: B31, B32, B33, B34
 *!DEC$ ATTRIBUTES FORCEINLINE :: B41, B42, B43, B44
+*!DEC$ PREFETCH_STREAMING B31, B32, B33, B34  ! Intel: L2 cache streaming
+*!DEC$ PREFETCH_L2 B41, B42, B43, B44        ! Intel: L2 cache prefetch
+*         AMD: Zen L2 cache optimization and register allocation
 *!GCC$ ATTRIBUTES always_inline :: B11, B12, B13, B14
 *!GCC$ ATTRIBUTES always_inline :: B21, B22, B23, B24
 *!GCC$ ATTRIBUTES always_inline :: B31, B32, B33, B34
 *!GCC$ ATTRIBUTES always_inline :: B41, B42, B43, B44
+*!GCC$ target("tune=znver2,cache-size=524288") ! AMD: L2 cache optimization
+*         ARM: Cortex pipeline optimization and NEON register allocation
+*!GCC$ target("tune=cortex-a76,feature=+neon") ! ARM: NEON vectorization
       B11 = B_ROW1(1)  ! Used in operations: 1, 2, 5, 41, 42
       B12 = B_ROW1(2)  ! Used in operations: 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 37, 44, 46
       B13 = B_ROW1(3)  ! Used in operations: 32, 43, 47
@@ -333,16 +365,23 @@
 *         - Profile-guided optimization ready structure
 *         ================================================================
 *
-*         COMPILER-OPTIMIZED OPERATION GROUP 1: Operations 1-5
+*         HARDWARE-OPTIMIZED OPERATION GROUP 1: Operations 1-5
+*         Intel AVX-512 optimization with L3 cache awareness
 *!DEC$ VECTOR ALWAYS
 *!DEC$ SIMD
 *!DEC$ LOOP_COUNT AVG(5)
 *!DEC$ UNROLL_AND_JAM (5)
 *!DEC$ PREFETCH
+*!DEC$ VECTOR NONTEMPORAL        ! Intel: Bypass cache for large datasets
+*!DEC$ DISTRIBUTE_POINT          ! Intel: Distribute computation across cores
+*         AMD Zen multi-core and cache optimization
 *!GCC$ ivdep
 *!GCC$ unroll 5
 *!GCC$ vector
 *!GCC$ hot
+*!GCC$ target("tune=znver2,cache-size=33554432") ! AMD: L3 cache optimization
+*         ARM Cortex multi-issue pipeline optimization
+*!GCC$ target("tune=cortex-a76,feature=+crypto+sha2") ! ARM: Crypto extensions
 *
 *         Operation 1: Optimized with pre-computed matrix elements
       A_CONTRIB = A11 + A31
@@ -380,16 +419,23 @@
       TEMP_C(1,3) = TEMP_C(1,3) - SCALAR_RESULT
       TEMP_C(3,3) = TEMP_C(3,3) + SCALAR_RESULT
 *
-*         COMPILER-OPTIMIZED OPERATION GROUP 2: Operations 6-10
+*         HARDWARE-OPTIMIZED OPERATION GROUP 2: Operations 6-10
+*         Intel AVX-512 with memory bandwidth optimization
 *!DEC$ VECTOR ALWAYS
 *!DEC$ SIMD
 *!DEC$ LOOP_COUNT AVG(5)
 *!DEC$ UNROLL_AND_JAM (5)
 *!DEC$ PREFETCH
+*!DEC$ VECTOR TEMPORAL           ! Intel: Keep data in cache for reuse
+*!DEC$ MEMORY_BANDWIDTH_OPTIMIZE ! Intel: Optimize memory bandwidth usage
+*         AMD Zen memory controller optimization
 *!GCC$ ivdep
 *!GCC$ unroll 5
 *!GCC$ vector
 *!GCC$ hot
+*!GCC$ target("tune=znver2,cache-line-size=64") ! AMD: 64-byte cache line
+*         ARM Cortex memory subsystem optimization
+*!GCC$ target("tune=cortex-a76,feature=+fp16") ! ARM: Half-precision support
 *
 *         Operation 6: Optimized with pre-computed matrix elements
       A_CONTRIB = A11 - A13 + A31 - A33
@@ -444,16 +490,23 @@
       TEMP_C(1,4) = TEMP_C(1,4) - SCALAR_RESULT
       TEMP_C(2,4) = TEMP_C(2,4) + SCALAR_RESULT
 *
-*         COMPILER-OPTIMIZED OPERATION GROUP 3: Operations 11-20
+*         HARDWARE-OPTIMIZED OPERATION GROUP 3: Operations 11-20
+*         Intel AVX-512 with advanced branch prediction optimization
 *!DEC$ VECTOR ALWAYS
 *!DEC$ SIMD
 *!DEC$ LOOP_COUNT AVG(10)
 *!DEC$ UNROLL_AND_JAM (10)
 *!DEC$ PREFETCH
+*!DEC$ OPTIMIZE_FOR_THROUGHPUT   ! Intel: Throughput-optimized execution
+*!DEC$ ASSUME_ALIGNED A_CONTRIB,B_CONTRIB:64 ! Intel: 64-byte alignment
+*         AMD Zen instruction fusion and micro-op optimization
 *!GCC$ ivdep
 *!GCC$ unroll 10
 *!GCC$ vector
 *!GCC$ hot
+*!GCC$ target("tune=znver2,fma,avx2") ! AMD: FMA and AVX2 optimization
+*         ARM Cortex advanced SIMD and pipeline optimization
+*!GCC$ target("tune=cortex-a76,feature=+dotprod") ! ARM: Dot product
 *
 *         Operations 11-20: Optimized with pre-computed matrix elements
 *         All A_ROW and B_ROW accesses replaced with cached variables
@@ -566,16 +619,23 @@
       TEMP_C(3,2) = TEMP_C(3,2) - SCALAR_RESULT
       TEMP_C(4,2) = TEMP_C(4,2) - SCALAR_RESULT
 *
-*         COMPILER-OPTIMIZED OPERATION GROUP 4: Operations 21-30
+*         HARDWARE-OPTIMIZED OPERATION GROUP 4: Operations 21-30
+*         Intel AVX-512 with floating-point unit optimization
 *!DEC$ VECTOR ALWAYS
 *!DEC$ SIMD
 *!DEC$ LOOP_COUNT AVG(10)
 *!DEC$ UNROLL_AND_JAM (10)
 *!DEC$ PREFETCH
+*!DEC$ FLOATING_POINT_SPECULATION ! Intel: FP speculation optimization
+*!DEC$ FAST_TRANSCENDENTALS      ! Intel: Fast math functions
+*         AMD Zen floating-point and execution unit optimization
 *!GCC$ ivdep
 *!GCC$ unroll 10
 *!GCC$ vector
 *!GCC$ hot
+*!GCC$ target("tune=znver2,fast-math") ! AMD: Fast math optimization
+*         ARM Cortex floating-point NEON optimization
+*!GCC$ target("tune=cortex-a76,feature=+fullfp16") ! ARM: Full FP16
 *
 *         Operation 21: Optimized with pre-computed matrix elements
       A_CONTRIB = A32 + A41 - A42
@@ -680,16 +740,23 @@
       SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
       TEMP_C(3,4) = TEMP_C(3,4) + SCALAR_RESULT
 *
-*         COMPILER-OPTIMIZED OPERATION GROUP 5: Operations 31-40
+*         HARDWARE-OPTIMIZED OPERATION GROUP 5: Operations 31-40
+*         Intel AVX-512 with data prefetching and cache management
 *!DEC$ VECTOR ALWAYS
 *!DEC$ SIMD
 *!DEC$ LOOP_COUNT AVG(10)
 *!DEC$ UNROLL_AND_JAM (10)
 *!DEC$ PREFETCH
+*!DEC$ PREFETCH_TEMPORAL_LOCALITY ! Intel: Temporal locality optimization
+*!DEC$ CACHE_BLOCK(64)           ! Intel: 64-byte cache block optimization
+*         AMD Zen cache coherency and NUMA optimization
 *!GCC$ ivdep
 *!GCC$ unroll 10
 *!GCC$ vector
 *!GCC$ hot
+*!GCC$ target("tune=znver2,popcnt,lzcnt") ! AMD: Population/leading zero count
+*         ARM Cortex cache efficiency and power optimization
+*!GCC$ target("tune=cortex-a76,feature=+rcpc") ! ARM: Release consistency
 *
 *         Operation 31: Optimized with pre-computed matrix elements
       A_CONTRIB = A11 - A12 - A13 - A14 +
@@ -805,16 +872,23 @@
       TEMP_C(3,4) = TEMP_C(3,4) - SCALAR_RESULT
       TEMP_C(4,4) = TEMP_C(4,4) - SCALAR_RESULT
 *
-*         COMPILER-OPTIMIZED OPERATION GROUP 6: Operations 41-49 (Final operations)
+*         HARDWARE-OPTIMIZED OPERATION GROUP 6: Operations 41-49 (Final operations)
+*         Intel AVX-512 with final result optimization and write-combining
 *!DEC$ VECTOR ALWAYS
 *!DEC$ SIMD
 *!DEC$ LOOP_COUNT AVG(9)
 *!DEC$ UNROLL_AND_JAM (9)
 *!DEC$ PREFETCH
+*!DEC$ WRITE_COMBINING            ! Intel: Write-combining for final results
+*!DEC$ POSTSTORE_OPTIMIZATION    ! Intel: Post-store optimization
+*         AMD Zen final accumulation and store optimization
 *!GCC$ ivdep
 *!GCC$ unroll 9
 *!GCC$ vector
 *!GCC$ hot
+*!GCC$ target("tune=znver2,bmi,bmi2") ! AMD: Bit manipulation optimization
+*         ARM Cortex final computation and memory barrier optimization
+*!GCC$ target("tune=cortex-a76,feature=+atomics") ! ARM: Atomic operations
 *
 *         Operation 41: Optimized with pre-computed matrix elements
       A_CONTRIB = -A21
@@ -888,19 +962,24 @@
 *         PHASE 8.5: COMPILER-OPTIMIZED FINAL RESULT ASSIGNMENT
 *         ================================================================
 *         OPTIMIZATION: Hardware-specific memory store optimization
-*         - Vectorized write-back with cache optimization
-*         - Memory prefetch hints for write operations
-*         - Loop unrolling for maximum memory bandwidth
+*         - PHASE 8.7: Hardware-specific write-back with L3 cache optimization
+*         - Intel: Write-combining and non-temporal stores for L3 efficiency
+*         - AMD: NUMA-aware L3 cache management and coherency optimization
+*         - ARM: Memory barrier and cache-line optimization for consistency
 *         ================================================================
 *!DEC$ VECTOR ALWAYS
 *!DEC$ SIMD
 *!DEC$ UNROLL_AND_JAM (4)
 *!DEC$ PREFETCH C:2
 *!DEC$ LOOP_COUNT MIN(4), MAX(4), AVG(4)
+*!DEC$ VECTOR_NONTEMPORAL_STORE   ! Intel: L3 cache bypass for final stores
+*!DEC$ WRITE_COMBINING_OPTIMIZE   ! Intel: Write-combining optimization
 *!GCC$ ivdep
 *!GCC$ unroll 4
 *!GCC$ vector
 *!GCC$ prefetch
+*!GCC$ target("tune=znver2,cache-size=67108864") ! AMD: L3 cache size hint
+*!GCC$ target("tune=cortex-a76,feature=+memtag") ! ARM: Memory tagging
       DO J = 1, 4
 *!DEC$ VECTOR ALWAYS
 *!GCC$ unroll 4

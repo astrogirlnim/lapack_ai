@@ -508,11 +508,7 @@ void cblas_dgemm(CBLAS_LAYOUT layout, CBLAS_TRANSPOSE TransA,
                  const CBLAS_INT K, const double alpha, const double *A,
                  const CBLAS_INT lda, const double *B, const CBLAS_INT ldb,
                  const double beta, double *C, const CBLAS_INT ldc);
-void cblas_dgemm_alpha(CBLAS_LAYOUT layout, CBLAS_TRANSPOSE TransA,
-                 CBLAS_TRANSPOSE TransB, const CBLAS_INT M, const CBLAS_INT N,
-                 const CBLAS_INT K, const double alpha, const double *A,
-                 const CBLAS_INT lda, const double *B, const CBLAS_INT ldb,
-                 const double beta, double *C, const CBLAS_INT ldc);
+
 void cblas_dgemmtr(CBLAS_LAYOUT layout,CBLAS_UPLO Uplo, CBLAS_TRANSPOSE TransA,
                  CBLAS_TRANSPOSE TransB, const CBLAS_INT N,
                  const CBLAS_INT K, const double alpha, const double *A,

@@ -134,7 +134,7 @@ CBLAS3 = cgemm.o csymm.o csyrk.o csyr2k.o ctrmm.o ctrsm.o \
 	chemm.o cherk.o cher2k.o cgemmtr.o
 $(CBLAS3): $(FRC)
 
-DBLAS3 = dgemm.o dgemm_alpha.o dsymm.o dsyrk.o dsyr2k.o dtrmm.o dtrsm.o dgemmtr.o
+DBLAS3 = dgemm.o dsymm.o dsyrk.o dsyr2k.o dtrmm.o dtrsm.o dgemmtr.o
 $(DBLAS3): $(FRC)
 
 ZBLAS3 = zgemm.o zsymm.o zsyrk.o zsyr2k.o ztrmm.o ztrsm.o \

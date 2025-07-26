@@ -1,0 +1,514 @@
+=================================================
+   ALPHATENSOR OPTIMIZATION BENCHMARK
+   Goal: Beat DGEMM systematically
+=================================================
+
+=================================================
+MATRIX SIZE: 4x4
+STATUS: AlphaTensor TARGET
+Iterations per test: 100000
+=================================================
+
+TEST 1: Identity Matrices
+--------------------------------
+DGEMM:           0.286381s     0.045 GFLOPS
+DGEMM_ALPHA:     0.614735s     0.021 GFLOPS
+SPEEDUP:    0.466x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 2: Zero Matrices
+--------------------------------
+DGEMM:           0.067675s     0.189 GFLOPS
+DGEMM_ALPHA:     0.193072s     0.066 GFLOPS
+SPEEDUP:    0.351x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 3: Random Dense Matrices
+--------------------------------
+DGEMM:           0.005127s     2.497 GFLOPS
+DGEMM_ALPHA:     0.025206s     0.508 GFLOPS
+SPEEDUP:    0.203x
+MAX ERROR:  1.06581E-14
+AVG ERROR:  5.21805E-15
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 4: Diagonal Matrices
+--------------------------------
+DGEMM:           0.004926s     2.598 GFLOPS
+DGEMM_ALPHA:     0.024716s     0.518 GFLOPS
+SPEEDUP:    0.199x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 5: Symmetric Matrices
+--------------------------------
+DGEMM:           0.004897s     2.614 GFLOPS
+DGEMM_ALPHA:     0.024765s     0.517 GFLOPS
+SPEEDUP:    0.198x
+MAX ERROR:  2.48690E-14
+AVG ERROR:  8.93730E-15
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 6: Sparse Matrices
+--------------------------------
+DGEMM:           0.004999s     2.561 GFLOPS
+DGEMM_ALPHA:     0.023865s     0.536 GFLOPS
+SPEEDUP:    0.209x
+MAX ERROR:  3.55271E-15
+AVG ERROR:  8.04912E-16
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 7: Large Value Matrices
+--------------------------------
+DGEMM:           0.004919s     2.602 GFLOPS
+DGEMM_ALPHA:     0.024515s     0.522 GFLOPS
+SPEEDUP:    0.201x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 8: Small Value Matrices
+--------------------------------
+DGEMM:           0.004816s     2.658 GFLOPS
+DGEMM_ALPHA:     0.024376s     0.525 GFLOPS
+SPEEDUP:    0.198x
+MAX ERROR:  1.55096E-25
+AVG ERROR:  3.89760E-26
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 9: Mixed Sign Matrices
+--------------------------------
+DGEMM:           0.004839s     2.645 GFLOPS
+DGEMM_ALPHA:     0.024386s     0.525 GFLOPS
+SPEEDUP:    0.198x
+MAX ERROR:  2.84217E-14
+AVG ERROR:  5.32907E-15
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 10: Ill-Conditioned Matrices
+--------------------------------
+DGEMM:           0.004817s     2.657 GFLOPS
+DGEMM_ALPHA:     0.023983s     0.534 GFLOPS
+SPEEDUP:    0.201x
+MAX ERROR:  2.84217E-14
+AVG ERROR:  6.28664E-15
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 11: Integer Matrices
+--------------------------------
+DGEMM:           0.004844s     2.642 GFLOPS
+DGEMM_ALPHA:     0.024201s     0.529 GFLOPS
+SPEEDUP:    0.200x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 12: Stress Test Matrices
+--------------------------------
+DGEMM:           0.004733s     2.704 GFLOPS
+DGEMM_ALPHA:     0.024273s     0.527 GFLOPS
+SPEEDUP:    0.195x
+MAX ERROR:  3.10862E-15
+AVG ERROR:  1.35569E-15
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+=================================================
+MATRIX SIZE: 8x8
+STATUS: Fallback to DGEMM
+Iterations per test: 20000
+=================================================
+
+TEST 1: Identity Matrices
+--------------------------------
+DGEMM:           0.001882s    10.882 GFLOPS
+DGEMM_ALPHA:     0.001967s    10.412 GFLOPS
+SPEEDUP:    0.957x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 2: Zero Matrices
+--------------------------------
+DGEMM:           0.001769s    11.577 GFLOPS
+DGEMM_ALPHA:     0.002128s     9.624 GFLOPS
+SPEEDUP:    0.831x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 3: Random Dense Matrices
+--------------------------------
+DGEMM:           0.001885s    10.865 GFLOPS
+DGEMM_ALPHA:     0.002108s     9.715 GFLOPS
+SPEEDUP:    0.894x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 4: Diagonal Matrices
+--------------------------------
+DGEMM:           0.001673s    12.241 GFLOPS
+DGEMM_ALPHA:     0.001846s    11.094 GFLOPS
+SPEEDUP:    0.906x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 5: Symmetric Matrices
+--------------------------------
+DGEMM:           0.001745s    11.736 GFLOPS
+DGEMM_ALPHA:     0.002027s    10.104 GFLOPS
+SPEEDUP:    0.861x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 6: Sparse Matrices
+--------------------------------
+DGEMM:           0.001746s    11.730 GFLOPS
+DGEMM_ALPHA:     0.002019s    10.144 GFLOPS
+SPEEDUP:    0.865x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 7: Large Value Matrices
+--------------------------------
+DGEMM:           0.001682s    12.176 GFLOPS
+DGEMM_ALPHA:     0.001835s    11.161 GFLOPS
+SPEEDUP:    0.917x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 8: Small Value Matrices
+--------------------------------
+DGEMM:           0.001751s    11.696 GFLOPS
+DGEMM_ALPHA:     0.001855s    11.040 GFLOPS
+SPEEDUP:    0.944x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 9: Mixed Sign Matrices
+--------------------------------
+DGEMM:           0.001795s    11.409 GFLOPS
+DGEMM_ALPHA:     0.001851s    11.064 GFLOPS
+SPEEDUP:    0.970x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 10: Ill-Conditioned Matrices
+--------------------------------
+DGEMM:           0.001813s    11.296 GFLOPS
+DGEMM_ALPHA:     0.002035s    10.064 GFLOPS
+SPEEDUP:    0.891x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 11: Integer Matrices
+--------------------------------
+DGEMM:           0.001794s    11.416 GFLOPS
+DGEMM_ALPHA:     0.001859s    11.017 GFLOPS
+SPEEDUP:    0.965x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 12: Stress Test Matrices
+--------------------------------
+DGEMM:           0.001663s    12.315 GFLOPS
+DGEMM_ALPHA:     0.001889s    10.842 GFLOPS
+SPEEDUP:    0.880x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+=================================================
+MATRIX SIZE: 16x16
+STATUS: Fallback to DGEMM
+Iterations per test: 5000
+=================================================
+
+TEST 1: Identity Matrices
+--------------------------------
+DGEMM:           0.001501s    27.288 GFLOPS
+DGEMM_ALPHA:     0.001396s    29.341 GFLOPS
+SPEEDUP:    1.075x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: PASS (ALPHA WINS!)
+
+TEST 2: Zero Matrices
+--------------------------------
+DGEMM:           0.001253s    32.690 GFLOPS
+DGEMM_ALPHA:     0.001302s    31.459 GFLOPS
+SPEEDUP:    0.962x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 3: Random Dense Matrices
+--------------------------------
+DGEMM:           0.001262s    32.456 GFLOPS
+DGEMM_ALPHA:     0.001306s    31.363 GFLOPS
+SPEEDUP:    0.966x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 4: Diagonal Matrices
+--------------------------------
+DGEMM:           0.001278s    32.050 GFLOPS
+DGEMM_ALPHA:     0.001357s    30.184 GFLOPS
+SPEEDUP:    0.942x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 5: Symmetric Matrices
+--------------------------------
+DGEMM:           0.001219s    33.601 GFLOPS
+DGEMM_ALPHA:     0.001290s    31.752 GFLOPS
+SPEEDUP:    0.945x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 6: Sparse Matrices
+--------------------------------
+DGEMM:           0.001361s    30.096 GFLOPS
+DGEMM_ALPHA:     0.001266s    32.354 GFLOPS
+SPEEDUP:    1.075x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: PASS (ALPHA WINS!)
+
+TEST 7: Large Value Matrices
+--------------------------------
+DGEMM:           0.001233s    33.220 GFLOPS
+DGEMM_ALPHA:     0.001402s    29.215 GFLOPS
+SPEEDUP:    0.879x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 8: Small Value Matrices
+--------------------------------
+DGEMM:           0.001201s    34.105 GFLOPS
+DGEMM_ALPHA:     0.001428s    28.683 GFLOPS
+SPEEDUP:    0.841x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 9: Mixed Sign Matrices
+--------------------------------
+DGEMM:           0.001420s    28.845 GFLOPS
+DGEMM_ALPHA:     0.001323s    30.960 GFLOPS
+SPEEDUP:    1.073x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: PASS (ALPHA WINS!)
+
+TEST 10: Ill-Conditioned Matrices
+--------------------------------
+DGEMM:           0.001270s    32.252 GFLOPS
+DGEMM_ALPHA:     0.001367s    29.963 GFLOPS
+SPEEDUP:    0.929x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 11: Integer Matrices
+--------------------------------
+DGEMM:           0.001300s    31.508 GFLOPS
+DGEMM_ALPHA:     0.001330s    30.797 GFLOPS
+SPEEDUP:    0.977x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 12: Stress Test Matrices
+--------------------------------
+DGEMM:           0.001285s    31.875 GFLOPS
+DGEMM_ALPHA:     0.001554s    26.358 GFLOPS
+SPEEDUP:    0.827x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+=================================================
+MATRIX SIZE: 32x32
+STATUS: Fallback to DGEMM
+Iterations per test: 1000
+=================================================
+
+TEST 1: Identity Matrices
+--------------------------------
+DGEMM:           0.001463s    44.796 GFLOPS
+DGEMM_ALPHA:     0.001529s    42.862 GFLOPS
+SPEEDUP:    0.957x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 2: Zero Matrices
+--------------------------------
+DGEMM:           0.001579s    41.505 GFLOPS
+DGEMM_ALPHA:     0.001700s    38.551 GFLOPS
+SPEEDUP:    0.929x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 3: Random Dense Matrices
+--------------------------------
+DGEMM:           0.001395s    46.979 GFLOPS
+DGEMM_ALPHA:     0.001478s    44.341 GFLOPS
+SPEEDUP:    0.944x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 4: Diagonal Matrices
+--------------------------------
+DGEMM:           0.001459s    44.918 GFLOPS
+DGEMM_ALPHA:     0.001567s    41.823 GFLOPS
+SPEEDUP:    0.931x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 5: Symmetric Matrices
+--------------------------------
+DGEMM:           0.001530s    42.834 GFLOPS
+DGEMM_ALPHA:     0.001602s    40.909 GFLOPS
+SPEEDUP:    0.955x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 6: Sparse Matrices
+--------------------------------
+DGEMM:           0.001592s    41.166 GFLOPS
+DGEMM_ALPHA:     0.001712s    38.280 GFLOPS
+SPEEDUP:    0.930x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 7: Large Value Matrices
+--------------------------------
+DGEMM:           0.001506s    43.517 GFLOPS
+DGEMM_ALPHA:     0.001442s    45.448 GFLOPS
+SPEEDUP:    1.044x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: PASS (ALPHA WINS!)
+
+TEST 8: Small Value Matrices
+--------------------------------
+DGEMM:           0.001548s    42.336 GFLOPS
+DGEMM_ALPHA:     0.001664s    39.385 GFLOPS
+SPEEDUP:    0.930x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 9: Mixed Sign Matrices
+--------------------------------
+DGEMM:           0.001656s    39.575 GFLOPS
+DGEMM_ALPHA:     0.001712s    38.280 GFLOPS
+SPEEDUP:    0.967x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 10: Ill-Conditioned Matrices
+--------------------------------
+DGEMM:           0.001546s    42.391 GFLOPS
+DGEMM_ALPHA:     0.001510s    43.401 GFLOPS
+SPEEDUP:    1.024x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: PASS (ALPHA WINS!)
+
+TEST 11: Integer Matrices
+--------------------------------
+DGEMM:           0.001467s    44.673 GFLOPS
+DGEMM_ALPHA:     0.001506s    43.517 GFLOPS
+SPEEDUP:    0.974x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+TEST 12: Stress Test Matrices
+--------------------------------
+DGEMM:           0.001635s    40.083 GFLOPS
+DGEMM_ALPHA:     0.001635s    40.083 GFLOPS
+SPEEDUP:    1.000x
+MAX ERROR:  0.00000E+00
+AVG ERROR:  0.00000E+00
+RESULT: FAIL (DGEMM wins)
+  Issue: Performance
+
+=================================================
+              OPTIMIZATION SUMMARY
+=================================================
+AlphaTensor Wins: 5 / 48
+DGEMM Wins: 43 / 48
+Average Speedup:    0.766x
+Average Max Error:  2.06316E-15
+
+NEXT OPTIMIZATION TARGETS:
+1. CRITICAL: Fix 4x4 performance
+2. Profile memory access patterns
+3. Optimize cache utilization
+4. Consider vectorization (SIMD)

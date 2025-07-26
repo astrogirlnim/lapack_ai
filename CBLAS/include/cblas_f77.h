@@ -204,7 +204,7 @@
 #define F77_strmm_base        F77_GLOBAL_SUFFIX(strmm,STRMM)
 #define F77_strsm_base        F77_GLOBAL_SUFFIX(strsm,STRSM)
 #define F77_dgemm_base        F77_GLOBAL_SUFFIX(dgemm,DGEMM)
-#define F77_dgemm_alpha_base  F77_GLOBAL_SUFFIX(dgemm_alpha,DGEMM_ALPHA)
+
 #define F77_dgemmtr_base        F77_GLOBAL_SUFFIX(dgemmtr,DGEMMTR)
 #define F77_dsymm_base        F77_GLOBAL_SUFFIX(dsymm,DSYMM)
 #define F77_dsyrk_base        F77_GLOBAL_SUFFIX(dsyrk,DSYRK)
@@ -404,7 +404,7 @@
    /* Double Precision */
 
    #define F77_dgemm(...)     F77_dgemm_base(__VA_ARGS__, 1, 1)
-   #define F77_dgemm_alpha(...) F77_dgemm_alpha_base(__VA_ARGS__, 1, 1)
+
    #define F77_dgemmtr(...)    F77_dgemmtr_base(__VA_ARGS__, 1, 1, 1)
    #define F77_dsymm(...)     F77_dsymm_base(__VA_ARGS__, 1, 1)
    #define F77_dsyrk(...)     F77_dsyrk_base(__VA_ARGS__, 1, 1)
@@ -533,7 +533,7 @@
    /* Double Precision */
 
    #define F77_dgemm(...)     F77_dgemm_base(__VA_ARGS__)
-   #define F77_dgemm_alpha(...) F77_dgemm_alpha_base(__VA_ARGS__)
+
    #define F77_dgemmtr(...)    F77_dgemmtr_base(__VA_ARGS__)
    #define F77_dsymm(...)     F77_dsymm_base(__VA_ARGS__)
    #define F77_dsyrk(...)     F77_dsyrk_base(__VA_ARGS__)
@@ -1035,11 +1035,7 @@ void F77_dgemm_base(FCHAR, FCHAR, FINT, FINT, FINT, const double *, const double
    , FORTRAN_STRLEN, FORTRAN_STRLEN
 #endif
 );
-void F77_dgemm_alpha_base(FCHAR, FCHAR, FINT, FINT, FINT, const double *, const double *, FINT, const double *, FINT, const double *, double *, FINT
-#ifdef BLAS_FORTRAN_STRLEN_END
-   , FORTRAN_STRLEN, FORTRAN_STRLEN
-#endif
-);
+
 void F77_dgemmtr_base(FCHAR, FCHAR, FCHAR, FINT, FINT, const double *, const double *, FINT, const double *, FINT, const double *, double *, FINT
 #ifdef BLAS_FORTRAN_STRLEN_END
    , size_t, size_t, size_t

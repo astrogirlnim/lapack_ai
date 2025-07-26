@@ -1,0 +1,1825 @@
+============================================================
+   ULTIMATE MULTI-SIZE ALPHATENSOR TESTING FRAMEWORK
+============================================================
+Matrix Sizes Tested: 4
+  4x4 (AlphaTensor ACTIVE)
+  8x8 (AlphaTensor fallback to DGEMM)
+  16x16 (AlphaTensor fallback to DGEMM)
+  32x32 (AlphaTensor fallback to DGEMM)
+Test Cases per Size: 12
+Algorithms Tested:
+  1. DGEMM (Reference)
+  2. DGEMM_ALPHA (AlphaTensor)
+  3. DGEMM_ALPHA_OPTIMIZED
+Metrics: Speed, GFLOPS, Accuracy
+
+=======================================================
+MATRIX SIZE: 4x4 (AlphaTensor ACTIVE)
+Iterations per test: 50000
+=======================================================
+----------------------------------------------------
+TEST 1: Identity Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.034290 seconds
+  GFLOPS:    0.187
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     3.744927 seconds
+  GFLOPS:    0.002
+  Speedup vs DGEMM:    0.009x
+  (AlphaTensor active)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.015031 seconds
+  GFLOPS:    0.426
+  Speedup vs DGEMM:    2.281x
+  (AlphaTensor active)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM_ALPHA_OPTIMIZED
+    (   0.015s,    0.426 GFLOPS)
+  #2: DGEMM (Reference)
+    (   0.034s,    0.187 GFLOPS)
+  #3: DGEMM_ALPHA (AlphaTensor)
+    (   3.745s,    0.002 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: PASSED
+
+----------------------------------------------------
+TEST 2: Zero Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.002922 seconds
+  GFLOPS:    2.190
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     3.344661 seconds
+  GFLOPS:    0.002
+  Speedup vs DGEMM:    0.001x
+  (AlphaTensor active)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.012551 seconds
+  GFLOPS:    0.510
+  Speedup vs DGEMM:    0.233x
+  (AlphaTensor active)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.003s,    2.190 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   3.345s,    0.002 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.013s,    0.510 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 3: Random Dense Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.002600 seconds
+  GFLOPS:    2.462
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     3.374409 seconds
+  GFLOPS:    0.002
+  Speedup vs DGEMM:    0.001x
+  (AlphaTensor active)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.012954 seconds
+  GFLOPS:    0.494
+  Speedup vs DGEMM:    0.201x
+  (AlphaTensor active)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  1.42108547E-14
+  DGEMM_ALPHA Avg Error:  4.94049246E-15
+  DGEMM_ALPHA_OPT Max Error:  1.06581410E-14
+  DGEMM_ALPHA_OPT Avg Error:  5.21804822E-15
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.003s,    2.462 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   3.374s,    0.002 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.013s,    0.494 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 4: Diagonal Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.002449 seconds
+  GFLOPS:    2.613
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     3.374797 seconds
+  GFLOPS:    0.002
+  Speedup vs DGEMM:    0.001x
+  (AlphaTensor active)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.028599 seconds
+  GFLOPS:    0.224
+  Speedup vs DGEMM:    0.086x
+  (AlphaTensor active)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.002s,    2.613 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   3.375s,    0.002 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.029s,    0.224 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 5: Symmetric Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.002578 seconds
+  GFLOPS:    2.483
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     3.465974 seconds
+  GFLOPS:    0.002
+  Speedup vs DGEMM:    0.001x
+  (AlphaTensor active)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.017084 seconds
+  GFLOPS:    0.375
+  Speedup vs DGEMM:    0.151x
+  (AlphaTensor active)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  1.77635684E-14
+  DGEMM_ALPHA Avg Error:  7.21644966E-15
+  DGEMM_ALPHA_OPT Max Error:  2.48689958E-14
+  DGEMM_ALPHA_OPT Avg Error:  8.93729535E-15
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.003s,    2.483 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   3.466s,    0.002 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.017s,    0.375 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 6: Sparse Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.002797 seconds
+  GFLOPS:    2.288
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     3.225650 seconds
+  GFLOPS:    0.002
+  Speedup vs DGEMM:    0.001x
+  (AlphaTensor active)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.030097 seconds
+  GFLOPS:    0.213
+  Speedup vs DGEMM:    0.093x
+  (AlphaTensor active)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  3.55271368E-15
+  DGEMM_ALPHA Avg Error:  5.55111512E-16
+  DGEMM_ALPHA_OPT Max Error:  3.55271368E-15
+  DGEMM_ALPHA_OPT Avg Error:  8.04911693E-16
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.003s,    2.288 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   3.226s,    0.002 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.030s,    0.213 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 7: Large Value Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.003370 seconds
+  GFLOPS:    1.899
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     3.539770 seconds
+  GFLOPS:    0.002
+  Speedup vs DGEMM:    0.001x
+  (AlphaTensor active)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.017189 seconds
+  GFLOPS:    0.372
+  Speedup vs DGEMM:    0.196x
+  (AlphaTensor active)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.003s,    1.899 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   3.540s,    0.002 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.017s,    0.372 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 8: Small Value Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.002517 seconds
+  GFLOPS:    2.543
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     3.598391 seconds
+  GFLOPS:    0.002
+  Speedup vs DGEMM:    0.001x
+  (AlphaTensor active)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.026091 seconds
+  GFLOPS:    0.245
+  Speedup vs DGEMM:    0.096x
+  (AlphaTensor active)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  1.29246971E-25
+  DGEMM_ALPHA Avg Error:  3.08981039E-26
+  DGEMM_ALPHA_OPT Max Error:  1.55096365E-25
+  DGEMM_ALPHA_OPT Avg Error:  3.89760396E-26
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.003s,    2.543 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   3.598s,    0.002 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.026s,    0.245 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 9: Mixed Sign Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.003126 seconds
+  GFLOPS:    2.047
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     3.541562 seconds
+  GFLOPS:    0.002
+  Speedup vs DGEMM:    0.001x
+  (AlphaTensor active)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.014322 seconds
+  GFLOPS:    0.447
+  Speedup vs DGEMM:    0.218x
+  (AlphaTensor active)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  1.59872116E-14
+  DGEMM_ALPHA Avg Error:  4.32986980E-15
+  DGEMM_ALPHA_OPT Max Error:  2.84217094E-14
+  DGEMM_ALPHA_OPT Avg Error:  5.32907052E-15
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.003s,    2.047 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   3.542s,    0.002 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.014s,    0.447 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 10: Ill-Conditioned Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.003153 seconds
+  GFLOPS:    2.030
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     3.377341 seconds
+  GFLOPS:    0.002
+  Speedup vs DGEMM:    0.001x
+  (AlphaTensor active)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.017273 seconds
+  GFLOPS:    0.371
+  Speedup vs DGEMM:    0.183x
+  (AlphaTensor active)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  2.13162821E-14
+  DGEMM_ALPHA Avg Error:  3.28903571E-15
+  DGEMM_ALPHA_OPT Max Error:  2.84217094E-14
+  DGEMM_ALPHA_OPT Avg Error:  6.28663788E-15
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.003s,    2.030 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   3.377s,    0.002 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.017s,    0.371 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 11: Integer Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.002747 seconds
+  GFLOPS:    2.330
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     3.489484 seconds
+  GFLOPS:    0.002
+  Speedup vs DGEMM:    0.001x
+  (AlphaTensor active)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.013308 seconds
+  GFLOPS:    0.481
+  Speedup vs DGEMM:    0.206x
+  (AlphaTensor active)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.003s,    2.330 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   3.489s,    0.002 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.013s,    0.481 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 12: Stress Test Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.002566 seconds
+  GFLOPS:    2.494
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     3.421416 seconds
+  GFLOPS:    0.002
+  Speedup vs DGEMM:    0.001x
+  (AlphaTensor active)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.019880 seconds
+  GFLOPS:    0.322
+  Speedup vs DGEMM:    0.129x
+  (AlphaTensor active)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  3.55271368E-15
+  DGEMM_ALPHA Avg Error:  1.33573708E-15
+  DGEMM_ALPHA_OPT Max Error:  3.10862447E-15
+  DGEMM_ALPHA_OPT Avg Error:  1.35568640E-15
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.003s,    2.494 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   3.421s,    0.002 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.020s,    0.322 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+=======================================================
+MATRIX SIZE: 8x8 (AlphaTensor fallback to DGEMM)
+Iterations per test: 10000
+=======================================================
+----------------------------------------------------
+TEST 1: Identity Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.001070 seconds
+  GFLOPS:    9.570
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.068561 seconds
+  GFLOPS:    0.149
+  Speedup vs DGEMM:    0.016x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.001079 seconds
+  GFLOPS:    9.490
+  Speedup vs DGEMM:    0.992x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.001s,    9.570 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   0.069s,    0.149 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,    9.490 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 2: Zero Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.000949 seconds
+  GFLOPS:   10.790
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.069890 seconds
+  GFLOPS:    0.147
+  Speedup vs DGEMM:    0.014x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.002428 seconds
+  GFLOPS:    4.217
+  Speedup vs DGEMM:    0.391x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.001s,   10.790 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   0.070s,    0.147 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.002s,    4.217 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 3: Random Dense Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.001548 seconds
+  GFLOPS:    6.615
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.082500 seconds
+  GFLOPS:    0.124
+  Speedup vs DGEMM:    0.019x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.001045 seconds
+  GFLOPS:    9.799
+  Speedup vs DGEMM:    1.481x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,    9.799 GFLOPS)
+  #2: DGEMM (Reference)
+    (   0.002s,    6.615 GFLOPS)
+  #3: DGEMM_ALPHA (AlphaTensor)
+    (   0.083s,    0.124 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: PASSED
+
+----------------------------------------------------
+TEST 4: Diagonal Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.000929 seconds
+  GFLOPS:   11.023
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.075310 seconds
+  GFLOPS:    0.136
+  Speedup vs DGEMM:    0.012x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.001036 seconds
+  GFLOPS:    9.884
+  Speedup vs DGEMM:    0.897x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.001s,   11.023 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   0.075s,    0.136 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,    9.884 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 5: Symmetric Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.000902 seconds
+  GFLOPS:   11.353
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.066524 seconds
+  GFLOPS:    0.154
+  Speedup vs DGEMM:    0.014x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.001025 seconds
+  GFLOPS:    9.990
+  Speedup vs DGEMM:    0.880x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.001s,   11.353 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   0.067s,    0.154 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,    9.990 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 6: Sparse Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.000856 seconds
+  GFLOPS:   11.963
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.080824 seconds
+  GFLOPS:    0.127
+  Speedup vs DGEMM:    0.011x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.000997 seconds
+  GFLOPS:   10.271
+  Speedup vs DGEMM:    0.859x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.001s,   11.963 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   0.081s,    0.127 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,   10.271 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 7: Large Value Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.001040 seconds
+  GFLOPS:    9.846
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.071726 seconds
+  GFLOPS:    0.143
+  Speedup vs DGEMM:    0.014x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.003995 seconds
+  GFLOPS:    2.563
+  Speedup vs DGEMM:    0.260x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.001s,    9.846 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   0.072s,    0.143 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.004s,    2.563 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 8: Small Value Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.002716 seconds
+  GFLOPS:    3.770
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.070370 seconds
+  GFLOPS:    0.146
+  Speedup vs DGEMM:    0.039x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.001022 seconds
+  GFLOPS:   10.020
+  Speedup vs DGEMM:    2.658x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,   10.020 GFLOPS)
+  #2: DGEMM (Reference)
+    (   0.003s,    3.770 GFLOPS)
+  #3: DGEMM_ALPHA (AlphaTensor)
+    (   0.070s,    0.146 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: PASSED
+
+----------------------------------------------------
+TEST 9: Mixed Sign Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.000933 seconds
+  GFLOPS:   10.975
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.086183 seconds
+  GFLOPS:    0.119
+  Speedup vs DGEMM:    0.011x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.002972 seconds
+  GFLOPS:    3.445
+  Speedup vs DGEMM:    0.314x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.001s,   10.975 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   0.086s,    0.119 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.003s,    3.445 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 10: Ill-Conditioned Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.001625 seconds
+  GFLOPS:    6.302
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.076354 seconds
+  GFLOPS:    0.134
+  Speedup vs DGEMM:    0.021x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.001184 seconds
+  GFLOPS:    8.649
+  Speedup vs DGEMM:    1.372x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,    8.649 GFLOPS)
+  #2: DGEMM (Reference)
+    (   0.002s,    6.302 GFLOPS)
+  #3: DGEMM_ALPHA (AlphaTensor)
+    (   0.076s,    0.134 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: PASSED
+
+----------------------------------------------------
+TEST 11: Integer Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.000909 seconds
+  GFLOPS:   11.265
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.081627 seconds
+  GFLOPS:    0.125
+  Speedup vs DGEMM:    0.011x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.002360 seconds
+  GFLOPS:    4.339
+  Speedup vs DGEMM:    0.385x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.001s,   11.265 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   0.082s,    0.125 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.002s,    4.339 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 12: Stress Test Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.001626 seconds
+  GFLOPS:    6.298
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.073650 seconds
+  GFLOPS:    0.139
+  Speedup vs DGEMM:    0.022x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.001031 seconds
+  GFLOPS:    9.932
+  Speedup vs DGEMM:    1.577x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,    9.932 GFLOPS)
+  #2: DGEMM (Reference)
+    (   0.002s,    6.298 GFLOPS)
+  #3: DGEMM_ALPHA (AlphaTensor)
+    (   0.074s,    0.139 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: PASSED
+
+=======================================================
+MATRIX SIZE: 16x16 (AlphaTensor fallback to DGEMM)
+Iterations per test: 2000
+=======================================================
+----------------------------------------------------
+TEST 1: Identity Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.000510 seconds
+  GFLOPS:   32.125
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.016924 seconds
+  GFLOPS:    0.968
+  Speedup vs DGEMM:    0.030x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.001411 seconds
+  GFLOPS:   11.612
+  Speedup vs DGEMM:    0.361x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.001s,   32.125 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   0.017s,    0.968 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,   11.612 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 2: Zero Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.001385 seconds
+  GFLOPS:   11.830
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.017210 seconds
+  GFLOPS:    0.952
+  Speedup vs DGEMM:    0.080x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.000582 seconds
+  GFLOPS:   28.151
+  Speedup vs DGEMM:    2.380x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,   28.151 GFLOPS)
+  #2: DGEMM (Reference)
+    (   0.001s,   11.830 GFLOPS)
+  #3: DGEMM_ALPHA (AlphaTensor)
+    (   0.017s,    0.952 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: PASSED
+
+----------------------------------------------------
+TEST 3: Random Dense Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.000620 seconds
+  GFLOPS:   26.426
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.014327 seconds
+  GFLOPS:    1.144
+  Speedup vs DGEMM:    0.043x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.000538 seconds
+  GFLOPS:   30.454
+  Speedup vs DGEMM:    1.152x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,   30.454 GFLOPS)
+  #2: DGEMM (Reference)
+    (   0.001s,   26.426 GFLOPS)
+  #3: DGEMM_ALPHA (AlphaTensor)
+    (   0.014s,    1.144 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: PASSED
+
+----------------------------------------------------
+TEST 4: Diagonal Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.000522 seconds
+  GFLOPS:   31.387
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.013027 seconds
+  GFLOPS:    1.258
+  Speedup vs DGEMM:    0.040x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.001011 seconds
+  GFLOPS:   16.206
+  Speedup vs DGEMM:    0.516x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.001s,   31.387 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   0.013s,    1.258 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,   16.206 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 5: Symmetric Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.000519 seconds
+  GFLOPS:   31.568
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.014168 seconds
+  GFLOPS:    1.156
+  Speedup vs DGEMM:    0.037x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.000592 seconds
+  GFLOPS:   27.676
+  Speedup vs DGEMM:    0.877x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.001s,   31.568 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   0.014s,    1.156 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,   27.676 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 6: Sparse Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.000918 seconds
+  GFLOPS:   17.847
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.013577 seconds
+  GFLOPS:    1.207
+  Speedup vs DGEMM:    0.068x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.000534 seconds
+  GFLOPS:   30.682
+  Speedup vs DGEMM:    1.719x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,   30.682 GFLOPS)
+  #2: DGEMM (Reference)
+    (   0.001s,   17.847 GFLOPS)
+  #3: DGEMM_ALPHA (AlphaTensor)
+    (   0.014s,    1.207 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: PASSED
+
+----------------------------------------------------
+TEST 7: Large Value Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.000546 seconds
+  GFLOPS:   30.007
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.017765 seconds
+  GFLOPS:    0.922
+  Speedup vs DGEMM:    0.031x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.001946 seconds
+  GFLOPS:    8.419
+  Speedup vs DGEMM:    0.281x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.001s,   30.007 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   0.018s,    0.922 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.002s,    8.419 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 8: Small Value Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.001932 seconds
+  GFLOPS:    8.480
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.015883 seconds
+  GFLOPS:    1.032
+  Speedup vs DGEMM:    0.122x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.000516 seconds
+  GFLOPS:   31.752
+  Speedup vs DGEMM:    3.744x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,   31.752 GFLOPS)
+  #2: DGEMM (Reference)
+    (   0.002s,    8.480 GFLOPS)
+  #3: DGEMM_ALPHA (AlphaTensor)
+    (   0.016s,    1.032 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: PASSED
+
+----------------------------------------------------
+TEST 9: Mixed Sign Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.000527 seconds
+  GFLOPS:   31.089
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.009372 seconds
+  GFLOPS:    1.748
+  Speedup vs DGEMM:    0.056x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.000585 seconds
+  GFLOPS:   28.007
+  Speedup vs DGEMM:    0.901x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.001s,   31.089 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   0.009s,    1.748 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,   28.007 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 10: Ill-Conditioned Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.000559 seconds
+  GFLOPS:   29.309
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.017427 seconds
+  GFLOPS:    0.940
+  Speedup vs DGEMM:    0.032x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.002260 seconds
+  GFLOPS:    7.250
+  Speedup vs DGEMM:    0.247x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.001s,   29.309 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   0.017s,    0.940 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.002s,    7.250 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 11: Integer Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.002617 seconds
+  GFLOPS:    6.261
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.017517 seconds
+  GFLOPS:    0.935
+  Speedup vs DGEMM:    0.149x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.000813 seconds
+  GFLOPS:   20.153
+  Speedup vs DGEMM:    3.219x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,   20.153 GFLOPS)
+  #2: DGEMM (Reference)
+    (   0.003s,    6.261 GFLOPS)
+  #3: DGEMM_ALPHA (AlphaTensor)
+    (   0.018s,    0.935 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: PASSED
+
+----------------------------------------------------
+TEST 12: Stress Test Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.001825 seconds
+  GFLOPS:    8.978
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.015322 seconds
+  GFLOPS:    1.069
+  Speedup vs DGEMM:    0.119x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.002650 seconds
+  GFLOPS:    6.183
+  Speedup vs DGEMM:    0.689x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.002s,    8.978 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   0.015s,    1.069 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.003s,    6.183 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+=======================================================
+MATRIX SIZE: 32x32 (AlphaTensor fallback to DGEMM)
+Iterations per test: 500
+=======================================================
+----------------------------------------------------
+TEST 1: Identity Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.004711 seconds
+  GFLOPS:    6.956
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.004817 seconds
+  GFLOPS:    6.803
+  Speedup vs DGEMM:    0.978x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.000851 seconds
+  GFLOPS:   38.505
+  Speedup vs DGEMM:    5.536x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  8.82909307-306
+  DGEMM_ALPHA Avg Error:  2.32367244-306
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,   38.505 GFLOPS)
+  #2: DGEMM (Reference)
+    (   0.005s,    6.956 GFLOPS)
+  #3: DGEMM_ALPHA (AlphaTensor)
+    (   0.005s,    6.803 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: PASSED
+
+----------------------------------------------------
+TEST 2: Zero Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.000882 seconds
+  GFLOPS:   37.152
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.003742 seconds
+  GFLOPS:    8.757
+  Speedup vs DGEMM:    0.236x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.000800 seconds
+  GFLOPS:   40.960
+  Speedup vs DGEMM:    1.103x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  9.11390252-306
+  DGEMM_ALPHA Avg Error:  2.42310543-306
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,   40.960 GFLOPS)
+  #2: DGEMM (Reference)
+    (   0.001s,   37.152 GFLOPS)
+  #3: DGEMM_ALPHA (AlphaTensor)
+    (   0.004s,    8.757 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: PASSED
+
+----------------------------------------------------
+TEST 3: Random Dense Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.000940 seconds
+  GFLOPS:   34.860
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.004617 seconds
+  GFLOPS:    7.097
+  Speedup vs DGEMM:    0.204x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.000994 seconds
+  GFLOPS:   32.966
+  Speedup vs DGEMM:    0.946x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.001s,   34.860 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   0.005s,    7.097 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,   32.966 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 4: Diagonal Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.000796 seconds
+  GFLOPS:   41.166
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.004140 seconds
+  GFLOPS:    7.915
+  Speedup vs DGEMM:    0.192x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.002299 seconds
+  GFLOPS:   14.253
+  Speedup vs DGEMM:    0.346x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  8.82909307-306
+  DGEMM_ALPHA Avg Error:  2.32367244-306
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.001s,   41.166 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   0.004s,    7.915 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.002s,   14.253 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 5: Symmetric Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.002299 seconds
+  GFLOPS:   14.253
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.004368 seconds
+  GFLOPS:    7.502
+  Speedup vs DGEMM:    0.526x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.000849 seconds
+  GFLOPS:   38.596
+  Speedup vs DGEMM:    2.708x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,   38.596 GFLOPS)
+  #2: DGEMM (Reference)
+    (   0.002s,   14.253 GFLOPS)
+  #3: DGEMM_ALPHA (AlphaTensor)
+    (   0.004s,    7.502 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: PASSED
+
+----------------------------------------------------
+TEST 6: Sparse Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.000860 seconds
+  GFLOPS:   38.102
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.005863 seconds
+  GFLOPS:    5.589
+  Speedup vs DGEMM:    0.147x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.001019 seconds
+  GFLOPS:   32.157
+  Speedup vs DGEMM:    0.844x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  8.82909307-306
+  DGEMM_ALPHA Avg Error:  2.41390962-306
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.001s,   38.102 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   0.006s,    5.589 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,   32.157 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 7: Large Value Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.001193 seconds
+  GFLOPS:   27.467
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.004214 seconds
+  GFLOPS:    7.776
+  Speedup vs DGEMM:    0.283x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.001131 seconds
+  GFLOPS:   28.973
+  Speedup vs DGEMM:    1.055x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,   28.973 GFLOPS)
+  #2: DGEMM (Reference)
+    (   0.001s,   27.467 GFLOPS)
+  #3: DGEMM_ALPHA (AlphaTensor)
+    (   0.004s,    7.776 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: PASSED
+
+----------------------------------------------------
+TEST 8: Small Value Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.000833 seconds
+  GFLOPS:   39.337
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.004219 seconds
+  GFLOPS:    7.767
+  Speedup vs DGEMM:    0.197x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.000884 seconds
+  GFLOPS:   37.068
+  Speedup vs DGEMM:    0.942x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.001s,   39.337 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   0.004s,    7.767 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,   37.068 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 9: Mixed Sign Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.000804 seconds
+  GFLOPS:   40.756
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.004566 seconds
+  GFLOPS:    7.177
+  Speedup vs DGEMM:    0.176x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.000791 seconds
+  GFLOPS:   41.426
+  Speedup vs DGEMM:    1.016x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,   41.426 GFLOPS)
+  #2: DGEMM (Reference)
+    (   0.001s,   40.756 GFLOPS)
+  #3: DGEMM_ALPHA (AlphaTensor)
+    (   0.005s,    7.177 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: PASSED
+
+----------------------------------------------------
+TEST 10: Ill-Conditioned Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.000811 seconds
+  GFLOPS:   40.404
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.003902 seconds
+  GFLOPS:    8.398
+  Speedup vs DGEMM:    0.208x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.000790 seconds
+  GFLOPS:   41.478
+  Speedup vs DGEMM:    1.027x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,   41.478 GFLOPS)
+  #2: DGEMM (Reference)
+    (   0.001s,   40.404 GFLOPS)
+  #3: DGEMM_ALPHA (AlphaTensor)
+    (   0.004s,    8.398 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: PASSED
+
+----------------------------------------------------
+TEST 11: Integer Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.000839 seconds
+  GFLOPS:   39.056
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.004677 seconds
+  GFLOPS:    7.006
+  Speedup vs DGEMM:    0.179x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.000896 seconds
+  GFLOPS:   36.571
+  Speedup vs DGEMM:    0.936x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.001s,   39.056 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   0.005s,    7.006 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,   36.571 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+----------------------------------------------------
+TEST 12: Stress Test Matrices
+----------------------------------------------------
+ALGORITHM 1: DGEMM (Reference)
+  Time:     0.000829 seconds
+  GFLOPS:   39.527
+ALGORITHM 2: DGEMM_ALPHA
+  Time:     0.004077 seconds
+  GFLOPS:    8.037
+  Speedup vs DGEMM:    0.203x
+  (Fallback + overhead)
+ALGORITHM 3: DGEMM_ALPHA_OPT
+  Time:     0.000862 seconds
+  GFLOPS:   38.014
+  Speedup vs DGEMM:    0.962x
+  (Fallback + overhead)
+
+ACCURACY ANALYSIS:
+  DGEMM_ALPHA Max Error:  0.00000000E+00
+  DGEMM_ALPHA Avg Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Max Error:  0.00000000E+00
+  DGEMM_ALPHA_OPT Avg Error:  0.00000000E+00
+
+PERFORMANCE RANKING:
+  #1: DGEMM (Reference)
+    (   0.001s,   39.527 GFLOPS)
+  #2: DGEMM_ALPHA (AlphaTensor)
+    (   0.004s,    8.037 GFLOPS)
+  #3: DGEMM_ALPHA_OPTIMIZED
+    (   0.001s,   38.014 GFLOPS)
+
+TEST CASE ASSESSMENT:
+  DGEMM_ALPHA: FAILED
+    - Perf below
+  DGEMM_ALPHA_OPT: FAILED
+    - Perf below
+
+============================================================
+                   ULTIMATE SUMMARY
+============================================================
+OVERALL PERFORMANCE CHAMPION:
+  DGEMM (Reference) - 32 / 48 wins
+
+DETAILED RESULTS:
+DGEMM_ALPHA Tests Passed: 0 / 48
+DGEMM_ALPHA Tests Failed: 48 / 48
+DGEMM_ALPHA Average Speedup:    0.095x
+DGEMM_ALPHA Max Error:  1.59131967E-15
+
+DGEMM_OPT Tests Passed: 16 / 48
+DGEMM_OPT Tests Failed: 32 / 48
+DGEMM_OPT Speedup:    1.034x
+DGEMM_OPT Max Error:  2.06316445E-15
+
+MATRIX SIZE ANALYSIS:
+4x4: AlphaTensor algorithm active
+8x8, 16x16, 32x32: Fallback to DGEMM
+Performance differences reveal:
+- AlphaTensor effectiveness on target
+- Fallback overhead vs pure DGEMM
+- Scaling behavior with matrix size
+
+RECOMMENDATION:
+CAUTION: Stick with DGEMM until issues resolved.
+
+NEXT OPTIMIZATION TARGETS:
+1. Focus on 4x4 performance
+2. Reduce fallback overhead
+3. Matrix-size-specific optimizations
+4. Consider blocking for larger sizes
+============================================================

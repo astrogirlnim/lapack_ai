@@ -140,7 +140,7 @@ slev3 = cblas_sgemm.o cblas_ssymm.o cblas_ssyrk.o cblas_ssyr2k.o cblas_strmm.o \
         cblas_strsm.o cblas_sgemmtr.o
 
 # Files for level 3 double precision real
-dlev3 = cblas_dgemm.o cblas_dgemm_alpha.o cblas_dsymm.o cblas_dsyrk.o cblas_dsyr2k.o cblas_dtrmm.o \
+dlev3 = cblas_dgemm.o cblas_dsymm.o cblas_dsyrk.o cblas_dsyr2k.o cblas_dtrmm.o \
         cblas_dtrsm.o cblas_dgemmtr.o
 
 # Files for level 3 single precision complex

@@ -466,6 +466,12 @@ Complete variable and function mapping for AlphaTensor implementation. Documente
 | Phase 3 | N/A | `SRC/CMakeLists.txt` | CMake integration (not needed - VARIANTS use Make) | N/A |
 | Phase 4 | ~~REMOVED~~ | ~~CBLAS integration~~ | ~~CBLAS wrapper (incorrect architecture)~~ | ~~REMOVED~~ |
 | Phase 7 | MODIFY | `MODERNIZATION/memory_bank/mmemory_bank_progress.md` | Progress tracking | COMPLETED |
+| Phase 9.1 | CREATE | `SRC/VARIANTS/alphatensor_hybrid/opencl_manager.c` | OpenCL context and device management | PLANNED |
+| Phase 9.1 | CREATE | `SRC/VARIANTS/alphatensor_hybrid/gpu_interface.c` | C-Fortran interface for GPU calls | PLANNED |
+| Phase 9.2 | CREATE | `SRC/VARIANTS/alphatensor_hybrid/dgemm_alpha.cl` | OpenCL kernels for 49 AlphaTensor operations | PLANNED |
+| Phase 9.3 | CREATE | `SRC/VARIANTS/alphatensor_hybrid/dgemm_alpha_hybrid.f` | Fortran interface with GPU dispatch logic | PLANNED |
+| Phase 9.4 | MODIFY | `SRC/VARIANTS/Makefile` | Build integration for hybrid variant | PLANNED |
+| Phase 9.6 | CREATE | `SRC/VARIANTS/alphatensor_hybrid/comprehensive_test_gpu.f` | GPU testing framework | PLANNED |
 
 ---
 
@@ -1056,3 +1062,412 @@ perf record ./performance_test && perf report
 **Expected Outcome**: Transform AlphaTensor from 14.2% slower to 10-25% faster than DGEMM through systematic, evidence-based optimization while maintaining perfect numerical accuracy.
 
 *"Faster, stronger, more efficient you shall become. But first, measure twice, optimize once, you must."* - Yoda 
+
+---
+
+## **Phase 9: GPU OpenCL Implementation** 🚀
+
+### **Architectural Analysis: GPU Implementation in VARIANTS Pattern**
+
+#### **Does GPU Implementation Fit VARIANTS?**
+**Answer**: Yes, but with a **hybrid approach**. Traditional VARIANTS are pure algorithmic choices (Crout vs Left-Looking LU), but GPU represents a **hardware-algorithmic hybrid** requiring runtime adaptation.
+
+**Proposed Architecture**: **Dual VARIANT Approach**
+- `alphatensor.a` - CPU-only (current implementation)
+- `alphatensor_hybrid.a` - GPU-preferred with CPU fallback
+
+#### **Why Hybrid VARIANT Makes Sense**:
+- **Build-time choice**: Users explicitly choose GPU capability by linking hybrid library
+- **Runtime adaptation**: Hybrid library detects GPU availability and adapts automatically  
+- **Clean separation**: CPU users avoid GPU dependencies entirely
+- **VARIANTS compliance**: Still follows build-time algorithmic selection pattern
+- **Future-proof**: Template for other hardware accelerators (TPU, FPGA)
+
+### **Step 9.1: OpenCL Infrastructure Setup**
+**Priority**: HIGH  
+**Dependencies**: None (standalone implementation)  
+**Expected Timeline**: 2-3 weeks
+
+#### **OpenCL Framework Requirements**:
+- [ ] **OpenCL Headers**: `CL/cl.h`, platform detection
+- [ ] **Runtime Detection**: Platform enumeration, device selection
+- [ ] **Context Management**: OpenCL context, command queue setup
+- [ ] **Memory Management**: Buffer allocation, CPU↔GPU transfer optimization
+- [ ] **Error Handling**: Comprehensive OpenCL error reporting and fallback
+
+#### **Implementation Strategy**:
+```c
+// File: SRC/VARIANTS/alphatensor_hybrid/opencl_manager.c
+typedef struct {
+    cl_platform_id platform;
+    cl_device_id device; 
+    cl_context context;
+    cl_command_queue queue;
+    cl_program program;
+    cl_kernel kernel_4x4;
+    cl_kernel kernel_batch;
+    bool initialized;
+    bool gpu_available;
+} alphatensor_opencl_t;
+
+// GPU detection and initialization
+int alphatensor_gpu_init(alphatensor_opencl_t* ctx);
+int alphatensor_gpu_cleanup(alphatensor_opencl_t* ctx);
+bool alphatensor_gpu_is_available(void);
+```
+
+#### **Platform Support Strategy**:
+- **Primary**: NVIDIA GPUs (CUDA OpenCL backend)
+- **Secondary**: AMD GPUs (ROCm OpenCL)  
+- **Tertiary**: Intel GPUs (Level Zero OpenCL)
+- **Development**: Any OpenCL 1.2+ device
+- **Fallback**: CPU OpenCL implementations (Intel, Pocl)
+
+### **Step 9.2: AlphaTensor OpenCL Kernel Implementation**
+**Priority**: HIGH  
+**Performance Target**: 10-20x speedup for batched operations  
+**Accuracy Target**: Maintain <1e-12 precision vs CPU
+
+#### **Kernel Architecture**:
+```c
+// File: SRC/VARIANTS/alphatensor_hybrid/dgemm_alpha.cl
+
+// Single 4x4 matrix multiplication kernel
+__kernel void dgemm_alpha_4x4(
+    __global const double* A,    // 4x4 matrix A
+    __global const double* B,    // 4x4 matrix B  
+    __global double* C,          // 4x4 result matrix
+    const double alpha,          // Scaling factor
+    const double beta            // C scaling factor
+) {
+    // Implement all 49 AlphaTensor operations
+    // Optimized for single work-item execution
+    // Memory coalescing for 16-element loads
+}
+
+// Batched processing kernel (primary GPU advantage)
+__kernel void dgemm_alpha_4x4_batch(
+    __global const double* A,    // Batch of 4x4 matrices
+    __global const double* B,    // Batch of 4x4 matrices
+    __global double* C,          // Batch of results
+    const double alpha,
+    const double beta,
+    const int batch_size
+) {
+    int batch_id = get_global_id(0);
+    if (batch_id >= batch_size) return;
+    
+    // Process batch_id-th matrix pair
+    // Each work-item handles one 4x4 operation
+    // Perfect for GPU's massively parallel architecture
+}
+```
+
+#### **GPU Memory Optimization Strategy**:
+- **Coalesced Access**: Load 4x4 matrices as aligned 16-element vectors
+- **Local Memory**: Cache matrices in GPU shared memory (48KB/workgroup)
+- **Memory Banks**: Avoid bank conflicts with strided access patterns
+- **Occupancy**: Target 50-75% GPU occupancy for maximum throughput
+- **Asynchronous Transfer**: Overlap CPU-GPU memory transfer with computation
+
+#### **Algorithm Mapping to GPU**:
+```c
+// All 49 operations mapped to GPU-optimized patterns
+// Example: Operation 1 (A11+A31)*(B11+B31) → C11,C13
+local double A_cache[16];  // Cache A matrix in local memory
+local double B_cache[16];  // Cache B matrix in local memory
+
+// Load matrices with coalesced access
+A_cache[lid] = A[gid * 16 + lid];  // 16 threads load 4x4 matrix
+B_cache[lid] = B[gid * 16 + lid];
+barrier(CLK_LOCAL_MEM_FENCE);
+
+// Compute all 49 operations using cached values
+double temp_result[16] = {0.0};
+// Operation 1: A_contrib = A_cache[0] + A_cache[8]; // A11 + A31
+//             B_contrib = B_cache[0] + B_cache[8]; // B11 + B31
+//             temp_result[0] += alpha * A_contrib * B_contrib; // C11
+//             temp_result[2] += alpha * A_contrib * B_contrib; // C13
+// ... (all 49 operations)
+```
+
+### **Step 9.3: Host-Side GPU Integration**
+**Priority**: HIGH  
+**Integration Pattern**: Extend DGEMM_ALPHA with GPU dispatch logic
+
+#### **Dispatch Logic Enhancement**:
+```fortran
+! File: SRC/VARIANTS/alphatensor_hybrid/dgemm_alpha_hybrid.f
+SUBROUTINE DGEMM_ALPHA_HYBRID(TRANSA,TRANSB,M,N,K,ALPHA,A,LDA,
+     +                        B,LDB,BETA,C,LDC)
+
+! Enhanced dispatch logic with GPU capability
+IS_4X4 = (M.EQ.4 .AND. N.EQ.4 .AND. K.EQ.4)
+NO_TRANSPOSE = (NOTA .AND. NOTB)
+USE_ALPHATENSOR = (IS_4X4 .AND. NO_TRANSPOSE)
+
+IF (USE_ALPHATENSOR) THEN
+    ! Check GPU availability and efficiency
+    IF (ALPHATENSOR_GPU_AVAILABLE() .AND. 
+     +  ALPHATENSOR_GPU_EFFICIENT(BATCH_SIZE)) THEN
+        ! Use GPU implementation
+        CALL DGEMM_ALPHA_GPU(ALPHA,A,LDA,B,LDB,BETA,C,LDC)
+    ELSE
+        ! Use optimized CPU implementation  
+        CALL DGEMM_ALPHATENSOR_CPU(ALPHA,A,LDA,B,LDB,BETA,C,LDC)
+    END IF
+ELSE
+    ! Standard DGEMM fallback
+    CALL DGEMM(TRANSA,TRANSB,M,N,K,ALPHA,A,LDA,B,LDB,BETA,C,LDC)
+END IF
+```
+
+#### **GPU Efficiency Heuristics**:
+- **Single Matrix**: GPU overhead > speedup, use CPU
+- **Small Batch (2-10)**: Mixed benefit, use CPU for simplicity
+- **Medium Batch (10-100)**: GPU starts winning, use GPU
+- **Large Batch (100+)**: GPU dominates, definitely use GPU
+- **Memory Size**: Consider GPU memory limits vs batch size
+
+#### **C-Fortran Interface**:
+```c
+// File: SRC/VARIANTS/alphatensor_hybrid/gpu_interface.c
+#include "opencl_manager.h"
+
+// C interface for Fortran calls
+void dgemm_alpha_gpu_(
+    const double* alpha, const double* A, const int* lda,
+    const double* B, const int* ldb, const double* beta,
+    double* C, const int* ldc
+) {
+    static alphatensor_opencl_t gpu_ctx = {0};
+    
+    // Lazy initialization
+    if (!gpu_ctx.initialized) {
+        alphatensor_gpu_init(&gpu_ctx);
+    }
+    
+    if (gpu_ctx.gpu_available) {
+        alphatensor_gpu_compute_4x4(&gpu_ctx, *alpha, A, B, *beta, C);
+    } else {
+        // Should never reach here due to dispatch logic
+        fprintf(stderr, "GPU not available, fallback should handle this\n");
+    }
+}
+
+// GPU availability check for Fortran
+bool alphatensor_gpu_available_(void) {
+    static int checked = 0;
+    static bool available = false;
+    
+    if (!checked) {
+        alphatensor_opencl_t temp_ctx;
+        available = (alphatensor_gpu_init(&temp_ctx) == 0);
+        if (available) alphatensor_gpu_cleanup(&temp_ctx);
+        checked = 1;
+    }
+    return available;
+}
+```
+
+### **Step 9.4: Build System Integration**
+**Priority**: MEDIUM  
+**Dependencies**: OpenCL development libraries
+
+#### **New VARIANT Structure**:
+```
+SRC/VARIANTS/alphatensor_hybrid/
+├── dgemm_alpha_hybrid.f          # Main Fortran interface
+├── opencl_manager.c              # OpenCL context management
+├── gpu_interface.c               # C-Fortran interface
+├── dgemm_alpha.cl                # OpenCL kernels
+├── gpu_utils.c                   # GPU utility functions
+├── Makefile                      # Hybrid build configuration
+└── comprehensive_test_gpu.f      # GPU testing framework
+```
+
+#### **Makefile Integration**:
+```makefile
+# File: SRC/VARIANTS/Makefile additions
+
+# OpenCL dependencies (conditional)
+OPENCL_CFLAGS = $(shell pkg-config --cflags OpenCL 2>/dev/null || echo "-I/usr/local/cuda/include")
+OPENCL_LIBS = $(shell pkg-config --libs OpenCL 2>/dev/null || echo "-lOpenCL")
+
+# AlphaTensor Hybrid variant with GPU support
+ALPHATENSOR_HYBRID = alphatensor_hybrid/dgemm_alpha_hybrid.o \
+                     alphatensor_hybrid/opencl_manager.o \
+                     alphatensor_hybrid/gpu_interface.o \
+                     alphatensor_hybrid/gpu_utils.o
+
+# Build targets
+all: cholrl.a choltop.a lucr.a lull.a lurec.a qrll.a larftl2.a alphatensor.a alphatensor_hybrid.a
+
+alphatensor_hybrid.a: $(ALPHATENSOR_HYBRID)
+	$(AR) $(ARFLAGS) $@ $(ALPHATENSOR_HYBRID)
+	$(RANLIB) $@
+
+# OpenCL kernel compilation (embed in object file)
+alphatensor_hybrid/kernels.o: alphatensor_hybrid/dgemm_alpha.cl
+	xxd -i $< > alphatensor_hybrid/kernels.c
+	$(CC) $(CFLAGS) $(OPENCL_CFLAGS) -c alphatensor_hybrid/kernels.c -o $@
+
+# C compilation with OpenCL
+alphatensor_hybrid/%.o: alphatensor_hybrid/%.c
+	$(CC) $(CFLAGS) $(OPENCL_CFLAGS) -c $< -o $@
+```
+
+#### **CMake Integration**:
+```cmake
+# File: SRC/CMakeLists.txt additions
+find_package(OpenCL QUIET)
+
+if(OpenCL_FOUND)
+    option(BUILD_ALPHATENSOR_HYBRID "Build AlphaTensor with GPU support" ON)
+    
+    if(BUILD_ALPHATENSOR_HYBRID)
+        message(STATUS "Building AlphaTensor hybrid variant with GPU support")
+        add_subdirectory(VARIANTS/alphatensor_hybrid)
+    endif()
+else()
+    message(STATUS "OpenCL not found, skipping AlphaTensor hybrid variant")
+endif()
+```
+
+### **Step 9.5: Performance Optimization and Batching**
+**Priority**: HIGH  
+**Target**: 10-20x speedup for ML workloads
+
+#### **Batching Strategy for ML Workloads**:
+```fortran
+! Enhanced interface for batched operations
+SUBROUTINE DGEMM_ALPHA_BATCH(BATCH_SIZE, ALPHA_ARRAY, A_BATCH, LDA,
+     +                       B_BATCH, LDB, BETA_ARRAY, C_BATCH, LDC)
+INTEGER BATCH_SIZE
+DOUBLE PRECISION ALPHA_ARRAY(BATCH_SIZE), BETA_ARRAY(BATCH_SIZE)
+DOUBLE PRECISION A_BATCH(LDA,4,BATCH_SIZE), B_BATCH(LDB,4,BATCH_SIZE)
+DOUBLE PRECISION C_BATCH(LDC,4,BATCH_SIZE)
+
+! GPU excels at processing 100s-1000s of 4x4 matrices simultaneously
+! Perfect for: Transformer attention heads, CNN convolution blocks
+```
+
+#### **Memory Transfer Optimization**:
+- **Batch Transfers**: Upload entire batch at once, not matrix-by-matrix
+- **Asynchronous Operations**: Overlap computation with next batch transfer
+- **Memory Reuse**: Keep GPU buffers allocated across multiple calls
+- **Zero-Copy**: Use pinned host memory when possible
+
+#### **Work Group Optimization**:
+```c
+// Optimal work group configuration for different GPU architectures
+// NVIDIA: 32-thread warps, prefer multiples of 32
+// AMD: 64-thread wavefronts, prefer multiples of 64
+size_t get_optimal_work_group_size(cl_device_id device) {
+    size_t preferred_multiple;
+    clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
+                           sizeof(preferred_multiple), &preferred_multiple, NULL);
+    return preferred_multiple;
+}
+```
+
+### **Step 9.6: Testing and Validation Framework**
+**Priority**: HIGH  
+**Integration**: Extend existing comprehensive test suite
+
+#### **GPU Testing Strategy**:
+```fortran
+! File: SRC/VARIANTS/alphatensor_hybrid/comprehensive_test_gpu.f
+PROGRAM GPU_COMPREHENSIVE_TEST
+
+! Test matrix cases
+CALL TEST_GPU_VS_CPU_ACCURACY()      ! Validate identical results
+CALL TEST_GPU_BATCH_PERFORMANCE()    ! Measure batching speedup  
+CALL TEST_GPU_FALLBACK_BEHAVIOR()    ! Verify graceful CPU fallback
+CALL TEST_GPU_MEMORY_EFFICIENCY()    ! Check memory usage patterns
+CALL TEST_GPU_CROSS_PLATFORM()       ! NVIDIA, AMD, Intel compatibility
+
+END PROGRAM
+```
+
+#### **Cloud GPU Testing Integration**:
+```yaml
+# File: .github/workflows/gpu_testing.yml
+name: GPU Testing
+on: [push, pull_request]
+
+jobs:
+  gpu-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        gpu: [nvidia-t4, nvidia-v100, amd-mi25]
+    
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup GPU environment
+      run: |
+        docker run --gpus all --rm \
+          -v ${{ github.workspace }}:/workspace \
+          lapack-ai-gpu:latest \
+          bash -c "cd /workspace && make test-gpu-alphatensor"
+```
+
+### **Step 9.7: Documentation and User Guide**
+**Priority**: MEDIUM  
+**Integration**: Update VARIANTS documentation
+
+#### **Usage Documentation**:
+```makefile
+# Using AlphaTensor GPU-accelerated variant
+$(FC) $(FFLAGS) -c myprog.f
+$(FC) $(FFLAGS) $(LDFLAGS) -o myexe myprog.o \
+    $(PATH_TO_LAPACK/SRC/VARIANTS)/alphatensor_hybrid.a \
+    $(LAPACKLIB) $(BLASLIB) $(OPENCL_LIBS)
+
+# Runtime behavior:
+# - Automatically detects GPU availability
+# - Uses GPU for efficient batch sizes
+# - Falls back to optimized CPU for single matrices
+# - Maintains identical numerical results
+```
+
+---
+
+## **GPU Implementation Success Criteria**
+
+### **Performance Targets**:
+- **Single 4×4**: 2-5x speedup over CPU (remove CPU optimization advantage)
+- **Batched Operations**: 10-20x speedup for 100+ matrices
+- **Memory Efficiency**: <50% overhead vs theoretical minimum
+- **Numerical Accuracy**: <1e-12 difference vs CPU implementation
+
+### **Compatibility Requirements**:
+- **GPU Vendors**: NVIDIA, AMD, Intel GPU support
+- **OpenCL Versions**: OpenCL 1.2+ compatibility
+- **Graceful Fallback**: CPU fallback when GPU unavailable
+- **Build Flexibility**: Optional GPU support (doesn't break CPU-only builds)
+
+### **Integration Success**:
+- **VARIANTS Compliance**: Follows established LAPACK VARIANTS pattern
+- **Zero API Changes**: Existing code works unchanged with hybrid library
+- **Testing Integration**: All existing tests pass with GPU implementation
+- **Documentation Completeness**: Clear usage guidelines and performance expectations
+
+---
+
+## **Expected Impact of GPU Implementation**
+
+### **ML Workload Acceleration**:
+- **Transformer Attention**: 10-20x speedup for attention head computations
+- **CNN Convolutions**: Batch processing of convolution kernels
+- **Scientific Computing**: Accelerated block matrix operations
+- **Embedded ML**: Efficient inference on GPU-enabled edge devices
+
+### **Broader Implications**:
+- **Template for GPU LAPACK**: Establishes pattern for other GPU-accelerated routines
+- **Hybrid Computing Model**: CPU-GPU dispatch based on workload characteristics  
+- **Future Hardware**: Extensible to TPU, FPGA, and other accelerators
+- **Performance Revolution**: Practical AlphaTensor speedups realized through appropriate hardware
+
+**This GPU implementation would transform AlphaTensor from a theoretical 23% improvement to a practical 10-20x speedup for appropriate workloads, finally realizing the full potential of AI-discovered algorithms.** 

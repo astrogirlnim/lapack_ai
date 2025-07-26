@@ -82,7 +82,7 @@
 
 *     Open comprehensive report file
       OPEN(UNIT=REPORT_UNIT,
-     $     FILE='phase8_6_complete_multi_algorithm_report.txt',
+     $     FILE='phase8_6_complete_report.txt',
      $     STATUS='REPLACE')
 
 *     Write detailed report header
@@ -299,12 +299,12 @@
               IF (CURRENT_SIZE .EQ. 4) THEN
                   WRITE(REPORT_UNIT, '(A)') '  (Direct AlphaTensor)'
               ELSE IF (CURRENT_SIZE .EQ. 8) THEN
-                  WRITE(REPORT_UNIT, '(A)') '  (Strassen-AlphaTensor Hybrid)'
+                  WRITE(REPORT_UNIT, '(A)') '  (Strassen-AlphaTensor)'
               ELSE IF (CURRENT_SIZE .GE. 16 .AND.
      +                 MOD(CURRENT_SIZE,4) .EQ. 0) THEN
                   WRITE(REPORT_UNIT, '(A)') '  (Block-wise AlphaTensor)'
               ELSE
-                  WRITE(REPORT_UNIT, '(A)') '  (Standard DGEMM fallback)'
+                  WRITE(REPORT_UNIT, '(A)') '  (Standard DGEMM)'
               END IF
 
 *             ========================================================
@@ -435,13 +435,13 @@
 
       WRITE(REPORT_UNIT, '(A)') ''
       WRITE(REPORT_UNIT, '(A)') 'PHASE 8.6 MATRIX SIZE ANALYSIS:'
-      WRITE(REPORT_UNIT, '(A)') '4x4: Direct AlphaTensor (49 operations)'
-      WRITE(REPORT_UNIT, '(A)') '8x8: Strassen-AlphaTensor Hybrid (343 operations)'
-      WRITE(REPORT_UNIT, '(A)') '16x16+: Block-wise AlphaTensor (23% per block)'
+      WRITE(REPORT_UNIT, '(A)') '4x4: Direct AlphaTensor (49 ops)'
+      WRITE(REPORT_UNIT, '(A)') '8x8: Strassen-AlphaTensor (343 ops)'
+      WRITE(REPORT_UNIT, '(A)') '16x16+: Block-wise AlphaTensor'
       WRITE(REPORT_UNIT, '(A)') 'Performance differences reveal:'
-      WRITE(REPORT_UNIT, '(A)') '- Multi-algorithm optimization effectiveness'
-      WRITE(REPORT_UNIT, '(A)') '- Complete size coverage without fallbacks'
-      WRITE(REPORT_UNIT, '(A)') '- Scaling behavior across optimization paths'
+      WRITE(REPORT_UNIT, '(A)') '- Multi-algorithm effectiveness'
+      WRITE(REPORT_UNIT, '(A)') '- Complete size coverage'
+      WRITE(REPORT_UNIT, '(A)') '- Scaling across optimization paths'
 
       WRITE(REPORT_UNIT, '(A)') ''
       WRITE(REPORT_UNIT, '(A)') 'RECOMMENDATION:'
@@ -475,7 +475,7 @@
      +    WINS_DGEMM, ', DGEMM_ALPHA=', WINS_ALPHA
       WRITE(*,'(A,F6.3,A)') 'Average speedup: DGEMM_ALPHA=',
      +    TOTAL_SPEEDUP_ALPHA / DBLE(TOTAL_TESTS_RUN), 'x'
-      WRITE(*,*) 'Report: phase8_6_complete_multi_algorithm_report.txt'
+      WRITE(*,*) 'Report: phase8_6_complete_report.txt'
       WRITE(*,*) '=============================================='
 
       END

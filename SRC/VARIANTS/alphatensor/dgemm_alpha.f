@@ -1092,43 +1092,533 @@
                       START_J = BLOCK_J * 4 + 1
                       START_K = BLOCK_K * 4 + 1
 *
-*                     Extract 4x4 blocks from A and B matrices
-*!DEC$ VECTOR ALWAYS
-*!GCC$ ivdep
-                      DO J = 1, 4
-                          DO I = 1, 4
-                              BLOCK_A(I,J) = A(START_I+I-1,
-     +                                        START_K+J-1)
-                              BLOCK_B(I,J) = B(START_K+I-1,
-     +                                        START_J+J-1)
-                          END DO
-                      END DO
+*                     PERFORMANCE OPTIMIZATION: INLINE ALL 49 OPERATIONS
+*                     No function calls, no memory copying - direct matrix operations
+*                     Eliminates overhead for maximum performance
 *
-*                     Initialize current 4x4 block from C matrix
-*!DEC$ VECTOR ALWAYS
-*!GCC$ ivdep
-                      DO J = 1, 4
-                          DO I = 1, 4
-                              BLOCK_C(I,J) = C(START_I+I-1,START_J+J-1)
-                          END DO
-                      END DO
+*                     Pre-load matrix elements directly (no copying)
+                      A11 = A(START_I, START_K)
+                      A12 = A(START_I, START_K+1)
+                      A13 = A(START_I, START_K+2)
+                      A14 = A(START_I, START_K+3)
+                      A21 = A(START_I+1, START_K)
+                      A22 = A(START_I+1, START_K+1)
+                      A23 = A(START_I+1, START_K+2)
+                      A24 = A(START_I+1, START_K+3)
+                      A31 = A(START_I+2, START_K)
+                      A32 = A(START_I+2, START_K+1)
+                      A33 = A(START_I+2, START_K+2)
+                      A34 = A(START_I+2, START_K+3)
+                      A41 = A(START_I+3, START_K)
+                      A42 = A(START_I+3, START_K+1)
+                      A43 = A(START_I+3, START_K+2)
+                      A44 = A(START_I+3, START_K+3)
 *
-*                     Apply DGEMM to 4x4 blocks with proper BETA scaling
-*                     First K-block: use original BETA, subsequent: use BETA=ONE
+                      B11 = B(START_K, START_J)
+                      B12 = B(START_K, START_J+1)
+                      B13 = B(START_K, START_J+2)
+                      B14 = B(START_K, START_J+3)
+                      B21 = B(START_K+1, START_J)
+                      B22 = B(START_K+1, START_J+1)
+                      B23 = B(START_K+1, START_J+2)
+                      B24 = B(START_K+1, START_J+3)
+                      B31 = B(START_K+2, START_J)
+                      B32 = B(START_K+2, START_J+1)
+                      B33 = B(START_K+2, START_J+2)
+                      B34 = B(START_K+2, START_J+3)
+                      B41 = B(START_K+3, START_J)
+                      B42 = B(START_K+3, START_J+1)
+                      B43 = B(START_K+3, START_J+2)
+                      B44 = B(START_K+3, START_J+3)
+*
+*                     Initialize temporary result matrix with BETA scaling
                       IF (BLOCK_K.EQ.0) THEN
-                          CALL DGEMM('N','N',4,4,4,ALPHA,BLOCK_A,4,
-     +                               BLOCK_B,4,BETA,BLOCK_C,4)
+                          IF (BETA.EQ.ZERO) THEN
+                              DO J = 1, 4
+                                  DO I = 1, 4
+                                      TEMP_C(I,J) = ZERO
+                                  END DO
+                              END DO
+                          ELSE
+                              DO J = 1, 4
+                                  DO I = 1, 4
+                                      TEMP_C(I,J) = BETA *
+     +                                    C(START_I+I-1,START_J+J-1)
+                                  END DO
+                              END DO
+                          END IF
                       ELSE
-                          CALL DGEMM('N','N',4,4,4,ALPHA,BLOCK_A,4,
-     +                               BLOCK_B,4,ONE,BLOCK_C,4)
+                          DO J = 1, 4
+                              DO I = 1, 4
+                                  TEMP_C(I,J) =
+     +                                C(START_I+I-1,START_J+J-1)
+                              END DO
+                          END DO
                       END IF
 *
-*                     Store results back to C matrix
-*!DEC$ VECTOR ALWAYS
-*!GCC$ ivdep
+*                     INLINED 49 ALPHATENSOR OPERATIONS (ZERO OVERHEAD)
+*                     Operation 1
+                      A_CONTRIB = A11 + A31
+                      B_CONTRIB = B11 + B31
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(1,1) = TEMP_C(1,1) + SCALAR_RESULT
+                      TEMP_C(1,3) = TEMP_C(1,3) + SCALAR_RESULT
+*
+*                     Operation 2
+                      A_CONTRIB = A11 - A13 + A31
+                      B_CONTRIB = B11 - B13 + B31
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(1,1) = TEMP_C(1,1) - SCALAR_RESULT
+                      TEMP_C(3,1) = TEMP_C(3,1) + SCALAR_RESULT
+                      TEMP_C(1,3) = TEMP_C(1,3) - SCALAR_RESULT
+*
+*                     Operation 3
+                      A_CONTRIB = -A13
+                      B_CONTRIB = B11 - B13 + B31 - B33
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(1,3) = TEMP_C(1,3) + SCALAR_RESULT
+*
+*                     Operation 4
+                      A_CONTRIB = -A33
+                      B_CONTRIB = -B33
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(3,3) = TEMP_C(3,3) + SCALAR_RESULT
+*
+*                     Operation 5
+                      A_CONTRIB = -A31
+                      B_CONTRIB = -B13
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(1,1) = TEMP_C(1,1) - SCALAR_RESULT
+                      TEMP_C(3,1) = TEMP_C(3,1) + SCALAR_RESULT
+                      TEMP_C(1,3) = TEMP_C(1,3) - SCALAR_RESULT
+                      TEMP_C(3,3) = TEMP_C(3,3) + SCALAR_RESULT
+*
+*                     Operation 6
+                      A_CONTRIB = A11 - A13 + A31 - A33
+                      B_CONTRIB = -B31
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(3,1) = TEMP_C(3,1) + SCALAR_RESULT
+*
+*                     Operation 7
+                      A_CONTRIB = -A21 + A22 - A23 - A24
+                      B_CONTRIB = -B21 + B22 - B23 - B24
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(1,2) = TEMP_C(1,2) - SCALAR_RESULT
+                      TEMP_C(2,2) = TEMP_C(2,2) + SCALAR_RESULT
+                      TEMP_C(3,2) = TEMP_C(3,2) - SCALAR_RESULT
+                      TEMP_C(4,2) = TEMP_C(4,2) - SCALAR_RESULT
+*
+*                     Operation 8
+                      A_CONTRIB = -A21 + A22 - A23 - A24 - A41 + A42
+                      B_CONTRIB = -B21 + B22 - B23 - B24 - B41 + B42
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(1,2) = TEMP_C(1,2) + SCALAR_RESULT
+                      TEMP_C(2,2) = TEMP_C(2,2) - SCALAR_RESULT
+                      TEMP_C(3,2) = TEMP_C(3,2) + SCALAR_RESULT
+                      TEMP_C(4,2) = TEMP_C(4,2) + SCALAR_RESULT
+                      TEMP_C(1,4) = TEMP_C(1,4) + SCALAR_RESULT
+                      TEMP_C(2,4) = TEMP_C(2,4) - SCALAR_RESULT
+*
+*                     Operation 9
+                      A_CONTRIB = A11 - A13
+                      B_CONTRIB = B11 - B13
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(1,1) = TEMP_C(1,1) + SCALAR_RESULT
+                      TEMP_C(3,1) = TEMP_C(3,1) - SCALAR_RESULT
+*
+*                     Operation 10
+                      A_CONTRIB = -A21 + A22 - A41 + A42
+                      B_CONTRIB = -B21 + B22 - B41 + B42
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(1,2) = TEMP_C(1,2) - SCALAR_RESULT
+                      TEMP_C(2,2) = TEMP_C(2,2) + SCALAR_RESULT
+                      TEMP_C(1,4) = TEMP_C(1,4) - SCALAR_RESULT
+                      TEMP_C(2,4) = TEMP_C(2,4) + SCALAR_RESULT
+*
+*                     Operation 11
+                      A_CONTRIB = A41 - A42
+                      B_CONTRIB = -B23 - B24
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(1,2) = TEMP_C(1,2) + SCALAR_RESULT
+                      TEMP_C(2,2) = TEMP_C(2,2) - SCALAR_RESULT
+                      TEMP_C(3,2) = TEMP_C(3,2) + SCALAR_RESULT
+                      TEMP_C(4,2) = TEMP_C(4,2) + SCALAR_RESULT
+                      TEMP_C(1,4) = TEMP_C(1,4) + SCALAR_RESULT
+                      TEMP_C(2,4) = TEMP_C(2,4) - SCALAR_RESULT
+                      TEMP_C(3,4) = TEMP_C(3,4) + SCALAR_RESULT
+                      TEMP_C(4,4) = TEMP_C(4,4) + SCALAR_RESULT
+*
+*                     Operation 12
+                      A_CONTRIB = -A21 + A22 - A23 - A24 - A41 + A42 -
+     +                            A43 - A44
+                      B_CONTRIB = B41 - B42
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(3,2) = TEMP_C(3,2) + SCALAR_RESULT
+                      TEMP_C(4,2) = TEMP_C(4,2) + SCALAR_RESULT
+*
+*                     Operation 13
+                      A_CONTRIB = -A23 - A24
+                      B_CONTRIB = -B21 + B22 - B23 - B24 - B41 + B42 -
+     +                            B43 - B44
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(1,4) = TEMP_C(1,4) - SCALAR_RESULT
+                      TEMP_C(2,4) = TEMP_C(2,4) + SCALAR_RESULT
+*
+*                     Operation 14
+                      A_CONTRIB = A11 - A12 + A21 - A22
+                      B_CONTRIB = -B12 - B14
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(1,2) = TEMP_C(1,2) - SCALAR_RESULT
+*
+*                     Operation 15
+                      A_CONTRIB = -A12 - A14
+                      B_CONTRIB = -B21
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(1,1) = TEMP_C(1,1) + SCALAR_RESULT
+                      TEMP_C(2,1) = TEMP_C(2,1) - SCALAR_RESULT
+                      TEMP_C(1,2) = TEMP_C(1,2) + SCALAR_RESULT
+                      TEMP_C(2,2) = TEMP_C(2,2) - SCALAR_RESULT
+*
+*                     Operation 16
+                      A_CONTRIB = A12 + A14 - A21 + A22 + A23 + A24
+                      B_CONTRIB = B12 + B14 - B21 + B22 + B23 + B24
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(2,1) = TEMP_C(2,1) - SCALAR_RESULT
+                      TEMP_C(4,1) = TEMP_C(4,1) - SCALAR_RESULT
+                      TEMP_C(1,2) = TEMP_C(1,2) + SCALAR_RESULT
+                      TEMP_C(2,2) = TEMP_C(2,2) - SCALAR_RESULT
+                      TEMP_C(3,2) = TEMP_C(3,2) - SCALAR_RESULT
+                      TEMP_C(4,2) = TEMP_C(4,2) - SCALAR_RESULT
+*
+*                     Operation 17
+                      A_CONTRIB = A12 + A14 - A21 + A22 + A23 + A24 +
+     +                            A32 + A41 - A42
+                      B_CONTRIB = B12 + B14 - B21 + B22 + B23 + B24 +
+     +                            B32 + B41 - B42
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(2,1) = TEMP_C(2,1) + SCALAR_RESULT
+                      TEMP_C(4,1) = TEMP_C(4,1) + SCALAR_RESULT
+                      TEMP_C(1,2) = TEMP_C(1,2) - SCALAR_RESULT
+                      TEMP_C(2,2) = TEMP_C(2,2) + SCALAR_RESULT
+                      TEMP_C(3,2) = TEMP_C(3,2) + SCALAR_RESULT
+                      TEMP_C(4,2) = TEMP_C(4,2) + SCALAR_RESULT
+                      TEMP_C(2,3) = TEMP_C(2,3) + SCALAR_RESULT
+                      TEMP_C(1,4) = TEMP_C(1,4) + SCALAR_RESULT
+                      TEMP_C(2,4) = TEMP_C(2,4) - SCALAR_RESULT
+*
+*                     Operation 18
+                      A_CONTRIB = A12 - A21 + A22 + A32 + A41 - A42
+                      B_CONTRIB = B12 - B21 + B22 + B32 + B41 - B42
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(2,1) = TEMP_C(2,1) - SCALAR_RESULT
+                      TEMP_C(1,2) = TEMP_C(1,2) + SCALAR_RESULT
+                      TEMP_C(2,2) = TEMP_C(2,2) - SCALAR_RESULT
+                      TEMP_C(2,3) = TEMP_C(2,3) - SCALAR_RESULT
+                      TEMP_C(1,4) = TEMP_C(1,4) - SCALAR_RESULT
+                      TEMP_C(2,4) = TEMP_C(2,4) + SCALAR_RESULT
+*
+*                     Operation 19
+                      A_CONTRIB = A14 + A23 + A24
+                      B_CONTRIB = B12 + B14 - B21 + B22 + B23 + B24 +
+     +                            B32 + B34 + B41 - B42 - B43 - B44
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(2,3) = TEMP_C(2,3) - SCALAR_RESULT
+                      TEMP_C(1,4) = TEMP_C(1,4) - SCALAR_RESULT
+                      TEMP_C(2,4) = TEMP_C(2,4) + SCALAR_RESULT
+*
+*                     Operation 20
+                      A_CONTRIB = A12 + A14 - A21 + A22 + A23 + A24 +
+     +                            A32 + A34 + A41 - A42 - A43 - A44
+                      B_CONTRIB = B32 + B41 - B42
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(4,1) = TEMP_C(4,1) - SCALAR_RESULT
+                      TEMP_C(3,2) = TEMP_C(3,2) - SCALAR_RESULT
+                      TEMP_C(4,2) = TEMP_C(4,2) - SCALAR_RESULT
+*
+*                     Operation 21
+                      A_CONTRIB = A32 + A41 - A42
+                      B_CONTRIB = B14 + B23 + B24
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(2,1) = TEMP_C(2,1) - SCALAR_RESULT
+                      TEMP_C(4,1) = TEMP_C(4,1) - SCALAR_RESULT
+                      TEMP_C(1,2) = TEMP_C(1,2) + SCALAR_RESULT
+                      TEMP_C(2,2) = TEMP_C(2,2) - SCALAR_RESULT
+                      TEMP_C(3,2) = TEMP_C(3,2) - SCALAR_RESULT
+                      TEMP_C(4,2) = TEMP_C(4,2) - SCALAR_RESULT
+                      TEMP_C(2,3) = TEMP_C(2,3) - SCALAR_RESULT
+                      TEMP_C(4,3) = TEMP_C(4,3) - SCALAR_RESULT
+                      TEMP_C(1,4) = TEMP_C(1,4) - SCALAR_RESULT
+                      TEMP_C(2,4) = TEMP_C(2,4) + SCALAR_RESULT
+                      TEMP_C(3,4) = TEMP_C(3,4) + SCALAR_RESULT
+                      TEMP_C(4,4) = TEMP_C(4,4) + SCALAR_RESULT
+*
+*                     Operation 22
+                      A_CONTRIB = A12 + A14 + A22 + A24
+                      B_CONTRIB = B12 + B14 + B22 + B24
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(2,1) = TEMP_C(2,1) + SCALAR_RESULT
+                      TEMP_C(4,1) = TEMP_C(4,1) + SCALAR_RESULT
+                      TEMP_C(2,2) = TEMP_C(2,2) + SCALAR_RESULT
+                      TEMP_C(4,2) = TEMP_C(4,2) + SCALAR_RESULT
+*
+*                     Operation 23
+                      A_CONTRIB = A12 + A14 + A22 + A24 + A32 - A42
+                      B_CONTRIB = B12 + B14 + B22 + B24 + B32 - B42
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(2,1) = TEMP_C(2,1) - SCALAR_RESULT
+                      TEMP_C(4,1) = TEMP_C(4,1) - SCALAR_RESULT
+                      TEMP_C(2,2) = TEMP_C(2,2) - SCALAR_RESULT
+                      TEMP_C(4,2) = TEMP_C(4,2) - SCALAR_RESULT
+                      TEMP_C(2,3) = TEMP_C(2,3) - SCALAR_RESULT
+                      TEMP_C(2,4) = TEMP_C(2,4) + SCALAR_RESULT
+*
+*                     Operation 24
+                      A_CONTRIB = A14 + A24
+                      B_CONTRIB = B12 + B14 + B22 + B24 + B32 + B34 -
+     +                            B42 - B44
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(2,3) = TEMP_C(2,3) + SCALAR_RESULT
+                      TEMP_C(2,4) = TEMP_C(2,4) - SCALAR_RESULT
+*
+*                     Operation 25
+                      A_CONTRIB = A12 + A14 + A22 + A24 + A32 + A34 -
+     +                            A42 - A44
+                      B_CONTRIB = B32 - B42
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(4,1) = TEMP_C(4,1) + SCALAR_RESULT
+                      TEMP_C(4,2) = TEMP_C(4,2) + SCALAR_RESULT
+*
+*                     Operation 26
+                      A_CONTRIB = A32 - A42
+                      B_CONTRIB = B14 + B24
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(2,1) = TEMP_C(2,1) + SCALAR_RESULT
+                      TEMP_C(4,1) = TEMP_C(4,1) + SCALAR_RESULT
+                      TEMP_C(2,2) = TEMP_C(2,2) + SCALAR_RESULT
+                      TEMP_C(4,2) = TEMP_C(4,2) + SCALAR_RESULT
+                      TEMP_C(2,3) = TEMP_C(2,3) + SCALAR_RESULT
+                      TEMP_C(4,3) = TEMP_C(4,3) + SCALAR_RESULT
+                      TEMP_C(2,4) = TEMP_C(2,4) - SCALAR_RESULT
+                      TEMP_C(4,4) = TEMP_C(4,4) - SCALAR_RESULT
+*
+*                     Operation 27
+                      A_CONTRIB = A34 - A44
+                      B_CONTRIB = B34 - B44
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(4,3) = TEMP_C(4,3) - SCALAR_RESULT
+                      TEMP_C(4,4) = TEMP_C(4,4) + SCALAR_RESULT
+*
+*                     Operation 28
+                      A_CONTRIB = A34 - A43 - A44
+                      B_CONTRIB = B34 - B43 - B44
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(4,3) = TEMP_C(4,3) + SCALAR_RESULT
+                      TEMP_C(3,4) = TEMP_C(3,4) - SCALAR_RESULT
+                      TEMP_C(4,4) = TEMP_C(4,4) - SCALAR_RESULT
+*
+*                     Operation 29
+                      A_CONTRIB = A14 + A34
+                      B_CONTRIB = -B43
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(3,1) = TEMP_C(3,1) - SCALAR_RESULT
+                      TEMP_C(4,1) = TEMP_C(4,1) - SCALAR_RESULT
+                      TEMP_C(3,2) = TEMP_C(3,2) - SCALAR_RESULT
+                      TEMP_C(4,2) = TEMP_C(4,2) - SCALAR_RESULT
+                      TEMP_C(3,3) = TEMP_C(3,3) - SCALAR_RESULT
+                      TEMP_C(4,3) = TEMP_C(4,3) - SCALAR_RESULT
+                      TEMP_C(3,4) = TEMP_C(3,4) + SCALAR_RESULT
+                      TEMP_C(4,4) = TEMP_C(4,4) + SCALAR_RESULT
+*
+*                     Operation 30
+                      A_CONTRIB = A13 + A14 + A23 + A24 + A33 + A34 -
+     +                            A43 - A44
+                      B_CONTRIB = B14 + B34
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(3,4) = TEMP_C(3,4) + SCALAR_RESULT
+*
+*                     Operation 31
+                      A_CONTRIB = A11 - A12 - A13 - A14 + A21 - A22 -
+     +                            A23 - A24 + A31 - A32 - A33 - A34 -
+     +                            A41 + A42 + A43 + A44
+                      B_CONTRIB = B14
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(1,2) = TEMP_C(1,2) - SCALAR_RESULT
+                      TEMP_C(1,4) = TEMP_C(1,4) + SCALAR_RESULT
+*
+*                     Operation 32
+                      A_CONTRIB = -A43
+                      B_CONTRIB = B13 + B14 + B23 + B24 + B33 + B34 -
+     +                            B43 - B44
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(4,1) = TEMP_C(4,1) - SCALAR_RESULT
+                      TEMP_C(4,3) = TEMP_C(4,3) - SCALAR_RESULT
+*
+*                     Operation 33
+                      A_CONTRIB = A14
+                      B_CONTRIB = -B21 + B41
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(1,1) = TEMP_C(1,1) + SCALAR_RESULT
+                      TEMP_C(2,1) = TEMP_C(2,1) - SCALAR_RESULT
+                      TEMP_C(3,1) = TEMP_C(3,1) - SCALAR_RESULT
+                      TEMP_C(4,1) = TEMP_C(4,1) - SCALAR_RESULT
+                      TEMP_C(1,2) = TEMP_C(1,2) + SCALAR_RESULT
+                      TEMP_C(2,2) = TEMP_C(2,2) - SCALAR_RESULT
+                      TEMP_C(3,2) = TEMP_C(3,2) - SCALAR_RESULT
+                      TEMP_C(4,2) = TEMP_C(4,2) - SCALAR_RESULT
+                      TEMP_C(1,3) = TEMP_C(1,3) + SCALAR_RESULT
+                      TEMP_C(2,3) = TEMP_C(2,3) - SCALAR_RESULT
+                      TEMP_C(3,3) = TEMP_C(3,3) - SCALAR_RESULT
+                      TEMP_C(4,3) = TEMP_C(4,3) - SCALAR_RESULT
+                      TEMP_C(1,4) = TEMP_C(1,4) - SCALAR_RESULT
+                      TEMP_C(2,4) = TEMP_C(2,4) + SCALAR_RESULT
+                      TEMP_C(3,4) = TEMP_C(3,4) + SCALAR_RESULT
+                      TEMP_C(4,4) = TEMP_C(4,4) + SCALAR_RESULT
+*
+*                     Operation 34
+                      A_CONTRIB = A14 - A32
+                      B_CONTRIB = -B21 + B41 - B43
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(3,1) = TEMP_C(3,1) + SCALAR_RESULT
+                      TEMP_C(4,1) = TEMP_C(4,1) + SCALAR_RESULT
+                      TEMP_C(3,2) = TEMP_C(3,2) + SCALAR_RESULT
+                      TEMP_C(4,2) = TEMP_C(4,2) + SCALAR_RESULT
+                      TEMP_C(1,3) = TEMP_C(1,3) - SCALAR_RESULT
+                      TEMP_C(2,3) = TEMP_C(2,3) + SCALAR_RESULT
+                      TEMP_C(3,3) = TEMP_C(3,3) + SCALAR_RESULT
+                      TEMP_C(4,3) = TEMP_C(4,3) + SCALAR_RESULT
+                      TEMP_C(1,4) = TEMP_C(1,4) + SCALAR_RESULT
+                      TEMP_C(2,4) = TEMP_C(2,4) - SCALAR_RESULT
+                      TEMP_C(3,4) = TEMP_C(3,4) - SCALAR_RESULT
+                      TEMP_C(4,4) = TEMP_C(4,4) - SCALAR_RESULT
+*
+*                     Operation 35
+                      A_CONTRIB = A13 + A14 + A23 + A24 - A31 + A32 +
+     +                            A33 + A34 + A41 - A42 - A43 - A44
+                      B_CONTRIB = B14 - B32
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(1,2) = TEMP_C(1,2) - SCALAR_RESULT
+                      TEMP_C(1,4) = TEMP_C(1,4) + SCALAR_RESULT
+                      TEMP_C(3,4) = TEMP_C(3,4) - SCALAR_RESULT
+*
+*                     Operation 36
+                      A_CONTRIB = -A31 + A32 + A33 + A34 + A41 - A42 -
+     +                            A43 - A44
+                      B_CONTRIB = B32
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(1,2) = TEMP_C(1,2) - SCALAR_RESULT
+                      TEMP_C(3,2) = TEMP_C(3,2) + SCALAR_RESULT
+                      TEMP_C(1,4) = TEMP_C(1,4) + SCALAR_RESULT
+                      TEMP_C(3,4) = TEMP_C(3,4) - SCALAR_RESULT
+*
+*                     Operation 37
+                      A_CONTRIB = -A12 - A32
+                      B_CONTRIB = -B23
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(1,3) = TEMP_C(1,3) + SCALAR_RESULT
+                      TEMP_C(2,3) = TEMP_C(2,3) - SCALAR_RESULT
+                      TEMP_C(1,4) = TEMP_C(1,4) - SCALAR_RESULT
+                      TEMP_C(2,4) = TEMP_C(2,4) + SCALAR_RESULT
+*
+*                     Operation 38
+                      A_CONTRIB = A32 + A34
+                      B_CONTRIB = B41 - B43
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(3,1) = TEMP_C(3,1) + SCALAR_RESULT
+                      TEMP_C(4,1) = TEMP_C(4,1) + SCALAR_RESULT
+                      TEMP_C(3,2) = TEMP_C(3,2) + SCALAR_RESULT
+                      TEMP_C(4,2) = TEMP_C(4,2) + SCALAR_RESULT
+*
+*                     Operation 39
+                      A_CONTRIB = -A13 - A14 - A23 - A24
+                      B_CONTRIB = B32 + B34
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(1,4) = TEMP_C(1,4) - SCALAR_RESULT
+                      TEMP_C(3,4) = TEMP_C(3,4) + SCALAR_RESULT
+*
+*                     Operation 40
+                      A_CONTRIB = A32
+                      B_CONTRIB = -B21 + B23 + B41 - B43
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(1,3) = TEMP_C(1,3) - SCALAR_RESULT
+                      TEMP_C(2,3) = TEMP_C(2,3) + SCALAR_RESULT
+                      TEMP_C(3,3) = TEMP_C(3,3) + SCALAR_RESULT
+                      TEMP_C(4,3) = TEMP_C(4,3) + SCALAR_RESULT
+                      TEMP_C(1,4) = TEMP_C(1,4) + SCALAR_RESULT
+                      TEMP_C(2,4) = TEMP_C(2,4) - SCALAR_RESULT
+                      TEMP_C(3,4) = TEMP_C(3,4) - SCALAR_RESULT
+                      TEMP_C(4,4) = TEMP_C(4,4) - SCALAR_RESULT
+*
+*                     Operation 41
+                      A_CONTRIB = -A21
+                      B_CONTRIB = B11 - B12 + B21 - B22
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(2,1) = TEMP_C(2,1) - SCALAR_RESULT
+                      TEMP_C(4,1) = TEMP_C(4,1) - SCALAR_RESULT
+*
+*                     Operation 42
+                      A_CONTRIB = -A21 + A41
+                      B_CONTRIB = B11 - B12 - B13 - B14 +
+     +                            B21 - B22 - B23 - B24 +
+     +                            B31 - B32 - B33 - B34 -
+     +                            B41 + B42 + B43 + B44
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(4,1) = TEMP_C(4,1) + SCALAR_RESULT
+*
+*                     Operation 43
+                      A_CONTRIB = -A21 + A41 - A43
+                      B_CONTRIB = B13 + B14 + B23 + B24 - B31 + B32 +
+     +                            B33 + B34 + B41 - B42 - B43 - B44
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(4,1) = TEMP_C(4,1) + SCALAR_RESULT
+                      TEMP_C(2,3) = TEMP_C(2,3) - SCALAR_RESULT
+*
+*                     Operation 44
+                      A_CONTRIB = A12 + A22 + A32 - A42
+                      B_CONTRIB = B12 + B22 + B32 - B42
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(2,1) = TEMP_C(2,1) + SCALAR_RESULT
+                      TEMP_C(2,2) = TEMP_C(2,2) + SCALAR_RESULT
+                      TEMP_C(2,3) = TEMP_C(2,3) + SCALAR_RESULT
+                      TEMP_C(2,4) = TEMP_C(2,4) - SCALAR_RESULT
+*
+*                     Operation 45
+                      A_CONTRIB = -A21 + A23 + A41 - A43
+                      B_CONTRIB = -B31 + B32 + B33 + B34 + B41 - B42 -
+     +                            B43 - B44
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(2,3) = TEMP_C(2,3) + SCALAR_RESULT
+*
+*                     Operation 46
+                      A_CONTRIB = -A31 + A32 + A41 - A42
+                      B_CONTRIB = -B12 - B32
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(3,2) = TEMP_C(3,2) + SCALAR_RESULT
+*
+*                     Operation 47
+                      A_CONTRIB = A41 - A43
+                      B_CONTRIB = -B13 - B14 - B23 - B24
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(2,3) = TEMP_C(2,3) - SCALAR_RESULT
+                      TEMP_C(4,3) = TEMP_C(4,3) - SCALAR_RESULT
+*
+*                     Operation 48
+                      A_CONTRIB = -A43 - A44
+                      B_CONTRIB = -B43 - B44
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(3,4) = TEMP_C(3,4) + SCALAR_RESULT
+                      TEMP_C(4,4) = TEMP_C(4,4) + SCALAR_RESULT
+*
+*                     Operation 49: FINAL OPERATION
+                      A_CONTRIB = -A23
+                      B_CONTRIB = -B31 + B32 + B41 - B42
+                      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+                      TEMP_C(2,1) = TEMP_C(2,1) + SCALAR_RESULT
+                      TEMP_C(2,3) = TEMP_C(2,3) + SCALAR_RESULT
+*
+*                     Store final results directly to C matrix
                       DO J = 1, 4
                           DO I = 1, 4
-                              C(START_I+I-1,START_J+J-1) = BLOCK_C(I,J)
+                              C(START_I+I-1,START_J+J-1) = TEMP_C(I,J)
                           END DO
                       END DO
 *
@@ -1161,4 +1651,533 @@
 *     COMPREHENSIVE: Block-wise scalability to arbitrarily large matrices
 *     =====================================================================
 *
+      END
+*
+*     =====================================================================
+      SUBROUTINE DGEMM_ALPHATENSOR_BLOCK(ALPHA, A, LDA, B, LDB, BETA,
+     +                                   C, LDC)
+*     =====================================================================
+*     -- BLOCK-OPTIMIZED ALPHATENSOR SUBROUTINE --
+*     =====================================================================
+*     -- Applies 49-operation AlphaTensor algorithm to 4x4 blocks --
+*     -- Used by block-wise implementation for large matrices --
+*     -- Eliminates DGEMM call overhead while preserving optimization --
+*     =====================================================================
+*
+*     .. Scalar Arguments ..
+      DOUBLE PRECISION ALPHA, BETA
+      INTEGER LDA, LDB, LDC
+*     ..
+*     .. Array Arguments ..
+      DOUBLE PRECISION A(LDA,*), B(LDB,*), C(LDC,*)
+*     ..
+*
+*     .. Parameters ..
+      DOUBLE PRECISION ONE, ZERO
+      PARAMETER (ONE=1.0D+0, ZERO=0.0D+0)
+*     ..
+*     .. Local Scalars ..
+      DOUBLE PRECISION A_CONTRIB, B_CONTRIB, SCALAR_RESULT
+      DOUBLE PRECISION A11, A12, A13, A14, A21, A22, A23, A24
+      DOUBLE PRECISION A31, A32, A33, A34, A41, A42, A43, A44
+      DOUBLE PRECISION B11, B12, B13, B14, B21, B22, B23, B24
+      DOUBLE PRECISION B31, B32, B33, B34, B41, B42, B43, B44
+      DOUBLE PRECISION TEMP_C(4,4)
+*     ..
+*
+*     Initialize TEMP_C with BETA scaling
+      IF (BETA.EQ.ZERO) THEN
+          DO J = 1, 4
+              DO I = 1, 4
+                  TEMP_C(I,J) = ZERO
+              END DO
+          END DO
+      ELSE
+          DO J = 1, 4
+              DO I = 1, 4
+                  TEMP_C(I,J) = BETA * C(I,J)
+              END DO
+          END DO
+      END IF
+*
+*     Pre-load matrix elements for optimization
+      A11 = A(1,1); A12 = A(1,2); A13 = A(1,3); A14 = A(1,4)
+      A21 = A(2,1); A22 = A(2,2); A23 = A(2,3); A24 = A(2,4)
+      A31 = A(3,1); A32 = A(3,2); A33 = A(3,3); A34 = A(3,4)
+      A41 = A(4,1); A42 = A(4,2); A43 = A(4,3); A44 = A(4,4)
+
+      B11 = B(1,1); B12 = B(1,2); B13 = B(1,3); B14 = B(1,4)
+      B21 = B(2,1); B22 = B(2,2); B23 = B(2,3); B24 = B(2,4)
+      B31 = B(3,1); B32 = B(3,2); B33 = B(3,3); B34 = B(3,4)
+      B41 = B(4,1); B42 = B(4,2); B43 = B(4,3); B44 = B(4,4)
+*
+*     ================================================================
+*     ALL 49 ALPHATENSOR OPERATIONS (COMPLETE IMPLEMENTATION)
+*     ================================================================
+*
+*     Operation 1
+      A_CONTRIB = A11 + A31
+      B_CONTRIB = B11 + B31
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(1,1) = TEMP_C(1,1) + SCALAR_RESULT
+      TEMP_C(1,3) = TEMP_C(1,3) + SCALAR_RESULT
+*
+*     Operation 2
+      A_CONTRIB = A11 - A13 + A31
+      B_CONTRIB = B11 - B13 + B31
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(1,1) = TEMP_C(1,1) - SCALAR_RESULT
+      TEMP_C(3,1) = TEMP_C(3,1) + SCALAR_RESULT
+      TEMP_C(1,3) = TEMP_C(1,3) - SCALAR_RESULT
+*
+*     Operation 3
+      A_CONTRIB = -A13
+      B_CONTRIB = B11 - B13 + B31 - B33
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(1,3) = TEMP_C(1,3) + SCALAR_RESULT
+*
+*     Operation 4
+      A_CONTRIB = -A33
+      B_CONTRIB = -B33
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(3,3) = TEMP_C(3,3) + SCALAR_RESULT
+*
+*     Operation 5
+      A_CONTRIB = -A31
+      B_CONTRIB = -B13
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(1,1) = TEMP_C(1,1) - SCALAR_RESULT
+      TEMP_C(3,1) = TEMP_C(3,1) + SCALAR_RESULT
+      TEMP_C(1,3) = TEMP_C(1,3) - SCALAR_RESULT
+      TEMP_C(3,3) = TEMP_C(3,3) + SCALAR_RESULT
+*
+*     Operation 6
+      A_CONTRIB = A11 - A13 + A31 - A33
+      B_CONTRIB = -B31
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(3,1) = TEMP_C(3,1) + SCALAR_RESULT
+*
+*     Operation 7
+      A_CONTRIB = -A21 + A22 - A23 - A24
+      B_CONTRIB = -B21 + B22 - B23 - B24
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(1,2) = TEMP_C(1,2) - SCALAR_RESULT
+      TEMP_C(2,2) = TEMP_C(2,2) + SCALAR_RESULT
+      TEMP_C(3,2) = TEMP_C(3,2) - SCALAR_RESULT
+      TEMP_C(4,2) = TEMP_C(4,2) - SCALAR_RESULT
+*
+*     Operation 8
+      A_CONTRIB = -A21 + A22 - A23 - A24 - A41 + A42
+      B_CONTRIB = -B21 + B22 - B23 - B24 - B41 + B42
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(1,2) = TEMP_C(1,2) + SCALAR_RESULT
+      TEMP_C(2,2) = TEMP_C(2,2) - SCALAR_RESULT
+      TEMP_C(3,2) = TEMP_C(3,2) + SCALAR_RESULT
+      TEMP_C(4,2) = TEMP_C(4,2) + SCALAR_RESULT
+      TEMP_C(1,4) = TEMP_C(1,4) + SCALAR_RESULT
+      TEMP_C(2,4) = TEMP_C(2,4) - SCALAR_RESULT
+*
+*     Operation 9
+      A_CONTRIB = A11 - A13
+      B_CONTRIB = B11 - B13
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(1,1) = TEMP_C(1,1) + SCALAR_RESULT
+      TEMP_C(3,1) = TEMP_C(3,1) - SCALAR_RESULT
+*
+*     Operation 10
+      A_CONTRIB = -A21 + A22 - A41 + A42
+      B_CONTRIB = -B21 + B22 - B41 + B42
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(1,2) = TEMP_C(1,2) - SCALAR_RESULT
+      TEMP_C(2,2) = TEMP_C(2,2) + SCALAR_RESULT
+      TEMP_C(1,4) = TEMP_C(1,4) - SCALAR_RESULT
+      TEMP_C(2,4) = TEMP_C(2,4) + SCALAR_RESULT
+*
+*     Operation 11
+      A_CONTRIB = A41 - A42
+      B_CONTRIB = -B23 - B24
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(1,2) = TEMP_C(1,2) + SCALAR_RESULT
+      TEMP_C(2,2) = TEMP_C(2,2) - SCALAR_RESULT
+      TEMP_C(3,2) = TEMP_C(3,2) + SCALAR_RESULT
+      TEMP_C(4,2) = TEMP_C(4,2) + SCALAR_RESULT
+      TEMP_C(1,4) = TEMP_C(1,4) + SCALAR_RESULT
+      TEMP_C(2,4) = TEMP_C(2,4) - SCALAR_RESULT
+      TEMP_C(3,4) = TEMP_C(3,4) + SCALAR_RESULT
+      TEMP_C(4,4) = TEMP_C(4,4) + SCALAR_RESULT
+*
+*     Operation 12
+      A_CONTRIB = -A21 + A22 - A23 - A24 - A41 + A42 -
+     +            A43 - A44
+      B_CONTRIB = B41 - B42
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(3,2) = TEMP_C(3,2) + SCALAR_RESULT
+      TEMP_C(4,2) = TEMP_C(4,2) + SCALAR_RESULT
+*
+*     Operation 13
+      A_CONTRIB = -A23 - A24
+      B_CONTRIB = -B21 + B22 - B23 - B24 - B41 + B42 -
+     +            B43 - B44
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(1,4) = TEMP_C(1,4) - SCALAR_RESULT
+      TEMP_C(2,4) = TEMP_C(2,4) + SCALAR_RESULT
+*
+*     Operation 14
+      A_CONTRIB = A11 - A12 + A21 - A22
+      B_CONTRIB = -B12 - B14
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(1,2) = TEMP_C(1,2) - SCALAR_RESULT
+*
+*     Operation 15
+      A_CONTRIB = -A12 - A14
+      B_CONTRIB = -B21
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(1,1) = TEMP_C(1,1) + SCALAR_RESULT
+      TEMP_C(2,1) = TEMP_C(2,1) - SCALAR_RESULT
+      TEMP_C(1,2) = TEMP_C(1,2) + SCALAR_RESULT
+      TEMP_C(2,2) = TEMP_C(2,2) - SCALAR_RESULT
+*
+*     Operation 16
+      A_CONTRIB = A12 + A14 - A21 + A22 + A23 + A24
+      B_CONTRIB = B12 + B14 - B21 + B22 + B23 + B24
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(2,1) = TEMP_C(2,1) - SCALAR_RESULT
+      TEMP_C(4,1) = TEMP_C(4,1) - SCALAR_RESULT
+      TEMP_C(1,2) = TEMP_C(1,2) + SCALAR_RESULT
+      TEMP_C(2,2) = TEMP_C(2,2) - SCALAR_RESULT
+      TEMP_C(3,2) = TEMP_C(3,2) - SCALAR_RESULT
+      TEMP_C(4,2) = TEMP_C(4,2) - SCALAR_RESULT
+*
+*     Operation 17
+      A_CONTRIB = A12 + A14 - A21 + A22 + A23 + A24 +
+     +            A32 + A41 - A42
+      B_CONTRIB = B12 + B14 - B21 + B22 + B23 + B24 +
+     +            B32 + B41 - B42
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(2,1) = TEMP_C(2,1) + SCALAR_RESULT
+      TEMP_C(4,1) = TEMP_C(4,1) + SCALAR_RESULT
+      TEMP_C(1,2) = TEMP_C(1,2) - SCALAR_RESULT
+      TEMP_C(2,2) = TEMP_C(2,2) + SCALAR_RESULT
+      TEMP_C(3,2) = TEMP_C(3,2) + SCALAR_RESULT
+      TEMP_C(4,2) = TEMP_C(4,2) + SCALAR_RESULT
+      TEMP_C(2,3) = TEMP_C(2,3) + SCALAR_RESULT
+      TEMP_C(1,4) = TEMP_C(1,4) + SCALAR_RESULT
+      TEMP_C(2,4) = TEMP_C(2,4) - SCALAR_RESULT
+*
+*     Operation 18
+      A_CONTRIB = A12 - A21 + A22 + A32 + A41 - A42
+      B_CONTRIB = B12 - B21 + B22 + B32 + B41 - B42
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(2,1) = TEMP_C(2,1) - SCALAR_RESULT
+      TEMP_C(1,2) = TEMP_C(1,2) + SCALAR_RESULT
+      TEMP_C(2,2) = TEMP_C(2,2) - SCALAR_RESULT
+      TEMP_C(2,3) = TEMP_C(2,3) - SCALAR_RESULT
+      TEMP_C(1,4) = TEMP_C(1,4) - SCALAR_RESULT
+      TEMP_C(2,4) = TEMP_C(2,4) + SCALAR_RESULT
+*
+*     Operation 19
+      A_CONTRIB = A14 + A23 + A24
+      B_CONTRIB = B12 + B14 - B21 + B22 + B23 + B24 +
+     +            B32 + B34 + B41 - B42 - B43 - B44
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(2,3) = TEMP_C(2,3) - SCALAR_RESULT
+      TEMP_C(1,4) = TEMP_C(1,4) - SCALAR_RESULT
+      TEMP_C(2,4) = TEMP_C(2,4) + SCALAR_RESULT
+*
+*     Operation 20
+      A_CONTRIB = A12 + A14 - A21 + A22 + A23 + A24 +
+     +            A32 + A34 + A41 - A42 - A43 - A44
+      B_CONTRIB = B32 + B41 - B42
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(4,1) = TEMP_C(4,1) - SCALAR_RESULT
+      TEMP_C(3,2) = TEMP_C(3,2) - SCALAR_RESULT
+      TEMP_C(4,2) = TEMP_C(4,2) - SCALAR_RESULT
+*
+*     Operation 21
+      A_CONTRIB = A32 + A41 - A42
+      B_CONTRIB = B14 + B23 + B24
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(2,1) = TEMP_C(2,1) - SCALAR_RESULT
+      TEMP_C(4,1) = TEMP_C(4,1) - SCALAR_RESULT
+      TEMP_C(1,2) = TEMP_C(1,2) + SCALAR_RESULT
+      TEMP_C(2,2) = TEMP_C(2,2) - SCALAR_RESULT
+      TEMP_C(3,2) = TEMP_C(3,2) - SCALAR_RESULT
+      TEMP_C(4,2) = TEMP_C(4,2) - SCALAR_RESULT
+      TEMP_C(2,3) = TEMP_C(2,3) - SCALAR_RESULT
+      TEMP_C(4,3) = TEMP_C(4,3) - SCALAR_RESULT
+      TEMP_C(1,4) = TEMP_C(1,4) - SCALAR_RESULT
+      TEMP_C(2,4) = TEMP_C(2,4) + SCALAR_RESULT
+      TEMP_C(3,4) = TEMP_C(3,4) + SCALAR_RESULT
+      TEMP_C(4,4) = TEMP_C(4,4) + SCALAR_RESULT
+*
+*     Operation 22
+      A_CONTRIB = A12 + A14 + A22 + A24
+      B_CONTRIB = B12 + B14 + B22 + B24
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(2,1) = TEMP_C(2,1) + SCALAR_RESULT
+      TEMP_C(4,1) = TEMP_C(4,1) + SCALAR_RESULT
+      TEMP_C(2,2) = TEMP_C(2,2) + SCALAR_RESULT
+      TEMP_C(4,2) = TEMP_C(4,2) + SCALAR_RESULT
+*
+*     Operation 23
+      A_CONTRIB = A12 + A14 + A22 + A24 + A32 - A42
+      B_CONTRIB = B12 + B14 + B22 + B24 + B32 - B42
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(2,1) = TEMP_C(2,1) - SCALAR_RESULT
+      TEMP_C(4,1) = TEMP_C(4,1) - SCALAR_RESULT
+      TEMP_C(2,2) = TEMP_C(2,2) - SCALAR_RESULT
+      TEMP_C(4,2) = TEMP_C(4,2) - SCALAR_RESULT
+      TEMP_C(2,3) = TEMP_C(2,3) - SCALAR_RESULT
+      TEMP_C(2,4) = TEMP_C(2,4) + SCALAR_RESULT
+*
+*     Operation 24
+      A_CONTRIB = A14 + A24
+      B_CONTRIB = B12 + B14 + B22 + B24 + B32 + B34 -
+     +            B42 - B44
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(2,3) = TEMP_C(2,3) + SCALAR_RESULT
+      TEMP_C(2,4) = TEMP_C(2,4) - SCALAR_RESULT
+*
+*     Operation 25
+      A_CONTRIB = A12 + A14 + A22 + A24 + A32 + A34 -
+     +            A42 - A44
+      B_CONTRIB = B32 - B42
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(4,1) = TEMP_C(4,1) + SCALAR_RESULT
+      TEMP_C(4,2) = TEMP_C(4,2) + SCALAR_RESULT
+*
+*     Operation 26
+      A_CONTRIB = A32 - A42
+      B_CONTRIB = B14 + B24
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(2,1) = TEMP_C(2,1) + SCALAR_RESULT
+      TEMP_C(4,1) = TEMP_C(4,1) + SCALAR_RESULT
+      TEMP_C(2,2) = TEMP_C(2,2) + SCALAR_RESULT
+      TEMP_C(4,2) = TEMP_C(4,2) + SCALAR_RESULT
+      TEMP_C(2,3) = TEMP_C(2,3) + SCALAR_RESULT
+      TEMP_C(4,3) = TEMP_C(4,3) + SCALAR_RESULT
+      TEMP_C(2,4) = TEMP_C(2,4) - SCALAR_RESULT
+      TEMP_C(4,4) = TEMP_C(4,4) - SCALAR_RESULT
+*
+*     Operation 27
+      A_CONTRIB = A34 - A44
+      B_CONTRIB = B34 - B44
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(4,3) = TEMP_C(4,3) - SCALAR_RESULT
+      TEMP_C(4,4) = TEMP_C(4,4) + SCALAR_RESULT
+*
+*     Operation 28
+      A_CONTRIB = A34 - A43 - A44
+      B_CONTRIB = B34 - B43 - B44
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(4,3) = TEMP_C(4,3) + SCALAR_RESULT
+      TEMP_C(3,4) = TEMP_C(3,4) - SCALAR_RESULT
+      TEMP_C(4,4) = TEMP_C(4,4) - SCALAR_RESULT
+*
+*     Operation 29
+      A_CONTRIB = A14 + A34
+      B_CONTRIB = -B43
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(3,1) = TEMP_C(3,1) - SCALAR_RESULT
+      TEMP_C(4,1) = TEMP_C(4,1) - SCALAR_RESULT
+      TEMP_C(3,2) = TEMP_C(3,2) - SCALAR_RESULT
+      TEMP_C(4,2) = TEMP_C(4,2) - SCALAR_RESULT
+      TEMP_C(3,3) = TEMP_C(3,3) - SCALAR_RESULT
+      TEMP_C(4,3) = TEMP_C(4,3) - SCALAR_RESULT
+      TEMP_C(3,4) = TEMP_C(3,4) + SCALAR_RESULT
+      TEMP_C(4,4) = TEMP_C(4,4) + SCALAR_RESULT
+*
+*     Operation 30
+      A_CONTRIB = A13 + A14 + A23 + A24 + A33 + A34 -
+     +            A43 - A44
+      B_CONTRIB = B14 + B34
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(3,4) = TEMP_C(3,4) + SCALAR_RESULT
+*
+*     Operation 31
+      A_CONTRIB = A11 - A12 - A13 - A14 + A21 - A22 -
+     +            A23 - A24 + A31 - A32 - A33 - A34 -
+     +            A41 + A42 + A43 + A44
+      B_CONTRIB = B14
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(1,2) = TEMP_C(1,2) - SCALAR_RESULT
+      TEMP_C(1,4) = TEMP_C(1,4) + SCALAR_RESULT
+*
+*     Operation 32
+      A_CONTRIB = -A43
+      B_CONTRIB = B13 + B14 + B23 + B24 + B33 + B34 -
+     +            B43 - B44
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(4,1) = TEMP_C(4,1) - SCALAR_RESULT
+      TEMP_C(4,3) = TEMP_C(4,3) - SCALAR_RESULT
+*
+*     Operation 33
+      A_CONTRIB = A14
+      B_CONTRIB = -B21 + B41
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(1,1) = TEMP_C(1,1) + SCALAR_RESULT
+      TEMP_C(2,1) = TEMP_C(2,1) - SCALAR_RESULT
+      TEMP_C(3,1) = TEMP_C(3,1) - SCALAR_RESULT
+      TEMP_C(4,1) = TEMP_C(4,1) - SCALAR_RESULT
+      TEMP_C(1,2) = TEMP_C(1,2) + SCALAR_RESULT
+      TEMP_C(2,2) = TEMP_C(2,2) - SCALAR_RESULT
+      TEMP_C(3,2) = TEMP_C(3,2) - SCALAR_RESULT
+      TEMP_C(4,2) = TEMP_C(4,2) - SCALAR_RESULT
+      TEMP_C(1,3) = TEMP_C(1,3) + SCALAR_RESULT
+      TEMP_C(2,3) = TEMP_C(2,3) - SCALAR_RESULT
+      TEMP_C(3,3) = TEMP_C(3,3) - SCALAR_RESULT
+      TEMP_C(4,3) = TEMP_C(4,3) - SCALAR_RESULT
+      TEMP_C(1,4) = TEMP_C(1,4) - SCALAR_RESULT
+      TEMP_C(2,4) = TEMP_C(2,4) + SCALAR_RESULT
+      TEMP_C(3,4) = TEMP_C(3,4) + SCALAR_RESULT
+      TEMP_C(4,4) = TEMP_C(4,4) + SCALAR_RESULT
+*
+*     Operation 34
+      A_CONTRIB = A14 - A32
+      B_CONTRIB = -B21 + B41 - B43
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(3,1) = TEMP_C(3,1) + SCALAR_RESULT
+      TEMP_C(4,1) = TEMP_C(4,1) + SCALAR_RESULT
+      TEMP_C(3,2) = TEMP_C(3,2) + SCALAR_RESULT
+      TEMP_C(4,2) = TEMP_C(4,2) + SCALAR_RESULT
+      TEMP_C(1,3) = TEMP_C(1,3) - SCALAR_RESULT
+      TEMP_C(2,3) = TEMP_C(2,3) + SCALAR_RESULT
+      TEMP_C(3,3) = TEMP_C(3,3) + SCALAR_RESULT
+      TEMP_C(4,3) = TEMP_C(4,3) + SCALAR_RESULT
+      TEMP_C(1,4) = TEMP_C(1,4) + SCALAR_RESULT
+      TEMP_C(2,4) = TEMP_C(2,4) - SCALAR_RESULT
+      TEMP_C(3,4) = TEMP_C(3,4) - SCALAR_RESULT
+      TEMP_C(4,4) = TEMP_C(4,4) - SCALAR_RESULT
+*
+*     Operation 35
+      A_CONTRIB = A13 + A14 + A23 + A24 - A31 + A32 +
+     +            A33 + A34 + A41 - A42 - A43 - A44
+      B_CONTRIB = B14 - B32
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(1,2) = TEMP_C(1,2) - SCALAR_RESULT
+      TEMP_C(1,4) = TEMP_C(1,4) + SCALAR_RESULT
+      TEMP_C(3,4) = TEMP_C(3,4) - SCALAR_RESULT
+*
+*     Operation 36
+      A_CONTRIB = -A31 + A32 + A33 + A34 + A41 - A42 -
+     +            A43 - A44
+      B_CONTRIB = B32
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(1,2) = TEMP_C(1,2) - SCALAR_RESULT
+      TEMP_C(3,2) = TEMP_C(3,2) + SCALAR_RESULT
+      TEMP_C(1,4) = TEMP_C(1,4) + SCALAR_RESULT
+      TEMP_C(3,4) = TEMP_C(3,4) - SCALAR_RESULT
+*
+*     Operation 37
+      A_CONTRIB = -A12 - A32
+      B_CONTRIB = -B23
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(1,3) = TEMP_C(1,3) + SCALAR_RESULT
+      TEMP_C(2,3) = TEMP_C(2,3) - SCALAR_RESULT
+      TEMP_C(1,4) = TEMP_C(1,4) - SCALAR_RESULT
+      TEMP_C(2,4) = TEMP_C(2,4) + SCALAR_RESULT
+*
+*     Operation 38
+      A_CONTRIB = A32 + A34
+      B_CONTRIB = B41 - B43
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(3,1) = TEMP_C(3,1) + SCALAR_RESULT
+      TEMP_C(4,1) = TEMP_C(4,1) + SCALAR_RESULT
+      TEMP_C(3,2) = TEMP_C(3,2) + SCALAR_RESULT
+      TEMP_C(4,2) = TEMP_C(4,2) + SCALAR_RESULT
+*
+*     Operation 39
+      A_CONTRIB = -A13 - A14 - A23 - A24
+      B_CONTRIB = B32 + B34
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(1,4) = TEMP_C(1,4) - SCALAR_RESULT
+      TEMP_C(3,4) = TEMP_C(3,4) + SCALAR_RESULT
+*
+*     Operation 40
+      A_CONTRIB = A32
+      B_CONTRIB = -B21 + B23 + B41 - B43
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(1,3) = TEMP_C(1,3) - SCALAR_RESULT
+      TEMP_C(2,3) = TEMP_C(2,3) + SCALAR_RESULT
+      TEMP_C(3,3) = TEMP_C(3,3) + SCALAR_RESULT
+      TEMP_C(4,3) = TEMP_C(4,3) + SCALAR_RESULT
+      TEMP_C(1,4) = TEMP_C(1,4) + SCALAR_RESULT
+      TEMP_C(2,4) = TEMP_C(2,4) - SCALAR_RESULT
+      TEMP_C(3,4) = TEMP_C(3,4) - SCALAR_RESULT
+      TEMP_C(4,4) = TEMP_C(4,4) - SCALAR_RESULT
+*
+*     Operation 41
+      A_CONTRIB = -A21
+      B_CONTRIB = B11 - B12 + B21 - B22
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(2,1) = TEMP_C(2,1) - SCALAR_RESULT
+      TEMP_C(4,1) = TEMP_C(4,1) - SCALAR_RESULT
+*
+*     Operation 42
+      A_CONTRIB = -A21 + A41
+      B_CONTRIB = B11 - B12 - B13 - B14 + B21 - B22 -
+     +            B23 - B24 + B31 - B32 - B33 - B34 -
+     +            B41 + B42 + B43 + B44
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(4,1) = TEMP_C(4,1) + SCALAR_RESULT
+*
+*     Operation 43
+      A_CONTRIB = -A21 + A41 - A43
+      B_CONTRIB = B13 + B14 + B23 + B24 - B31 + B32 +
+     +            B33 + B34 + B41 - B42 - B43 - B44
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(4,1) = TEMP_C(4,1) + SCALAR_RESULT
+      TEMP_C(2,3) = TEMP_C(2,3) - SCALAR_RESULT
+*
+*     Operation 44
+      A_CONTRIB = A12 + A22 + A32 - A42
+      B_CONTRIB = B12 + B22 + B32 - B42
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(2,1) = TEMP_C(2,1) + SCALAR_RESULT
+      TEMP_C(2,2) = TEMP_C(2,2) + SCALAR_RESULT
+      TEMP_C(2,3) = TEMP_C(2,3) + SCALAR_RESULT
+      TEMP_C(2,4) = TEMP_C(2,4) - SCALAR_RESULT
+*
+*     Operation 45
+      A_CONTRIB = -A21 + A23 + A41 - A43
+      B_CONTRIB = -B31 + B32 + B33 + B34 + B41 - B42 -
+     +            B43 - B44
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(2,3) = TEMP_C(2,3) + SCALAR_RESULT
+*
+*     Operation 46
+      A_CONTRIB = -A31 + A32 + A41 - A42
+      B_CONTRIB = -B12 - B32
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(3,2) = TEMP_C(3,2) + SCALAR_RESULT
+*
+*     Operation 47
+      A_CONTRIB = A41 - A43
+      B_CONTRIB = -B13 - B14 - B23 - B24
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(2,3) = TEMP_C(2,3) - SCALAR_RESULT
+      TEMP_C(4,3) = TEMP_C(4,3) - SCALAR_RESULT
+*
+*     Operation 48
+      A_CONTRIB = -A43 - A44
+      B_CONTRIB = -B43 - B44
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(3,4) = TEMP_C(3,4) + SCALAR_RESULT
+      TEMP_C(4,4) = TEMP_C(4,4) + SCALAR_RESULT
+*
+*     Operation 49: FINAL OPERATION
+      A_CONTRIB = -A23
+      B_CONTRIB = -B31 + B32 + B41 - B42
+      SCALAR_RESULT = ALPHA * A_CONTRIB * B_CONTRIB
+      TEMP_C(2,1) = TEMP_C(2,1) + SCALAR_RESULT
+      TEMP_C(2,3) = TEMP_C(2,3) + SCALAR_RESULT
+*
+*     Store final results
+      DO J = 1, 4
+          DO I = 1, 4
+              C(I,J) = TEMP_C(I,J)
+          END DO
+      END DO
+*
+      RETURN
       END

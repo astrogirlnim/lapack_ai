@@ -25,12 +25,14 @@ This directory contains several variants of LAPACK routines in single/double/com
 	- [sdcz]potrf with Cholesky Top Level 3 BLAS version algorithm [2]- Directory: SRC/VARIANTS/cholesky/TOP
 	- [sdcz]larft using a Left Looking Level 2 BLAS version algorithm - Directory: SRC/VARIANTS/larft/LL-LVL2
 	- dgemm_alpha with AlphaTensor optimized 4x4 matrix multiplication algorithm [3] - Directory: SRC/VARIANTS/alphatensor
+	- dgemm_alpha_hybrid with GPU-accelerated AlphaTensor using OpenCL [3,4] - Directory: SRC/VARIANTS/alphatensor_hybrid
 
 References:For a more detailed description please refer to
 	- [1] Toledo, S. 1997. Locality of Reference in LU Decomposition with Partial Pivoting. SIAM J. Matrix Anal. Appl. 18, 4 (Oct. 1997),
           1065-1081. http://dx.doi.org/10.1137/S0895479896297744
 	- [2]LAWN XXX
 	- [3] Fawzi, A. et al. Discovering faster matrix multiplication algorithms with reinforcement learning. Nature 610, 47-53 (2022).
+	- [4] OpenCL Working Group. The OpenCL Specification. Khronos Group (2020).
 
 =========
 = BUILD =
@@ -49,6 +51,7 @@ Corresponding libraries created in SRC/VARIANTS:
 	- Cholesky Top : choltop.a
 	- LARFT Level 2: larftl2.a
 	- AlphaTensor Matrix Multiplication: alphatensor.a
+	- AlphaTensor GPU-Accelerated Hybrid: alphatensor_hybrid.a
 
 
 ===========
@@ -86,7 +89,18 @@ Using AlphaTensor optimized matrix multiplication:
  $(FC) $(FFLAGS) -c myprog.f
  $(FC) $(FFLAGS) $(LDFLAGS) -o myexe myprog.o $(PATH TO LAPACK/SRC/VARIANTS)/alphatensor.a $(LAPACKLIB) $(BLASLIB)
 
+Using AlphaTensor GPU-accelerated hybrid (requires OpenCL):
+ $(FC) $(FFLAGS) -c myprog.f
+ $(FC) $(FFLAGS) $(LDFLAGS) -o myexe myprog.o $(PATH TO LAPACK/SRC/VARIANTS)/alphatensor_hybrid.a $(LAPACKLIB) $(BLASLIB) -lOpenCL
+
 Note: AlphaTensor optimization applies only to 4x4 non-transposed DGEMM operations. All other cases automatically fall back to standard DGEMM.
+
+Note: AlphaTensor Hybrid Architecture:
+  - 4x4 matrices: GPU AlphaTensor (when available) → CPU AlphaTensor (49 operations) → standard DGEMM
+  - 8x8 matrices: Strassen-AlphaTensor hybrid (343 operations vs 512 standard)
+  - 16x16+ matrices: Block-wise AlphaTensor optimization
+  - GPU automatically detected; falls back to full CPU AlphaTensor implementation
+  - Includes all Phase 8.1-8.6 optimizations: vectorization, memory optimization, compiler hints
 
 ===========
 = SUPPORT =

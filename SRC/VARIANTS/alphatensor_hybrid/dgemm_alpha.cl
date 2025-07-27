@@ -16,6 +16,63 @@
 
 /*
  * =====================================================================
+ * DEBUG KERNEL: SIMPLE 4x4 MATRIX MULTIPLICATION
+ * =====================================================================
+ *
+ * Simple standard matrix multiplication for debugging GPU infrastructure.
+ * This helps isolate whether the issue is in AlphaTensor algorithm or
+ * basic GPU matrix operations.
+ */
+__kernel void dgemm_simple_4x4_debug(
+    __global const double* A,    // 4x4 matrix A
+    __global const double* B,    // 4x4 matrix B
+    __global double* C,          // 4x4 result matrix C
+    const double alpha,          // Scaling factor for A*B
+    const double beta            // Scaling factor for existing C
+) {
+    // Load matrices
+    const double A11 = A[0],  A12 = A[1],  A13 = A[2],  A14 = A[3];
+    const double A21 = A[4],  A22 = A[5],  A23 = A[6],  A24 = A[7];
+    const double A31 = A[8],  A32 = A[9],  A33 = A[10], A34 = A[11];
+    const double A41 = A[12], A42 = A[13], A43 = A[14], A44 = A[15];
+
+    const double B11 = B[0],  B12 = B[1],  B13 = B[2],  B14 = B[3];
+    const double B21 = B[4],  B22 = B[5],  B23 = B[6],  B24 = B[7];
+    const double B31 = B[8],  B32 = B[9],  B33 = B[10], B34 = B[11];
+    const double B41 = B[12], B42 = B[13], B43 = B[14], B44 = B[15];
+
+    // Standard matrix multiplication: C = alpha * A * B + beta * C
+    double result[16];
+
+    // C11 = A11*B11 + A12*B21 + A13*B31 + A14*B41
+    result[0] = alpha * (A11*B11 + A12*B21 + A13*B31 + A14*B41) + beta * C[0];
+    result[1] = alpha * (A11*B12 + A12*B22 + A13*B32 + A14*B42) + beta * C[1];
+    result[2] = alpha * (A11*B13 + A12*B23 + A13*B33 + A14*B43) + beta * C[2];
+    result[3] = alpha * (A11*B14 + A12*B24 + A13*B34 + A14*B44) + beta * C[3];
+
+    result[4] = alpha * (A21*B11 + A22*B21 + A23*B31 + A24*B41) + beta * C[4];
+    result[5] = alpha * (A21*B12 + A22*B22 + A23*B32 + A24*B42) + beta * C[5];
+    result[6] = alpha * (A21*B13 + A22*B23 + A23*B33 + A24*B43) + beta * C[6];
+    result[7] = alpha * (A21*B14 + A22*B24 + A23*B34 + A24*B44) + beta * C[7];
+
+    result[8] = alpha * (A31*B11 + A32*B21 + A33*B31 + A34*B41) + beta * C[8];
+    result[9] = alpha * (A31*B12 + A32*B22 + A33*B32 + A34*B42) + beta * C[9];
+    result[10] = alpha * (A31*B13 + A32*B23 + A33*B33 + A34*B43) + beta * C[10];
+    result[11] = alpha * (A31*B14 + A32*B24 + A33*B34 + A34*B44) + beta * C[11];
+
+    result[12] = alpha * (A41*B11 + A42*B21 + A43*B31 + A44*B41) + beta * C[12];
+    result[13] = alpha * (A41*B12 + A42*B22 + A43*B32 + A44*B42) + beta * C[13];
+    result[14] = alpha * (A41*B13 + A42*B23 + A43*B33 + A44*B43) + beta * C[14];
+    result[15] = alpha * (A41*B14 + A42*B24 + A43*B34 + A44*B44) + beta * C[15];
+
+    // Store results
+    for (int i = 0; i < 16; i++) {
+        C[i] = result[i];
+    }
+}
+
+/*
+ * =====================================================================
  * FORWARD DECLARATIONS FOR HELPER FUNCTIONS
  * =====================================================================
  */

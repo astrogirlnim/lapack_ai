@@ -465,22 +465,33 @@ static int alphatensor_gpu_compute_4x4_internal(
         goto cleanup;
     }
 
-    /* Set kernel arguments for dgemm_alpha_4x4 kernel */
-    err = clSetKernelArg(ctx->kernel_4x4, 0, sizeof(cl_mem), &buffer_A);
-    err |= clSetKernelArg(ctx->kernel_4x4, 1, sizeof(cl_mem), &buffer_B);
-    err |= clSetKernelArg(ctx->kernel_4x4, 2, sizeof(cl_mem), &buffer_C);
-    err |= clSetKernelArg(ctx->kernel_4x4, 3, sizeof(double), &alpha);
-    err |= clSetKernelArg(ctx->kernel_4x4, 4, sizeof(double), &beta);
-
+    /* TEMPORARY DEBUG: Use simple debug kernel instead of AlphaTensor */
+    cl_kernel debug_kernel = clCreateKernel(ctx->program, "dgemm_simple_4x4_debug", &err);
     if (err != CL_SUCCESS) {
-        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to set kernel arguments (%d)\n", err);
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to create debug kernel (%d)\n", err);
         goto cleanup;
     }
 
-    /* Execute the AlphaTensor kernel (single work-item for 4x4 matrix) */
+    /* Set kernel arguments for debug kernel */
+    err = clSetKernelArg(debug_kernel, 0, sizeof(cl_mem), &buffer_A);
+    err |= clSetKernelArg(debug_kernel, 1, sizeof(cl_mem), &buffer_B);
+    err |= clSetKernelArg(debug_kernel, 2, sizeof(cl_mem), &buffer_C);
+    err |= clSetKernelArg(debug_kernel, 3, sizeof(double), &alpha);
+    err |= clSetKernelArg(debug_kernel, 4, sizeof(double), &beta);
+
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to set debug kernel arguments (%d)\n", err);
+        clReleaseKernel(debug_kernel);
+        goto cleanup;
+    }
+
+    /* Execute the debug kernel (single work-item for 4x4 matrix) */
     size_t global_work_size = 1;
-    err = clEnqueueNDRangeKernel(ctx->queue, ctx->kernel_4x4, 1, NULL,
+    err = clEnqueueNDRangeKernel(ctx->queue, debug_kernel, 1, NULL,
                                  &global_work_size, NULL, 0, NULL, NULL);
+
+    /* Clean up debug kernel */
+    clReleaseKernel(debug_kernel);
     if (err != CL_SUCCESS) {
         fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to execute kernel (%d)\n", err);
         goto cleanup;

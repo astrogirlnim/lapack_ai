@@ -240,24 +240,123 @@ static int alphatensor_gpu_compute_4x4_internal(
     }
 
     /*
-     * PHASE 9.2 IMPLEMENTATION PLACEHOLDER
+     * PHASE 9.2 IMPLEMENTATION: ACTUAL OPENCL KERNEL EXECUTION
      *
-     * The following steps will be implemented in Phase 9.2:
-     * 1. Create OpenCL buffers for A, B, C matrices
-     * 2. Transfer matrices to GPU memory
-     * 3. Execute AlphaTensor 49-operation kernel
-     * 4. Transfer result back to host memory
-     * 5. Apply ALPHA and BETA scaling
-     *
-     * For Phase 9.1, we return success to validate the interface.
+     * Execute the 49-operation AlphaTensor algorithm on GPU using
+     * the dgemm_alpha_4x4 kernel from dgemm_alpha.cl
      */
 
-    fprintf(stdout, "[AlphaTensor GPU] GPU computation completed (Phase 9.1 framework)\n");
-    fprintf(stdout, "[AlphaTensor GPU] Phase 9.2 will implement actual OpenCL kernels\n");
+    cl_int err;
 
-    /* TODO: Remove this placeholder when Phase 9.2 kernels are implemented */
-    /* For now, indicate successful interface operation */
-    return 0;
+    /* Create OpenCL buffers for 4x4 matrices (16 elements each) */
+    cl_mem buffer_A = clCreateBuffer(ctx->context, CL_MEM_READ_ONLY,
+                                     16 * sizeof(double), NULL, &err);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to create buffer A (%d)\n", err);
+        return -1;
+    }
+
+    cl_mem buffer_B = clCreateBuffer(ctx->context, CL_MEM_READ_ONLY,
+                                     16 * sizeof(double), NULL, &err);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to create buffer B (%d)\n", err);
+        clReleaseMemObject(buffer_A);
+        return -1;
+    }
+
+    cl_mem buffer_C = clCreateBuffer(ctx->context, CL_MEM_READ_WRITE,
+                                     16 * sizeof(double), NULL, &err);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to create buffer C (%d)\n", err);
+        clReleaseMemObject(buffer_A);
+        clReleaseMemObject(buffer_B);
+        return -1;
+    }
+
+    /* Convert 4x4 matrices from column-major (Fortran) to row-major (OpenCL) */
+    double A_flat[16], B_flat[16], C_flat[16];
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            A_flat[i * 4 + j] = A[j * lda + i];  /* Column-major to row-major */
+            B_flat[i * 4 + j] = B[j * ldb + i];
+            C_flat[i * 4 + j] = C[j * ldc + i];
+        }
+    }
+
+    /* Transfer matrices to GPU memory */
+    err = clEnqueueWriteBuffer(ctx->queue, buffer_A, CL_TRUE, 0,
+                               16 * sizeof(double), A_flat, 0, NULL, NULL);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to write buffer A (%d)\n", err);
+        goto cleanup;
+    }
+
+    err = clEnqueueWriteBuffer(ctx->queue, buffer_B, CL_TRUE, 0,
+                               16 * sizeof(double), B_flat, 0, NULL, NULL);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to write buffer B (%d)\n", err);
+        goto cleanup;
+    }
+
+    err = clEnqueueWriteBuffer(ctx->queue, buffer_C, CL_TRUE, 0,
+                               16 * sizeof(double), C_flat, 0, NULL, NULL);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to write buffer C (%d)\n", err);
+        goto cleanup;
+    }
+
+    /* Set kernel arguments for dgemm_alpha_4x4 kernel */
+    err = clSetKernelArg(ctx->kernel_4x4, 0, sizeof(cl_mem), &buffer_A);
+    err |= clSetKernelArg(ctx->kernel_4x4, 1, sizeof(cl_mem), &buffer_B);
+    err |= clSetKernelArg(ctx->kernel_4x4, 2, sizeof(cl_mem), &buffer_C);
+    err |= clSetKernelArg(ctx->kernel_4x4, 3, sizeof(double), &alpha);
+    err |= clSetKernelArg(ctx->kernel_4x4, 4, sizeof(double), &beta);
+
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to set kernel arguments (%d)\n", err);
+        goto cleanup;
+    }
+
+    /* Execute the AlphaTensor kernel (single work-item for 4x4 matrix) */
+    size_t global_work_size = 1;
+    err = clEnqueueNDRangeKernel(ctx->queue, ctx->kernel_4x4, 1, NULL,
+                                 &global_work_size, NULL, 0, NULL, NULL);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to execute kernel (%d)\n", err);
+        goto cleanup;
+    }
+
+    /* Wait for kernel completion */
+    err = clFinish(ctx->queue);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to finish kernel execution (%d)\n", err);
+        goto cleanup;
+    }
+
+    /* Read result back from GPU memory */
+    err = clEnqueueReadBuffer(ctx->queue, buffer_C, CL_TRUE, 0,
+                              16 * sizeof(double), C_flat, 0, NULL, NULL);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to read result buffer (%d)\n", err);
+        goto cleanup;
+    }
+
+    /* Convert result from row-major (OpenCL) back to column-major (Fortran) */
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            C[j * ldc + i] = C_flat[i * 4 + j];  /* Row-major to column-major */
+        }
+    }
+
+    fprintf(stdout, "[AlphaTensor GPU] GPU computation completed successfully\n");
+
+    /* Clean up OpenCL buffers */
+cleanup:
+    clReleaseMemObject(buffer_A);
+    clReleaseMemObject(buffer_B);
+    clReleaseMemObject(buffer_C);
+
+    return (err == CL_SUCCESS) ? 0 : -1;
 }
 
 /*
@@ -283,20 +382,159 @@ static int alphatensor_gpu_compute_batch_internal(
     fprintf(stdout, "[AlphaTensor GPU] Starting batch computation of %d matrices\n", batch_size);
 
     /*
-     * PHASE 9.2 BATCH IMPLEMENTATION PLACEHOLDER
+     * PHASE 9.2 BATCH IMPLEMENTATION: ACTUAL OPENCL BATCHED KERNEL EXECUTION
      *
-     * The following steps will be implemented in Phase 9.2:
-     * 1. Create large OpenCL buffers for batch data
-     * 2. Transfer entire batch to GPU memory efficiently
-     * 3. Execute batched AlphaTensor kernel with parallel work items
-     * 4. Transfer all results back in single operation
-     * 5. Apply per-matrix ALPHA and BETA scaling
-     *
-     * Batched processing is where GPU will show maximum advantage
-     * over CPU implementation (10-20x speedup expected).
+     * Execute the 49-operation AlphaTensor algorithm on multiple 4x4 matrices
+     * simultaneously using the dgemm_alpha_4x4_batch kernel from dgemm_alpha.cl
+     * This is where GPU shows maximum advantage over CPU (10-20x speedup expected).
      */
 
-    fprintf(stdout, "[AlphaTensor GPU] Batch computation completed (Phase 9.1 framework)\n");
+    cl_int err;
+    const size_t batch_matrix_size = batch_size * 16;  /* 16 elements per 4x4 matrix */
+
+    /* Create large OpenCL buffers for entire batch */
+    cl_mem buffer_A_batch = clCreateBuffer(ctx->context, CL_MEM_READ_ONLY,
+                                           batch_matrix_size * sizeof(double), NULL, &err);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to create batch buffer A (%d)\n", err);
+        return -1;
+    }
+
+    cl_mem buffer_B_batch = clCreateBuffer(ctx->context, CL_MEM_READ_ONLY,
+                                           batch_matrix_size * sizeof(double), NULL, &err);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to create batch buffer B (%d)\n", err);
+        clReleaseMemObject(buffer_A_batch);
+        return -1;
+    }
+
+    cl_mem buffer_C_batch = clCreateBuffer(ctx->context, CL_MEM_READ_WRITE,
+                                           batch_matrix_size * sizeof(double), NULL, &err);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to create batch buffer C (%d)\n", err);
+        clReleaseMemObject(buffer_A_batch);
+        clReleaseMemObject(buffer_B_batch);
+        return -1;
+    }
+
+    /* Convert entire batch from column-major to row-major layout */
+    double* A_batch_flat = (double*)malloc(batch_matrix_size * sizeof(double));
+    double* B_batch_flat = (double*)malloc(batch_matrix_size * sizeof(double));
+    double* C_batch_flat = (double*)malloc(batch_matrix_size * sizeof(double));
+
+    if (!A_batch_flat || !B_batch_flat || !C_batch_flat) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to allocate temporary batch memory\n");
+        goto batch_cleanup;
+    }
+
+    /* Convert all matrices in batch */
+    for (int batch_idx = 0; batch_idx < batch_size; batch_idx++) {
+        const double* A_matrix = A_batch + batch_idx * 16;
+        const double* B_matrix = B_batch + batch_idx * 16;
+        const double* C_matrix = C_batch + batch_idx * 16;
+
+        double* A_flat = A_batch_flat + batch_idx * 16;
+        double* B_flat = B_batch_flat + batch_idx * 16;
+        double* C_flat = C_batch_flat + batch_idx * 16;
+
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                A_flat[i * 4 + j] = A_matrix[j * lda + i];
+                B_flat[i * 4 + j] = B_matrix[j * ldb + i];
+                C_flat[i * 4 + j] = C_matrix[j * ldc + i];
+            }
+        }
+    }
+
+    /* Transfer entire batch to GPU memory in single operations */
+    err = clEnqueueWriteBuffer(ctx->queue, buffer_A_batch, CL_TRUE, 0,
+                               batch_matrix_size * sizeof(double), A_batch_flat, 0, NULL, NULL);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to write batch buffer A (%d)\n", err);
+        goto batch_cleanup;
+    }
+
+    err = clEnqueueWriteBuffer(ctx->queue, buffer_B_batch, CL_TRUE, 0,
+                               batch_matrix_size * sizeof(double), B_batch_flat, 0, NULL, NULL);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to write batch buffer B (%d)\n", err);
+        goto batch_cleanup;
+    }
+
+    err = clEnqueueWriteBuffer(ctx->queue, buffer_C_batch, CL_TRUE, 0,
+                               batch_matrix_size * sizeof(double), C_batch_flat, 0, NULL, NULL);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to write batch buffer C (%d)\n", err);
+        goto batch_cleanup;
+    }
+
+    /* Use first alpha/beta values for entire batch (simplified interface) */
+    double alpha = alpha_array[0];
+    double beta = beta_array[0];
+
+    /* Set kernel arguments for dgemm_alpha_4x4_batch kernel */
+    err = clSetKernelArg(ctx->kernel_batch, 0, sizeof(cl_mem), &buffer_A_batch);
+    err |= clSetKernelArg(ctx->kernel_batch, 1, sizeof(cl_mem), &buffer_B_batch);
+    err |= clSetKernelArg(ctx->kernel_batch, 2, sizeof(cl_mem), &buffer_C_batch);
+    err |= clSetKernelArg(ctx->kernel_batch, 3, sizeof(double), &alpha);
+    err |= clSetKernelArg(ctx->kernel_batch, 4, sizeof(double), &beta);
+    err |= clSetKernelArg(ctx->kernel_batch, 5, sizeof(int), &batch_size);
+
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to set batch kernel arguments (%d)\n", err);
+        goto batch_cleanup;
+    }
+
+    /* Execute batched kernel - each work-item processes one 4x4 matrix */
+    size_t global_work_size = batch_size;
+    size_t local_work_size = (batch_size >= 64) ? 64 : batch_size;  /* Optimize for GPU occupancy */
+
+    err = clEnqueueNDRangeKernel(ctx->queue, ctx->kernel_batch, 1, NULL,
+                                 &global_work_size, &local_work_size, 0, NULL, NULL);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to execute batch kernel (%d)\n", err);
+        goto batch_cleanup;
+    }
+
+    /* Wait for all batch processing to complete */
+    err = clFinish(ctx->queue);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to finish batch execution (%d)\n", err);
+        goto batch_cleanup;
+    }
+
+    /* Read entire batch result back in single operation */
+    err = clEnqueueReadBuffer(ctx->queue, buffer_C_batch, CL_TRUE, 0,
+                              batch_matrix_size * sizeof(double), C_batch_flat, 0, NULL, NULL);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to read batch result (%d)\n", err);
+        goto batch_cleanup;
+    }
+
+    /* Convert all results back to column-major layout */
+    for (int batch_idx = 0; batch_idx < batch_size; batch_idx++) {
+        double* C_matrix = C_batch + batch_idx * 16;
+        const double* C_flat = C_batch_flat + batch_idx * 16;
+
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                C_matrix[j * ldc + i] = C_flat[i * 4 + j];
+            }
+        }
+    }
+
+    fprintf(stdout, "[AlphaTensor GPU] Batch computation completed successfully\n");
+
+batch_cleanup:
+    /* Clean up all batch resources */
+    if (A_batch_flat) free(A_batch_flat);
+    if (B_batch_flat) free(B_batch_flat);
+    if (C_batch_flat) free(C_batch_flat);
+    clReleaseMemObject(buffer_A_batch);
+    clReleaseMemObject(buffer_B_batch);
+    clReleaseMemObject(buffer_C_batch);
+
+    return (err == CL_SUCCESS) ? 0 : -1;
 
     /* TODO: Remove this placeholder when Phase 9.2 kernels are implemented */
     return 0;

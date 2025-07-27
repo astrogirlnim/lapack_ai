@@ -281,11 +281,107 @@ int alphatensor_gpu_init(alphatensor_opencl_t* ctx) {
     ctx->queue = clCreateCommandQueue(ctx->context, ctx->device, 0, &err);
     OPENCL_CHECK_ERROR(err, "Failed to create command queue");
 
+    /*
+     * PHASE 9.2: COMPILE AND LOAD ALPHATENSOR OPENCL KERNELS
+     *
+     * Load the dgemm_alpha.cl file and compile the kernels for
+     * single 4x4 matrix and batched operations.
+     */
+
+    /* Read kernel source from dgemm_alpha.cl file */
+    FILE* kernel_file = fopen("SRC/VARIANTS/alphatensor_hybrid/dgemm_alpha.cl", "r");
+    if (!kernel_file) {
+        /* Try relative path from different working directories */
+        kernel_file = fopen("../SRC/VARIANTS/alphatensor_hybrid/dgemm_alpha.cl", "r");
+        if (!kernel_file) {
+            kernel_file = fopen("dgemm_alpha.cl", "r");
+        }
+    }
+
+    if (!kernel_file) {
+        OPENCL_LOG_WARNING("Failed to open dgemm_alpha.cl kernel file");
+        return -1;
+    }
+
+    /* Get file size */
+    fseek(kernel_file, 0, SEEK_END);
+    size_t kernel_source_size = ftell(kernel_file);
+    fseek(kernel_file, 0, SEEK_SET);
+
+    /* Read entire file */
+    char* kernel_source = (char*)malloc(kernel_source_size + 1);
+    if (!kernel_source) {
+        OPENCL_LOG_WARNING("Failed to allocate memory for kernel source");
+        fclose(kernel_file);
+        return -1;
+    }
+
+    size_t bytes_read = fread(kernel_source, 1, kernel_source_size, kernel_file);
+    kernel_source[bytes_read] = '\0';
+    fclose(kernel_file);
+
+    OPENCL_LOG_INFO("Loaded %zu bytes of kernel source from dgemm_alpha.cl", bytes_read);
+
+    /* Create and compile program */
+    ctx->program = clCreateProgramWithSource(ctx->context, 1,
+                                              (const char**)&kernel_source,
+                                              &kernel_source_size, &err);
+    free(kernel_source);
+
+    if (err != CL_SUCCESS) {
+        OPENCL_LOG_WARNING("Failed to create program: %s", get_opencl_error_string(err));
+        return -1;
+    }
+
+    /* Build program with optimization flags */
+    const char* build_options = "-cl-mad-enable -cl-fast-relaxed-math -cl-std=CL1.2";
+    err = clBuildProgram(ctx->program, 1, &ctx->device, build_options, NULL, NULL);
+
+    if (err != CL_SUCCESS) {
+        /* Get build log for debugging */
+        size_t log_size;
+        clGetProgramBuildInfo(ctx->program, ctx->device, CL_PROGRAM_BUILD_LOG,
+                             0, NULL, &log_size);
+
+        if (log_size > 0) {
+            char* build_log = (char*)malloc(log_size + 1);
+            if (build_log) {
+                clGetProgramBuildInfo(ctx->program, ctx->device, CL_PROGRAM_BUILD_LOG,
+                                     log_size, build_log, NULL);
+                build_log[log_size] = '\0';
+                OPENCL_LOG_WARNING("Kernel build failed:\n%s", build_log);
+                free(build_log);
+            }
+        }
+
+        OPENCL_LOG_WARNING("Failed to build program: %s", get_opencl_error_string(err));
+        return -1;
+    }
+
+    OPENCL_LOG_INFO("Successfully compiled AlphaTensor kernels");
+
+    /* Create kernels from compiled program */
+    ctx->kernel_4x4 = clCreateKernel(ctx->program, "dgemm_alpha_4x4", &err);
+    if (err != CL_SUCCESS) {
+        OPENCL_LOG_WARNING("Failed to create single 4x4 kernel: %s", get_opencl_error_string(err));
+        return -1;
+    }
+
+    ctx->kernel_batch = clCreateKernel(ctx->program, "dgemm_alpha_4x4_batch", &err);
+    if (err != CL_SUCCESS) {
+        OPENCL_LOG_WARNING("Failed to create batch kernel: %s", get_opencl_error_string(err));
+        return -1;
+    }
+
+    OPENCL_LOG_INFO("Successfully created AlphaTensor kernels:");
+    OPENCL_LOG_INFO("  - dgemm_alpha_4x4 (single matrix)");
+    OPENCL_LOG_INFO("  - dgemm_alpha_4x4_batch (batched processing)");
+
     /* Mark as initialized */
     ctx->initialized = 1;
     ctx->gpu_available = 1;
 
-    OPENCL_LOG_INFO("OpenCL context successfully initialized");
+    OPENCL_LOG_INFO("OpenCL context successfully initialized with AlphaTensor kernels");
     return 0;
 }
 

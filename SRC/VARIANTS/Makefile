@@ -23,8 +23,8 @@ TOPSRCDIR = ../..
 include $(TOPSRCDIR)/make.inc
 
 # OpenCL compilation flags (conditional)
-OPENCL_CFLAGS = $(shell pkg-config --cflags OpenCL 2>/dev/null || echo "-I/usr/local/cuda/include")
-OPENCL_LIBS = $(shell pkg-config --libs OpenCL 2>/dev/null || echo "-lOpenCL")
+OPENCL_CFLAGS = $(shell pkg-config --cflags OpenCL 2>/dev/null || echo "-I/System/Library/Frameworks/OpenCL.framework/Headers")
+OPENCL_LIBS = $(shell pkg-config --libs OpenCL 2>/dev/null || echo "-framework OpenCL")
 
 CHOLRL = cholesky/RL/cpotrf.o cholesky/RL/dpotrf.o cholesky/RL/spotrf.o cholesky/RL/zpotrf.o
 

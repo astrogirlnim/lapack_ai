@@ -486,72 +486,89 @@ __kernel void dgemm_alpha_4x4(
     result[12] -= SCALAR_RESULT;  // TEMP_RESULT(4,1) -> result[12] (subtract) - FIXED!
     result[13] += SCALAR_RESULT;  // TEMP_RESULT(4,2) -> result[13] (add) - FIXED!
 
-    // Operation 38: (A44)*(B24) -> +C24
+    // Operation 38: -> CORRECT: +C(1,3), +C(1,4), +C(2,3), +C(2,4)
     A_CONTRIB = A44;
     B_CONTRIB = B24;
     SCALAR_RESULT = alpha * A_CONTRIB * B_CONTRIB;
-    result[7] += SCALAR_RESULT;   // C(2,4) -> C[7]
+    result[2] += SCALAR_RESULT;   // TEMP_RESULT(1,3) -> result[2] (add) - FIXED!
+    result[3] += SCALAR_RESULT;   // TEMP_RESULT(1,4) -> result[3] (add) - FIXED!
+    result[6] += SCALAR_RESULT;   // TEMP_RESULT(2,3) -> result[6] (add) - FIXED!
+    result[7] += SCALAR_RESULT;   // TEMP_RESULT(2,4) -> result[7] (add) - FIXED!
 
-    // Operation 39: (A14)*(B14) -> +C14
+    // Operation 39: -> CORRECT: -C(4,1), +C(4,3)
     A_CONTRIB = A14;
     B_CONTRIB = B14;
     SCALAR_RESULT = alpha * A_CONTRIB * B_CONTRIB;
-    result[3] += SCALAR_RESULT;   // C(1,4) -> C[3]
+    result[12] -= SCALAR_RESULT;  // TEMP_RESULT(4,1) -> result[12] (subtract) - FIXED!
+    result[14] += SCALAR_RESULT;  // TEMP_RESULT(4,3) -> result[14] (add) - FIXED!
 
-    // Operation 40: (A34)*(B34) -> +C34
+    // Operation 40: -> CORRECT: -C(3,1), +C(3,2), +C(3,3), +C(3,4), +C(4,1), -C(4,2), -C(4,3), -C(4,4)
     A_CONTRIB = A34;
     B_CONTRIB = B34;
     SCALAR_RESULT = alpha * A_CONTRIB * B_CONTRIB;
-    result[11] += SCALAR_RESULT;  // C(3,4) -> C[11]
+    result[8] -= SCALAR_RESULT;   // TEMP_RESULT(3,1) -> result[8] (subtract) - FIXED!
+    result[9] += SCALAR_RESULT;   // TEMP_RESULT(3,2) -> result[9] (add) - FIXED!
+    result[10] += SCALAR_RESULT;  // TEMP_RESULT(3,3) -> result[10] (add) - FIXED!
+    result[11] += SCALAR_RESULT;  // TEMP_RESULT(3,4) -> result[11] (add) - FIXED!
+    result[12] += SCALAR_RESULT;  // TEMP_RESULT(4,1) -> result[12] (add) - FIXED!
+    result[13] -= SCALAR_RESULT;  // TEMP_RESULT(4,2) -> result[13] (subtract) - FIXED!
+    result[14] -= SCALAR_RESULT;  // TEMP_RESULT(4,3) -> result[14] (subtract) - FIXED!
+    result[15] -= SCALAR_RESULT;  // TEMP_RESULT(4,4) -> result[15] (subtract) - FIXED!
 
-    // Operation 41: (A42)*(B21) -> +C21
+    // Operation 41: -> CORRECT: -C(1,2), -C(1,4)
     A_CONTRIB = A42;
     B_CONTRIB = B21;
     SCALAR_RESULT = alpha * A_CONTRIB * B_CONTRIB;
-    result[4] += SCALAR_RESULT;   // C(2,1) -> C[4]
+    result[1] -= SCALAR_RESULT;   // TEMP_RESULT(1,2) -> result[1] (subtract) - FIXED!
+    result[3] -= SCALAR_RESULT;   // TEMP_RESULT(1,4) -> result[3] (subtract) - FIXED!
 
-    // Operation 42: (A42)*(B23) -> +C23
+    // Operation 42: -> CORRECT: +C(1,4)
     A_CONTRIB = A42;
     B_CONTRIB = B23;
     SCALAR_RESULT = alpha * A_CONTRIB * B_CONTRIB;
-    result[6] += SCALAR_RESULT;   // C(2,3) -> C[6]
+    result[3] += SCALAR_RESULT;   // TEMP_RESULT(1,4) -> result[3] (add) - FIXED!
 
-    // Operation 43: (A42-A44)*(B21-B23) -> +C21, -C23
+    // Operation 43: -> CORRECT: +C(1,4), -C(3,2)
     A_CONTRIB = A42 - A44;
     B_CONTRIB = B21 - B23;
     SCALAR_RESULT = alpha * A_CONTRIB * B_CONTRIB;
-    result[4] += SCALAR_RESULT;   // C(2,1) -> C[4]
-    result[6] -= SCALAR_RESULT;   // C(2,3) -> C[6]
+    result[3] += SCALAR_RESULT;   // TEMP_RESULT(1,4) -> result[3] (add) - FIXED!
+    result[9] -= SCALAR_RESULT;   // TEMP_RESULT(3,2) -> result[9] (subtract) - FIXED!
 
-    // Operation 44: (A44)*(B23) -> +C23
+    // Operation 44: -> CORRECT: +C(1,2), +C(2,2), +C(3,2), -C(4,2)
     A_CONTRIB = A44;
     B_CONTRIB = B23;
     SCALAR_RESULT = alpha * A_CONTRIB * B_CONTRIB;
-    result[6] += SCALAR_RESULT;   // C(2,3) -> C[6]
+    result[1] += SCALAR_RESULT;   // TEMP_RESULT(1,2) -> result[1] (add) - FIXED!
+    result[5] += SCALAR_RESULT;   // TEMP_RESULT(2,2) -> result[5] (add) - FIXED!
+    result[9] += SCALAR_RESULT;   // TEMP_RESULT(3,2) -> result[9] (add) - FIXED!
+    result[13] -= SCALAR_RESULT;  // TEMP_RESULT(4,2) -> result[13] (subtract) - FIXED!
 
-    // Operation 45: (A21)*(B41) -> +C41
+    // Operation 45: -> CORRECT: +C(3,2)
     A_CONTRIB = A21;
     B_CONTRIB = B41;
     SCALAR_RESULT = alpha * A_CONTRIB * B_CONTRIB;
-    result[12] += SCALAR_RESULT;  // C(4,1) -> C[12]
+    result[9] += SCALAR_RESULT;   // TEMP_RESULT(3,2) -> result[9] (add) - FIXED!
 
-    // Operation 46: (A23)*(B43) -> +C43
+    // Operation 46: -> CORRECT: +C(2,3)
     A_CONTRIB = A23;
     B_CONTRIB = B43;
     SCALAR_RESULT = alpha * A_CONTRIB * B_CONTRIB;
-    result[14] += SCALAR_RESULT;  // C(4,3) -> C[14]
+    result[6] += SCALAR_RESULT;   // TEMP_RESULT(2,3) -> result[6] (add) - FIXED!
 
-    // Operation 47: (A21)*(B43) -> +C43
+    // Operation 47: -> CORRECT: -C(3,2), -C(3,4)
     A_CONTRIB = A21;
     B_CONTRIB = B43;
     SCALAR_RESULT = alpha * A_CONTRIB * B_CONTRIB;
-    result[14] += SCALAR_RESULT;  // C(4,3) -> C[14]
+    result[9] -= SCALAR_RESULT;   // TEMP_RESULT(3,2) -> result[9] (subtract) - FIXED!
+    result[11] -= SCALAR_RESULT;  // TEMP_RESULT(3,4) -> result[11] (subtract) - FIXED!
 
-    // Operation 48: (A23)*(B41) -> +C41
+    // Operation 48: -> CORRECT: +C(4,3), +C(4,4)
     A_CONTRIB = A23;
     B_CONTRIB = B41;
     SCALAR_RESULT = alpha * A_CONTRIB * B_CONTRIB;
-    result[12] += SCALAR_RESULT;  // C(4,1) -> C[12]
+    result[14] += SCALAR_RESULT;  // TEMP_RESULT(4,3) -> result[14] (add) - FIXED!
+    result[15] += SCALAR_RESULT;  // TEMP_RESULT(4,4) -> result[15] (add) - FIXED!
 
     // Operation 49: FINAL OPERATION -> CORRECT: +C(1,2), +C(3,2)
     A_CONTRIB = -A23;

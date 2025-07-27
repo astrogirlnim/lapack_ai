@@ -1,0 +1,44 @@
+
+ ==================================================
+ PHASE 9.2 OPENCL ALPHATENSOR TEST SUITE
+ ==================================================
+ Testing GPU implementation of 49 AlphaTensor ops
+
+ TEST 1: OpenCL Environment Validation
+ ======================================
+[AlphaTensor OpenCL] INFO: Initializing AlphaTensor OpenCL context
+[AlphaTensor OpenCL] INFO: Enumerating OpenCL platforms
+[AlphaTensor OpenCL] INFO: Found 1 OpenCL platforms
+[AlphaTensor OpenCL] INFO: Platform 0: Apple (Apple) - OpenCL 1.2 (Apr 18 2025 21:46:03)
+[AlphaTensor OpenCL] INFO: Enumerating devices for platform
+[AlphaTensor OpenCL] INFO: Found 1 devices
+[AlphaTensor OpenCL] INFO: Device 0: Apple M4 Pro [GPU] - Memory: 36864 MB, Compute Units: 20
+[AlphaTensor OpenCL] INFO: Selected device: Apple M4 Pro (score: 130)
+[AlphaTensor OpenCL] INFO: Selected platform: Apple
+[AlphaTensor OpenCL] INFO: Enumerating devices for platform
+[AlphaTensor OpenCL] INFO: Found 1 devices
+[AlphaTensor OpenCL] INFO: Device 0: Apple M4 Pro [GPU] - Memory: 36864 MB, Compute Units: 20
+[AlphaTensor OpenCL] INFO: Selected device: Apple M4 Pro (score: 130)
+[AlphaTensor OpenCL] INFO: Loaded 33710 bytes of kernel source from dgemm_alpha.cl
+[AlphaTensor OpenCL] INFO: Successfully compiled AlphaTensor kernels
+[AlphaTensor GPU] GPU not available, falling back to CPU
+ [FAIL] GPU not available - CPU fallback only
+
+ TEST 2: Single 4x4 Matrix Accuracy Testing
+ ==========================================
+ Test 2.1: Identity matrices
+ [FAIL] Identity test - Max error:   1000000.0000000000     
+ Test 2.2: Random matrices
+ [FAIL] Random test - Max error:   1000000.0000000000     
+ Test 2.3: Edge case (ALPHA=0, BETA=1)
+ [FAIL] Edge case test - Max error:   1000000.0000000000     
+
+
+
+ =============================================
+ PHASE 9.2 TEST RESULTS SUMMARY
+ =============================================
+ Tests Passed:            0  /            4
+ OVERALL RESULT: SOME TESTS FAILED
+ Check GPU environment and compilation
+

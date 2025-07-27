@@ -373,9 +373,34 @@ int alphatensor_gpu_init(alphatensor_opencl_t* ctx) {
         return -1;
     }
 
-    OPENCL_LOG_INFO("Successfully created AlphaTensor kernels:");
-    OPENCL_LOG_INFO("  - dgemm_alpha_4x4 (single matrix)");
-    OPENCL_LOG_INFO("  - dgemm_alpha_4x4_batch (batched processing)");
+    /* Create new 8x8 Strassen-AlphaTensor kernel */
+    ctx->kernel_8x8 = clCreateKernel(ctx->program, "dgemm_alpha_8x8_strassen", &err);
+    if (err != CL_SUCCESS) {
+        OPENCL_LOG_WARNING("Failed to create 8x8 Strassen kernel: %s", get_opencl_error_string(err));
+        return -1;
+    }
+
+    /* Create block-wise AlphaTensor kernel for large matrices */
+    ctx->kernel_blockwise = clCreateKernel(ctx->program, "dgemm_alpha_blockwise", &err);
+    if (err != CL_SUCCESS) {
+        OPENCL_LOG_WARNING("Failed to create block-wise kernel: %s", get_opencl_error_string(err));
+        return -1;
+    }
+
+    /* Create 8x8 batched kernel for ML workloads */
+    ctx->kernel_8x8_batch = clCreateKernel(ctx->program, "dgemm_alpha_8x8_strassen_batch", &err);
+    if (err != CL_SUCCESS) {
+        OPENCL_LOG_WARNING("Failed to create 8x8 batch kernel: %s", get_opencl_error_string(err));
+        return -1;
+    }
+
+    OPENCL_LOG_INFO("Successfully created complete AlphaTensor kernel suite:");
+    OPENCL_LOG_INFO("  - dgemm_alpha_4x4 (single 4x4 matrix)");
+    OPENCL_LOG_INFO("  - dgemm_alpha_4x4_batch (batched 4x4 processing)");
+    OPENCL_LOG_INFO("  - dgemm_alpha_8x8_strassen (8x8 Strassen-AlphaTensor hybrid)");
+    OPENCL_LOG_INFO("  - dgemm_alpha_blockwise (16x16+ block-wise processing)");
+    OPENCL_LOG_INFO("  - dgemm_alpha_8x8_strassen_batch (batched 8x8 processing)");
+    OPENCL_LOG_INFO("GPU Algorithm Coverage: 4x4, 8x8, and 16x16+ matrix support complete");
 
     /* Mark as initialized */
     ctx->initialized = 1;
@@ -402,6 +427,21 @@ int alphatensor_gpu_cleanup(alphatensor_opencl_t* ctx) {
     if (ctx->kernel_batch) {
         clReleaseKernel(ctx->kernel_batch);
         ctx->kernel_batch = NULL;
+    }
+
+    if (ctx->kernel_8x8) {
+        clReleaseKernel(ctx->kernel_8x8);
+        ctx->kernel_8x8 = NULL;
+    }
+
+    if (ctx->kernel_blockwise) {
+        clReleaseKernel(ctx->kernel_blockwise);
+        ctx->kernel_blockwise = NULL;
+    }
+
+    if (ctx->kernel_8x8_batch) {
+        clReleaseKernel(ctx->kernel_8x8_batch);
+        ctx->kernel_8x8_batch = NULL;
     }
 
     /* Release program */

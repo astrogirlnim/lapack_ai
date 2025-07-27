@@ -107,6 +107,89 @@ extern int dgemm_alpha_gpu_batch_(
     const double* beta_array, double* C_batch, const int* ldc);
 
 /*
+ * Enhanced GPU matrix multiplication dispatcher with full algorithm support
+ *
+ * Automatically selects optimal GPU algorithm based on matrix dimensions:
+ *   - 4x4: Direct AlphaTensor (49 operations, 23% reduction)
+ *   - 8x8: Strassen-AlphaTensor hybrid (343 operations, 33% reduction)
+ *   - 16x16+: Block-wise AlphaTensor (49 ops per 4x4 block)
+ *
+ * Parameters:
+ *   alpha, beta: Scaling factors
+ *   A, B, C: Input/output matrices (column-major storage)
+ *   lda, ldb, ldc: Leading dimensions
+ *   M, N, K: Matrix dimensions for algorithm selection
+ *
+ * Returns: 0 on success, -1 on failure (caller should use CPU fallback)
+ *
+ * Algorithm Selection Logic:
+ *   M=4, N=4, K=4: Use dgemm_alpha_4x4 kernel
+ *   M=8, N=8, K=8: Use dgemm_alpha_8x8_strassen kernel
+ *   M>=16, N>=16, K>=16 (divisible by 4): Use dgemm_alpha_blockwise kernel
+ *   Other dimensions: Return -1 for CPU fallback
+ */
+extern int dgemm_alpha_gpu_dispatch_(
+    const double* alpha, const double* A, const int* lda,
+    const double* B, const int* ldb, const double* beta,
+    double* C, const int* ldc, const int* M, const int* N, const int* K);
+
+/*
+ * 8x8 Strassen-AlphaTensor interface for Fortran
+ *
+ * Dedicated interface for 8x8 matrix multiplication using the hybrid algorithm
+ * that combines Strassen's recursive method with AlphaTensor optimization.
+ *
+ * Algorithm: 7 Strassen products × 49 AlphaTensor operations = 343 total operations
+ * Standard: 8³ = 512 operations
+ * Improvement: 33% reduction in operations
+ *
+ * Parameters:
+ *   alpha, beta: Scaling factors
+ *   A, B, C: 8x8 matrices (column-major storage)
+ *   lda, ldb, ldc: Leading dimensions (must be >= 8)
+ *
+ * Returns: 0 on success, -1 on failure
+ *
+ * Expected GPU advantages:
+ *   - Parallel execution of Strassen's 7 intermediate products
+ *   - AlphaTensor optimization for each 4x4 block computation
+ *   - Reduced memory bandwidth requirements (33% fewer operations)
+ */
+extern int dgemm_alpha_gpu_8x8_(
+    const double* alpha, const double* A, const int* lda,
+    const double* B, const int* ldb, const double* beta,
+    double* C, const int* ldc);
+
+/*
+ * Block-wise AlphaTensor interface for Fortran
+ *
+ * Processes large matrices (16x16+) by applying AlphaTensor algorithm to
+ * 4x4 blocks in parallel. Ideal for large matrix operations where massive
+ * GPU parallelization provides significant acceleration.
+ *
+ * Algorithm: Each 4x4 block uses 49-operation AlphaTensor optimization
+ * Total operations: (M/4 × N/4 × K/4) parallel 4x4 AlphaTensor computations
+ * Parallelization: Up to thousands of concurrent 4x4 operations on GPU
+ *
+ * Parameters:
+ *   alpha, beta: Scaling factors
+ *   A, B, C: Large matrices (column-major storage)
+ *   lda, ldb, ldc: Leading dimensions
+ *   M, N, K: Matrix dimensions (must be ≥16 and divisible by 4)
+ *
+ * Returns: 0 on success, -1 on failure
+ *
+ * Expected GPU speedup: 10-50x over CPU for large matrices due to:
+ *   - Massive parallelization across thousands of 4x4 blocks
+ *   - GPU memory coalescing and bandwidth optimization
+ *   - Concurrent execution of AlphaTensor algorithm on all blocks
+ */
+extern int dgemm_alpha_gpu_blockwise_(
+    const double* alpha, const double* A, const int* lda,
+    const double* B, const int* ldb, const double* beta,
+    double* C, const int* ldc, const int* M, const int* N, const int* K);
+
+/*
  * =============================================================================
  * UTILITY AND DEBUGGING FUNCTIONS
  * =============================================================================

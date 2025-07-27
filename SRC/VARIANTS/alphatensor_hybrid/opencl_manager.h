@@ -44,7 +44,10 @@ struct alphatensor_opencl_t {
     /* Compiled kernels */
     cl_program program;                /* Compiled OpenCL program */
     cl_kernel kernel_4x4;              /* Single 4x4 matrix kernel */
-    cl_kernel kernel_batch;            /* Batched operations kernel */
+    cl_kernel kernel_batch;            /* Batched 4x4 operations kernel */
+    cl_kernel kernel_8x8;              /* 8x8 Strassen-AlphaTensor hybrid kernel */
+    cl_kernel kernel_blockwise;        /* 16x16+ block-wise AlphaTensor kernel */
+    cl_kernel kernel_8x8_batch;        /* Batched 8x8 operations kernel */
 
     /* Status flags */
     int initialized;                   /* Context initialization flag */

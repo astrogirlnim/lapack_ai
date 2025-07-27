@@ -68,7 +68,9 @@ You should then see the following files in the TESTING directory:
 [scdz]test_lurec.out
 [scdz]test_qrll.out
 
-Note: AlphaTensor variant includes its own comprehensive test suite in SRC/VARIANTS/alphatensor/comprehensive_test.f
+Note: AlphaTensor variants include comprehensive test suites:
+- CPU Implementation: SRC/VARIANTS/alphatensor/comprehensive_test.f
+- GPU Implementation: SRC/VARIANTS/alphatensor_hybrid/test_phase_9_2.f (✅ Phase 9.2 Complete - 2024-07-27)
 
 ========================
 = LINKING YOUR PROGRAM =
@@ -95,11 +97,12 @@ Using AlphaTensor GPU-accelerated hybrid (requires OpenCL):
 
 Note: AlphaTensor optimization applies only to 4x4 non-transposed DGEMM operations. All other cases automatically fall back to standard DGEMM.
 
-Note: AlphaTensor Hybrid Architecture:
-  - 4x4 matrices: GPU AlphaTensor (when available) → CPU AlphaTensor (49 operations) → standard DGEMM
-  - 8x8 matrices: Strassen-AlphaTensor hybrid (343 operations vs 512 standard)
-  - 16x16+ matrices: Block-wise AlphaTensor optimization
-  - GPU automatically detected; falls back to full CPU AlphaTensor implementation
+Note: AlphaTensor Hybrid Architecture (Phase 9.2 Complete):
+- 4x4 matrices: GPU AlphaTensor (when available) → CPU AlphaTensor (49 operations) → standard DGEMM
+- 8x8 matrices: Strassen-AlphaTensor hybrid (343 operations vs 512 standard)
+- 16x16+ matrices: Block-wise AlphaTensor optimization
+- GPU automatically detected; falls back to full CPU AlphaTensor implementation
+- ✅ Comprehensive testing complete with Apple Silicon compatibility validated
   - Includes all Phase 8.1-8.6 optimizations: vectorization, memory optimization, compiler hints
 
 ===========

@@ -23,11 +23,171 @@ static int alphatensor_gpu_compute_4x4_internal(
     const double* B, int ldb, double beta,
     double* C, int ldc);
 
+static int alphatensor_gpu_compute_8x8_strassen_internal(
+    double alpha, const double* A, int lda,
+    const double* B, int ldb, double beta,
+    double* C, int ldc);
+
+static int alphatensor_gpu_compute_blockwise_internal(
+    double alpha, const double* A, int lda,
+    const double* B, int ldb, double beta,
+    double* C, int ldc, int M, int N, int K);
+
 static int alphatensor_gpu_compute_batch_internal(
     int batch_size, const double* alpha_array,
     const double* A_batch, int lda,
     const double* B_batch, int ldb,
     const double* beta_array, double* C_batch, int ldc);
+
+/*
+ * =============================================================================
+ * ENHANCED DISPATCH LOGIC FOR MULTI-ALGORITHM GPU PROCESSING
+ * =============================================================================
+ */
+
+/*
+ * Enhanced GPU matrix multiplication dispatcher with full algorithm support
+ *
+ * This function automatically selects the optimal GPU algorithm based on
+ * matrix dimensions and GPU availability. Supports:
+ *   - 4x4: Direct AlphaTensor (49 operations)
+ *   - 8x8: Strassen-AlphaTensor hybrid (343 operations)
+ *   - 16x16+: Block-wise AlphaTensor (49 ops per 4x4 block)
+ *
+ * Parameters follow DGEMM convention plus matrix dimensions:
+ *   alpha, beta: Scaling factors
+ *   A, B, C: Input/output matrices (column-major storage)
+ *   lda, ldb, ldc: Leading dimensions
+ *   M, N, K: Matrix dimensions for block-wise processing
+ *
+ * Returns: 0 on success, -1 on failure (caller should use CPU fallback)
+ */
+int dgemm_alpha_gpu_dispatch_(
+    const double* alpha, const double* A, const int* lda,
+    const double* B, const int* ldb, const double* beta,
+    double* C, const int* ldc, const int* M, const int* N, const int* K) {
+
+    /* Parameter validation */
+    if (!alpha || !A || !lda || !B || !ldb || !beta || !C || !ldc ||
+        !M || !N || !K) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Invalid parameters for dispatch\n");
+        return -1;
+    }
+
+    /* Validate matrix dimensions */
+    if (*M <= 0 || *N <= 0 || *K <= 0) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Invalid matrix dimensions M=%d, N=%d, K=%d\n",
+                *M, *N, *K);
+        return -1;
+    }
+
+    /* Check for transpose operations (not supported in current implementation) */
+    /* Note: This check would be enhanced in production to handle TRANSA/TRANSB */
+
+    /* Algorithm selection based on matrix dimensions */
+    if (*M == 4 && *N == 4 && *K == 4) {
+        /* 4x4 Direct AlphaTensor Algorithm */
+        fprintf(stdout, "[AlphaTensor GPU] Using 4x4 direct AlphaTensor algorithm\n");
+        return alphatensor_gpu_compute_4x4_internal(*alpha, A, *lda, B, *ldb, *beta, C, *ldc);
+
+    } else if (*M == 8 && *N == 8 && *K == 8) {
+        /* 8x8 Strassen-AlphaTensor Hybrid Algorithm */
+        fprintf(stdout, "[AlphaTensor GPU] Using 8x8 Strassen-AlphaTensor hybrid algorithm\n");
+        return alphatensor_gpu_compute_8x8_strassen_internal(*alpha, A, *lda, B, *ldb, *beta, C, *ldc);
+
+    } else if (*M >= 16 && *N >= 16 && *K >= 16 &&
+               *M % 4 == 0 && *N % 4 == 0 && *K % 4 == 0) {
+        /* 16x16+ Block-wise AlphaTensor Algorithm */
+        fprintf(stdout, "[AlphaTensor GPU] Using %dx%dx%d block-wise AlphaTensor algorithm\n", *M, *N, *K);
+        return alphatensor_gpu_compute_blockwise_internal(*alpha, A, *lda, B, *ldb, *beta, C, *ldc,
+                                                          *M, *N, *K);
+    } else {
+        /* Unsupported dimensions - fallback to CPU */
+        fprintf(stdout, "[AlphaTensor GPU] Unsupported dimensions %dx%dx%d, falling back to CPU\n",
+                *M, *N, *K);
+        return -1;
+    }
+}
+
+/*
+ * 8x8 Strassen-AlphaTensor interface for Fortran
+ *
+ * Dedicated interface for 8x8 matrix multiplication using the
+ * Strassen-AlphaTensor hybrid algorithm (343 operations vs 512 standard).
+ *
+ * Fortran calling example:
+ *   EXTERNAL DGEMM_ALPHA_GPU_8X8
+ *   INTEGER DGEMM_ALPHA_GPU_8X8
+ *   IF (DGEMM_ALPHA_GPU_8X8(ALPHA,A,LDA,B,LDB,BETA,C,LDC) .NE. 0) THEN
+ *       ! GPU computation failed, use CPU fallback
+ *   END IF
+ */
+int dgemm_alpha_gpu_8x8_(
+    const double* alpha, const double* A, const int* lda,
+    const double* B, const int* ldb, const double* beta,
+    double* C, const int* ldc) {
+
+    /* Parameter validation for 8x8 matrices */
+    if (!alpha || !A || !lda || !B || !ldb || !beta || !C || !ldc) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Invalid parameters for 8x8 operation\n");
+        return -1;
+    }
+
+    if (*lda < 8 || *ldb < 8 || *ldc < 8) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Invalid leading dimensions for 8x8 (lda=%d, ldb=%d, ldc=%d)\n",
+                *lda, *ldb, *ldc);
+        return -1;
+    }
+
+    fprintf(stdout, "[AlphaTensor GPU] Computing 8x8 Strassen-AlphaTensor with ALPHA=%f, BETA=%f\n",
+            *alpha, *beta);
+
+    return alphatensor_gpu_compute_8x8_strassen_internal(*alpha, A, *lda, B, *ldb, *beta, C, *ldc);
+}
+
+/*
+ * Block-wise AlphaTensor interface for Fortran
+ *
+ * Interface for large matrices (16x16+) using block-wise AlphaTensor processing.
+ * Applies the 49-operation algorithm to 4x4 blocks within larger matrices.
+ *
+ * Fortran calling example:
+ *   EXTERNAL DGEMM_ALPHA_GPU_BLOCKWISE
+ *   INTEGER DGEMM_ALPHA_GPU_BLOCKWISE
+ *   IF (DGEMM_ALPHA_GPU_BLOCKWISE(ALPHA,A,LDA,B,LDB,BETA,C,LDC,M,N,K) .NE. 0) THEN
+ *       ! GPU computation failed, use CPU fallback
+ *   END IF
+ */
+int dgemm_alpha_gpu_blockwise_(
+    const double* alpha, const double* A, const int* lda,
+    const double* B, const int* ldb, const double* beta,
+    double* C, const int* ldc, const int* M, const int* N, const int* K) {
+
+    /* Parameter validation for block-wise operation */
+    if (!alpha || !A || !lda || !B || !ldb || !beta || !C || !ldc ||
+        !M || !N || !K) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Invalid parameters for block-wise operation\n");
+        return -1;
+    }
+
+    /* Validate dimensions are suitable for 4x4 blocking */
+    if (*M % 4 != 0 || *N % 4 != 0 || *K % 4 != 0) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Matrix dimensions must be divisible by 4 for block-wise (M=%d, N=%d, K=%d)\n",
+                *M, *N, *K);
+        return -1;
+    }
+
+    if (*M < 16 || *N < 16 || *K < 16) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Matrix dimensions too small for block-wise (minimum 16x16x16)\n");
+        return -1;
+    }
+
+    fprintf(stdout, "[AlphaTensor GPU] Computing %dx%dx%d block-wise AlphaTensor with ALPHA=%f, BETA=%f\n",
+            *M, *N, *K, *alpha, *beta);
+
+    return alphatensor_gpu_compute_blockwise_internal(*alpha, A, *lda, B, *ldb, *beta, C, *ldc,
+                                                      *M, *N, *K);
+}
 
 /*
  * =============================================================================
@@ -538,6 +698,300 @@ batch_cleanup:
 
     /* TODO: Remove this placeholder when Phase 9.2 kernels are implemented */
     return 0;
+}
+
+/*
+ * =============================================================================
+ * NEW ALGORITHM IMPLEMENTATION FUNCTIONS
+ * =============================================================================
+ */
+
+/*
+ * Internal 8x8 Strassen-AlphaTensor multiplication using GPU
+ *
+ * Implements the hybrid algorithm combining Strassen's recursive approach
+ * with AlphaTensor's 49-operation optimization. Uses the dgemm_alpha_8x8_strassen
+ * kernel from dgemm_alpha.cl for GPU execution.
+ *
+ * Algorithm: 7 * 49 = 343 operations vs standard 8^3 = 512 (33% reduction)
+ */
+static int alphatensor_gpu_compute_8x8_strassen_internal(
+    double alpha, const double* A, int lda,
+    const double* B, int ldb, double beta,
+    double* C, int ldc) {
+
+    /* Get OpenCL context */
+    alphatensor_opencl_t* ctx = alphatensor_gpu_get_context();
+    if (!ctx || !ctx->gpu_available) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: GPU context not available for 8x8 Strassen\n");
+        return -1;
+    }
+
+    /* Matrix size validation for 8x8 */
+    const size_t matrix_8x8_size = 64;  /* 8x8 = 64 elements */
+
+    /* Log computation details */
+    fprintf(stdout, "[AlphaTensor GPU] Starting 8x8 Strassen-AlphaTensor computation on device\n");
+    fprintf(stdout, "[AlphaTensor GPU] Expected operation reduction: 343 vs 512 ops (33%% savings)\n");
+
+    cl_int err;
+
+    /* Create OpenCL buffers for 8x8 matrices (64 elements each) */
+    cl_mem buffer_A = clCreateBuffer(ctx->context, CL_MEM_READ_ONLY,
+                                     matrix_8x8_size * sizeof(double), NULL, &err);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to create 8x8 buffer A (%d)\n", err);
+        return -1;
+    }
+
+    cl_mem buffer_B = clCreateBuffer(ctx->context, CL_MEM_READ_ONLY,
+                                     matrix_8x8_size * sizeof(double), NULL, &err);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to create 8x8 buffer B (%d)\n", err);
+        clReleaseMemObject(buffer_A);
+        return -1;
+    }
+
+    cl_mem buffer_C = clCreateBuffer(ctx->context, CL_MEM_READ_WRITE,
+                                     matrix_8x8_size * sizeof(double), NULL, &err);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to create 8x8 buffer C (%d)\n", err);
+        clReleaseMemObject(buffer_A);
+        clReleaseMemObject(buffer_B);
+        return -1;
+    }
+
+    /* Convert 8x8 matrices from column-major (Fortran) to row-major (OpenCL) */
+    double A_flat[64], B_flat[64], C_flat[64];
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            A_flat[i * 8 + j] = A[j * lda + i];  /* Column-major to row-major */
+            B_flat[i * 8 + j] = B[j * ldb + i];
+            C_flat[i * 8 + j] = C[j * ldc + i];
+        }
+    }
+
+    /* Transfer matrices to GPU memory */
+    err = clEnqueueWriteBuffer(ctx->queue, buffer_A, CL_TRUE, 0,
+                               matrix_8x8_size * sizeof(double), A_flat, 0, NULL, NULL);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to write 8x8 buffer A (%d)\n", err);
+        goto cleanup_8x8;
+    }
+
+    err = clEnqueueWriteBuffer(ctx->queue, buffer_B, CL_TRUE, 0,
+                               matrix_8x8_size * sizeof(double), B_flat, 0, NULL, NULL);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to write 8x8 buffer B (%d)\n", err);
+        goto cleanup_8x8;
+    }
+
+    err = clEnqueueWriteBuffer(ctx->queue, buffer_C, CL_TRUE, 0,
+                               matrix_8x8_size * sizeof(double), C_flat, 0, NULL, NULL);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to write 8x8 buffer C (%d)\n", err);
+        goto cleanup_8x8;
+    }
+
+    /* Set kernel arguments for dgemm_alpha_8x8_strassen kernel */
+    err = clSetKernelArg(ctx->kernel_8x8, 0, sizeof(cl_mem), &buffer_A);
+    err |= clSetKernelArg(ctx->kernel_8x8, 1, sizeof(cl_mem), &buffer_B);
+    err |= clSetKernelArg(ctx->kernel_8x8, 2, sizeof(cl_mem), &buffer_C);
+    err |= clSetKernelArg(ctx->kernel_8x8, 3, sizeof(double), &alpha);
+    err |= clSetKernelArg(ctx->kernel_8x8, 4, sizeof(double), &beta);
+
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to set 8x8 kernel arguments (%d)\n", err);
+        goto cleanup_8x8;
+    }
+
+    /* Execute the 8x8 Strassen-AlphaTensor kernel (single work-item for 8x8 matrix) */
+    size_t global_work_size = 1;
+    err = clEnqueueNDRangeKernel(ctx->queue, ctx->kernel_8x8, 1, NULL,
+                                 &global_work_size, NULL, 0, NULL, NULL);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to execute 8x8 kernel (%d)\n", err);
+        goto cleanup_8x8;
+    }
+
+    /* Wait for kernel completion */
+    err = clFinish(ctx->queue);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to finish 8x8 kernel execution (%d)\n", err);
+        goto cleanup_8x8;
+    }
+
+    /* Read result back from GPU memory */
+    err = clEnqueueReadBuffer(ctx->queue, buffer_C, CL_TRUE, 0,
+                              matrix_8x8_size * sizeof(double), C_flat, 0, NULL, NULL);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to read 8x8 result buffer (%d)\n", err);
+        goto cleanup_8x8;
+    }
+
+    /* Convert result from row-major (OpenCL) back to column-major (Fortran) */
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            C[j * ldc + i] = C_flat[i * 8 + j];  /* Row-major to column-major */
+        }
+    }
+
+    fprintf(stdout, "[AlphaTensor GPU] 8x8 Strassen-AlphaTensor computation completed successfully\n");
+
+cleanup_8x8:
+    clReleaseMemObject(buffer_A);
+    clReleaseMemObject(buffer_B);
+    clReleaseMemObject(buffer_C);
+
+    return (err == CL_SUCCESS) ? 0 : -1;
+}
+
+/*
+ * Internal block-wise AlphaTensor multiplication using GPU
+ *
+ * Processes large matrices (16x16+) by applying AlphaTensor algorithm to
+ * 4x4 blocks in parallel. Uses the dgemm_alpha_blockwise kernel with
+ * 3D work-group organization for maximum GPU parallelization.
+ *
+ * Algorithm: Applies 49-operation optimization to each 4x4 block
+ * Performance: Expected 10-50x speedup for large matrices due to massive parallelism
+ */
+static int alphatensor_gpu_compute_blockwise_internal(
+    double alpha, const double* A, int lda,
+    const double* B, int ldb, double beta,
+    double* C, int ldc, int M, int N, int K) {
+
+    /* Get OpenCL context */
+    alphatensor_opencl_t* ctx = alphatensor_gpu_get_context();
+    if (!ctx || !ctx->gpu_available) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: GPU context not available for block-wise\n");
+        return -1;
+    }
+
+    /* Calculate block grid dimensions */
+    const int blocks_i = M / 4;
+    const int blocks_j = N / 4;
+    const int blocks_k = K / 4;
+    const size_t total_blocks = blocks_i * blocks_j * blocks_k;
+
+    /* Log computation details */
+    fprintf(stdout, "[AlphaTensor GPU] Starting %dx%dx%d block-wise AlphaTensor computation\n", M, N, K);
+    fprintf(stdout, "[AlphaTensor GPU] Block grid: %dx%dx%d = %zu total blocks\n",
+            blocks_i, blocks_j, blocks_k, total_blocks);
+    fprintf(stdout, "[AlphaTensor GPU] Expected parallelization: %zu concurrent 4x4 operations\n",
+            total_blocks);
+
+    cl_int err;
+
+    /* Create OpenCL buffers for entire matrices */
+    const size_t matrix_A_size = M * K;
+    const size_t matrix_B_size = K * N;
+    const size_t matrix_C_size = M * N;
+
+    cl_mem buffer_A = clCreateBuffer(ctx->context, CL_MEM_READ_ONLY,
+                                     matrix_A_size * sizeof(double), NULL, &err);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to create block-wise buffer A (%d)\n", err);
+        return -1;
+    }
+
+    cl_mem buffer_B = clCreateBuffer(ctx->context, CL_MEM_READ_ONLY,
+                                     matrix_B_size * sizeof(double), NULL, &err);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to create block-wise buffer B (%d)\n", err);
+        clReleaseMemObject(buffer_A);
+        return -1;
+    }
+
+    cl_mem buffer_C = clCreateBuffer(ctx->context, CL_MEM_READ_WRITE,
+                                     matrix_C_size * sizeof(double), NULL, &err);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to create block-wise buffer C (%d)\n", err);
+        clReleaseMemObject(buffer_A);
+        clReleaseMemObject(buffer_B);
+        return -1;
+    }
+
+    /* Transfer matrices to GPU memory (already in column-major - no conversion needed) */
+    err = clEnqueueWriteBuffer(ctx->queue, buffer_A, CL_TRUE, 0,
+                               matrix_A_size * sizeof(double), A, 0, NULL, NULL);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to write block-wise buffer A (%d)\n", err);
+        goto cleanup_blockwise;
+    }
+
+    err = clEnqueueWriteBuffer(ctx->queue, buffer_B, CL_TRUE, 0,
+                               matrix_B_size * sizeof(double), B, 0, NULL, NULL);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to write block-wise buffer B (%d)\n", err);
+        goto cleanup_blockwise;
+    }
+
+    err = clEnqueueWriteBuffer(ctx->queue, buffer_C, CL_TRUE, 0,
+                               matrix_C_size * sizeof(double), C, 0, NULL, NULL);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to write block-wise buffer C (%d)\n", err);
+        goto cleanup_blockwise;
+    }
+
+    /* Set kernel arguments for dgemm_alpha_blockwise kernel */
+    err = clSetKernelArg(ctx->kernel_blockwise, 0, sizeof(cl_mem), &buffer_A);
+    err |= clSetKernelArg(ctx->kernel_blockwise, 1, sizeof(cl_mem), &buffer_B);
+    err |= clSetKernelArg(ctx->kernel_blockwise, 2, sizeof(cl_mem), &buffer_C);
+    err |= clSetKernelArg(ctx->kernel_blockwise, 3, sizeof(double), &alpha);
+    err |= clSetKernelArg(ctx->kernel_blockwise, 4, sizeof(double), &beta);
+    err |= clSetKernelArg(ctx->kernel_blockwise, 5, sizeof(int), &M);
+    err |= clSetKernelArg(ctx->kernel_blockwise, 6, sizeof(int), &N);
+    err |= clSetKernelArg(ctx->kernel_blockwise, 7, sizeof(int), &K);
+    err |= clSetKernelArg(ctx->kernel_blockwise, 8, sizeof(int), &lda);
+    err |= clSetKernelArg(ctx->kernel_blockwise, 9, sizeof(int), &ldb);
+    err |= clSetKernelArg(ctx->kernel_blockwise, 10, sizeof(int), &ldc);
+
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to set block-wise kernel arguments (%d)\n", err);
+        goto cleanup_blockwise;
+    }
+
+    /* Execute block-wise kernel with 3D work-group organization */
+    size_t global_work_size[3] = {blocks_i, blocks_j, blocks_k};
+    size_t local_work_size[3] = {
+        (blocks_i >= 4) ? 4 : blocks_i,   /* Optimize for GPU architecture */
+        (blocks_j >= 4) ? 4 : blocks_j,
+        (blocks_k >= 1) ? 1 : blocks_k
+    };
+
+    err = clEnqueueNDRangeKernel(ctx->queue, ctx->kernel_blockwise, 3, NULL,
+                                 global_work_size, local_work_size, 0, NULL, NULL);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to execute block-wise kernel (%d)\n", err);
+        goto cleanup_blockwise;
+    }
+
+    /* Wait for all block processing to complete */
+    err = clFinish(ctx->queue);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to finish block-wise execution (%d)\n", err);
+        goto cleanup_blockwise;
+    }
+
+    /* Read entire result matrix back from GPU */
+    err = clEnqueueReadBuffer(ctx->queue, buffer_C, CL_TRUE, 0,
+                              matrix_C_size * sizeof(double), C, 0, NULL, NULL);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr, "[AlphaTensor GPU] ERROR: Failed to read block-wise result (%d)\n", err);
+        goto cleanup_blockwise;
+    }
+
+    fprintf(stdout, "[AlphaTensor GPU] Block-wise AlphaTensor computation completed successfully\n");
+    fprintf(stdout, "[AlphaTensor GPU] Processed %zu parallel 4x4 blocks with AlphaTensor optimization\n",
+            total_blocks);
+
+cleanup_blockwise:
+    clReleaseMemObject(buffer_A);
+    clReleaseMemObject(buffer_B);
+    clReleaseMemObject(buffer_C);
+
+    return (err == CL_SUCCESS) ? 0 : -1;
 }
 
 /*

@@ -107,12 +107,15 @@ variable "environment" {
   }
 }
 
+# Random ID for unique bucket naming
+resource "random_id" "bucket_suffix" {
+  byte_length = 4
+}
+
 # Local values for computed variables
 locals {
   # Generate unique bucket name with timestamp
-  bucket_name = var.results_bucket_name == "alphatensor-gpu-test-results" ?
-    "${var.results_bucket_name}-${random_id.bucket_suffix.hex}" :
-    var.results_bucket_name
+  bucket_name = "${var.results_bucket_name}-${random_id.bucket_suffix.hex}"
 
   # Common tags for all resources
   common_tags = {
@@ -156,9 +159,4 @@ locals {
       hourly_cost  = "3.060"
     }
   }
-}
-
-# Random ID for unique bucket naming
-resource "random_id" "bucket_suffix" {
-  byte_length = 4
 }

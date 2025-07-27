@@ -29,7 +29,7 @@ LOG_FILE="/var/log/alphatensor-gpu-test.log"
 RESULTS_DIR="/tmp/alphatensor-test-results"
 REPO_DIR="/tmp/lapack_ai"
 START_TIME=$(date +%s)
-TEST_TIMEOUT_SECONDS=$((20 * 60))  # 20 minutes timeout
+TEST_TIMEOUT_SECONDS=${TEST_TIMEOUT_SECONDS}  # From terraform configuration
 
 # Create results directory
 mkdir -p "$RESULTS_DIR"
@@ -316,15 +316,15 @@ ls -la "$RESULTS_DIR" >> "$LOG_FILE"
 upload_results() {
     log "Uploading results to S3 bucket: ${results_bucket}"
 
-    for file in "$RESULTS_DIR"/*; do
-        if [ -f "$file" ]; then
-            filename=$(basename "$file")
-            s3_key="${test_timestamp}_${filename}"
+    for file in "$$RESULTS_DIR"/*; do
+        if [ -f "$$file" ]; then
+            filename=$$(basename "$$file")
+            s3_key="${test_timestamp}_$$filename"
 
-            if aws s3 cp "$file" "s3://${results_bucket}/$s3_key"; then
-                log "Uploaded: $filename -> s3://${results_bucket}/$s3_key"
+            if aws s3 cp "$$file" "s3://${results_bucket}/$$s3_key"; then
+                log "Uploaded: $$filename -> s3://${results_bucket}/$$s3_key"
             else
-                log "WARNING: Failed to upload $filename"
+                log "WARNING: Failed to upload $$filename"
             fi
         fi
     done
@@ -353,10 +353,10 @@ upload_results
 # =================================================================
 
 schedule_shutdown() {
-    local minutes=${1:-5}
-    log "Scheduling system shutdown in $minutes minutes..."
-    echo "AlphaTensor GPU testing completed. System will shutdown in $minutes minutes." | wall
-    shutdown -h +$minutes
+    local minutes=$${1:-5}
+    log "Scheduling system shutdown in $$minutes minutes..."
+    echo "AlphaTensor GPU testing completed. System will shutdown in $$minutes minutes." | wall
+    shutdown -h +$$minutes
 }
 
 # Final status report

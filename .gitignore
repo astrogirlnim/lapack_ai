@@ -57,3 +57,10 @@ SRC/la_xisnan.mod
 # Compiled test executables
 SRC/VARIANTS/alphatensor/comprehensive_test*
 SRC/VARIANTS/alphatensor/test_*
+
+# Terraform files (experimental infrastructure)
+**/.terraform/
+**/.terraform.lock.hcl
+**/terraform.tfstate*
+**/terraform.tfplan
+**/.terraform.tfstate.backup

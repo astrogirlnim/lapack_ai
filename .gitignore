@@ -57,3 +57,31 @@ SRC/la_xisnan.mod
 # Compiled test executables
 SRC/VARIANTS/alphatensor/comprehensive_test*
 SRC/VARIANTS/alphatensor/test_*
+
+# Terraform files (experimental infrastructure)
+**/.terraform/
+**/.terraform.lock.hcl
+**/terraform.tfstate*
+**/terraform.tfplan
+**/.terraform.tfstate.backup
+
+# macOS files
+.DS_Store
+**/.DS_Store
+
+# Jupyter Notebook checkpoints
+**/.ipynb_checkpoints/
+
+# Generated PDF reports (keep markdown source, ignore PDF outputs)
+**/pdf_reports/
+**/*_reports/*.pdf
+
+# Temporary markdown backups
+**/markdown_backups_*/
+
+# Generated shared libraries
+**/*.so
+!**/lib*.so
+
+# Terraform plan files
+**/tfplan

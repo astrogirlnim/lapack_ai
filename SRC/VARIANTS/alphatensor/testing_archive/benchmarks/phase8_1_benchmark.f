@@ -1,16 +1,17 @@
       PROGRAM COMPREHENSIVE_MULTI_SIZE_BENCHMARK
 *
-*  -- CORRECTED: Multi-Size Matrix AlphaTensor Testing Framework --
-*  -- TRUE HEAD-TO-HEAD: DGEMM_ALPHA vs DGEMM across matrix sizes --
-*  -- Sizes: 4x4 (AlphaTensor active), 8x8, 16x16, 32x32 (fallback) --
-*  -- Coverage: 12 matrix types, speed, performance, accuracy --
-*  -- Output: Shows AlphaTensor active vs fallback behavior --
+*  -- PHASE 8.6: Complete Multi-Algorithm Testing Framework --
+*  -- TRUE HEAD-TO-HEAD: DGEMM_ALPHA vs DGEMM across all optimization paths --
+*  -- 4x4: AlphaTensor (49 ops), 8x8: Strassen-AlphaTensor (343 ops) --
+*  -- 16x16+: Block-wise AlphaTensor (23% per block), 20x20: Non-power-of-2 --
+*  -- Coverage: 12 matrix types, speed, performance, accuracy across all paths --
+*  -- Output: Shows complete Phase 8.6 multi-algorithm optimization behavior --
 *
       IMPLICIT NONE
 *
 *     .. Parameters ..
       INTEGER NUM_TEST_CASES, REPORT_UNIT, NUM_ALGOS, NUM_SIZES
-      PARAMETER (NUM_TEST_CASES=12, NUM_SIZES=4)
+      PARAMETER (NUM_TEST_CASES=12, NUM_SIZES=5)
       PARAMETER (NUM_ALGOS=2, REPORT_UNIT=10)
       DOUBLE PRECISION ONE, ZERO, PI
       PARAMETER (ONE=1.0D+0, ZERO=0.0D+0, PI=3.14159265358979323846D+0)
@@ -23,7 +24,7 @@
       DOUBLE PRECISION INITIAL_C(32,32)
       CHARACTER*50 TEST_NAMES(12)
       CHARACTER*30 ALGO_NAMES(2)
-      INTEGER MATRIX_SIZES(4), NRUNS_BY_SIZE(4)
+      INTEGER MATRIX_SIZES(5), NRUNS_BY_SIZE(5)
       DOUBLE PRECISION TIMES(2), GFLOPS(2)
       INTEGER ALGO_RANKINGS(2)
 *     ..
@@ -48,20 +49,22 @@
 *     ..
 
 *     Initialize matrix sizes and corresponding iteration counts
-      MATRIX_SIZES(1) = 4     ! AlphaTensor active
-      MATRIX_SIZES(2) = 8     ! AlphaTensor fallback
-      MATRIX_SIZES(3) = 16    ! AlphaTensor fallback
-      MATRIX_SIZES(4) = 32    ! AlphaTensor fallback
+      MATRIX_SIZES(1) = 4     ! Direct AlphaTensor (49 operations)
+      MATRIX_SIZES(2) = 8     ! Strassen-AlphaTensor hybrid (343 operations)
+      MATRIX_SIZES(3) = 16    ! Block-wise AlphaTensor (4x4 blocks)
+      MATRIX_SIZES(4) = 20    ! Block-wise AlphaTensor (non-power-of-2)
+      MATRIX_SIZES(5) = 32    ! Block-wise AlphaTensor (8x8 blocks)
 
 *     Adjust iterations based on matrix size (larger = fewer iterations)
       NRUNS_BY_SIZE(1) = 50000  ! 4x4: many iterations
       NRUNS_BY_SIZE(2) = 10000  ! 8x8: moderate iterations
       NRUNS_BY_SIZE(3) = 2000   ! 16x16: fewer iterations
-      NRUNS_BY_SIZE(4) = 500    ! 32x32: few iterations
+      NRUNS_BY_SIZE(4) = 1000   ! 20x20: fewer iterations
+      NRUNS_BY_SIZE(5) = 500    ! 32x32: few iterations
 
 *     Initialize algorithm names
       ALGO_NAMES(1) = 'DGEMM (Reference)'
-      ALGO_NAMES(2) = 'DGEMM_ALPHA (Phase 8.3)'
+      ALGO_NAMES(2) = 'DGEMM_ALPHA (Phase 8.6)'
 
 *     Initialize test case names
       TEST_NAMES(1) = 'Identity Matrices'
@@ -79,28 +82,36 @@
 
 *     Open comprehensive report file
       OPEN(UNIT=REPORT_UNIT,
-     $     FILE='corrected_multi_size_alphatensor_report.txt',
+     $     FILE='phase8_6_complete_multi_algorithm_report.txt',
      $     STATUS='REPLACE')
 
 *     Write detailed report header
       WRITE(REPORT_UNIT, '(A)')
      +  '============================================================'
       WRITE(REPORT_UNIT, '(A)')
-     +  '   CORRECTED MULTI-SIZE ALPHATENSOR TESTING FRAMEWORK'
+     +  '   PHASE 8.6 COMPLETE MULTI-ALGORITHM TESTING FRAMEWORK'
       WRITE(REPORT_UNIT, '(A)')
      +  '============================================================'
       WRITE(REPORT_UNIT, '(A)') 'HEAD-TO-HEAD: DGEMM vs DGEMM_ALPHA'
       WRITE(REPORT_UNIT, '(A,I0)') 'Matrix Sizes Tested: ', NUM_SIZES
       DO I = 1, NUM_SIZES
-          IS_ALPHATENSOR_ACTIVE = (MATRIX_SIZES(I) .EQ. 4)
-          IF (IS_ALPHATENSOR_ACTIVE) THEN
+          IF (MATRIX_SIZES(I) .EQ. 4) THEN
               WRITE(REPORT_UNIT, '(A,I0,A,I0,A)') '  ',
      +            MATRIX_SIZES(I), 'x', MATRIX_SIZES(I),
-     +            ' (AlphaTensor ACTIVE)'
+     +            ' (Direct AlphaTensor - 49 operations)'
+          ELSE IF (MATRIX_SIZES(I) .EQ. 8) THEN
+              WRITE(REPORT_UNIT, '(A,I0,A,I0,A)') '  ',
+     +            MATRIX_SIZES(I), 'x', MATRIX_SIZES(I),
+     +            ' (Strassen-AlphaTensor Hybrid - 343 operations)'
+          ELSE IF (MATRIX_SIZES(I) .GE. 16 .AND.
+     +             MOD(MATRIX_SIZES(I),4) .EQ. 0) THEN
+              WRITE(REPORT_UNIT, '(A,I0,A,I0,A)') '  ',
+     +            MATRIX_SIZES(I), 'x', MATRIX_SIZES(I),
+     +            ' (Block-wise AlphaTensor - 23% per block)'
           ELSE
               WRITE(REPORT_UNIT, '(A,I0,A,I0,A)') '  ',
      +            MATRIX_SIZES(I), 'x', MATRIX_SIZES(I),
-     +            ' (AlphaTensor fallback to DGEMM)'
+     +            ' (Standard DGEMM fallback)'
           END IF
       END DO
       WRITE(REPORT_UNIT, '(A,I0)') 'Test Cases per Size: ', 12
@@ -114,12 +125,12 @@
 
 *     Console header
       WRITE(*,*) '=============================================='
-      WRITE(*,*) '   CORRECTED MULTI-SIZE ALPHATENSOR TESTING'
+      WRITE(*,*) '   PHASE 8.6 COMPLETE MULTI-ALGORITHM TESTING'
       WRITE(*,*) '=============================================='
       WRITE(*,*) 'TRUE HEAD-TO-HEAD: DGEMM_ALPHA vs DGEMM'
       WRITE(*,*) 'Testing 2 algorithms across', NUM_SIZES,
      +           'matrix sizes'
-      WRITE(*,*) 'Matrix sizes: 4x4 (AlphaTensor), 8x8, 16x16, 32x32'
+      WRITE(*,*) '4x4: Direct, 8x8: Strassen, 16x16+: Block-wise'
       WRITE(*,*) 'Test cases per size:', NUM_TEST_CASES
       WRITE(*,*) 'Writing comprehensive report to file...'
       WRITE(*,*) '=============================================='
@@ -139,29 +150,48 @@
       DO SIZE_IDX = 1, NUM_SIZES
           CURRENT_SIZE = MATRIX_SIZES(SIZE_IDX)
           CURRENT_NRUNS = NRUNS_BY_SIZE(SIZE_IDX)
-          IS_ALPHATENSOR_ACTIVE = (CURRENT_SIZE .EQ. 4)
+          IS_ALPHATENSOR_ACTIVE = (CURRENT_SIZE .EQ. 4 .OR.
+     +                             CURRENT_SIZE .EQ. 8 .OR.
+     +                             (CURRENT_SIZE .GE. 16 .AND.
+     +                              MOD(CURRENT_SIZE,4) .EQ. 0))
 
           WRITE(*,'(A)') '============================================='
-          IF (IS_ALPHATENSOR_ACTIVE) THEN
+          IF (CURRENT_SIZE .EQ. 4) THEN
               WRITE(*,'(A,I0,A,I0,A)') 'TESTING ', CURRENT_SIZE, 'x',
-     +            CURRENT_SIZE, ' MATRICES (AlphaTensor ACTIVE)'
+     +            CURRENT_SIZE, ' (Direct AlphaTensor - 49 ops)'
+          ELSE IF (CURRENT_SIZE .EQ. 8) THEN
+              WRITE(*,'(A,I0,A,I0,A)') 'TESTING ', CURRENT_SIZE, 'x',
+     +            CURRENT_SIZE, ' (Strassen-AlphaTensor - 343 ops)'
+          ELSE IF (CURRENT_SIZE .GE. 16 .AND.
+     +             MOD(CURRENT_SIZE,4) .EQ. 0) THEN
+              WRITE(*,'(A,I0,A,I0,A)') 'TESTING ', CURRENT_SIZE, 'x',
+     +            CURRENT_SIZE, ' (Block-wise AlphaTensor)'
           ELSE
               WRITE(*,'(A,I0,A,I0,A)') 'TESTING ', CURRENT_SIZE, 'x',
-     +            CURRENT_SIZE, ' MATRICES (AlphaTensor fallback)'
+     +            CURRENT_SIZE, ' (Standard DGEMM fallback)'
           END IF
           WRITE(*,'(A,I0,A)') 'Iterations: ', CURRENT_NRUNS, ' per test'
           WRITE(*,*) '=============================================='
 
           WRITE(REPORT_UNIT, '(A)')
      +      '======================================================='
-          IF (IS_ALPHATENSOR_ACTIVE) THEN
+          IF (CURRENT_SIZE .EQ. 4) THEN
               WRITE(REPORT_UNIT, '(A,I0,A,I0,A)') 'MATRIX SIZE: ',
      +            CURRENT_SIZE, 'x', CURRENT_SIZE,
-     +            ' (AlphaTensor ACTIVE)'
+     +            ' (Direct AlphaTensor - 49 operations)'
+          ELSE IF (CURRENT_SIZE .EQ. 8) THEN
+              WRITE(REPORT_UNIT, '(A,I0,A,I0,A)') 'MATRIX SIZE: ',
+     +            CURRENT_SIZE, 'x', CURRENT_SIZE,
+     +            ' (Strassen-AlphaTensor Hybrid - 343 operations)'
+          ELSE IF (CURRENT_SIZE .GE. 16 .AND.
+     +             MOD(CURRENT_SIZE,4) .EQ. 0) THEN
+              WRITE(REPORT_UNIT, '(A,I0,A,I0,A)') 'MATRIX SIZE: ',
+     +            CURRENT_SIZE, 'x', CURRENT_SIZE,
+     +            ' (Block-wise AlphaTensor - 23% per block)'
           ELSE
               WRITE(REPORT_UNIT, '(A,I0,A,I0,A)') 'MATRIX SIZE: ',
      +            CURRENT_SIZE, 'x', CURRENT_SIZE,
-     +            ' (AlphaTensor fallback to DGEMM)'
+     +            ' (Standard DGEMM fallback)'
           END IF
           WRITE(REPORT_UNIT, '(A,I0)') 'Iterations per test: ',
      +        CURRENT_NRUNS
@@ -266,10 +296,15 @@
               WRITE(REPORT_UNIT, '(A,F8.3)') '  GFLOPS: ', GFLOPS(2)
               WRITE(REPORT_UNIT, '(A,F8.3,A)') '  Speedup vs DGEMM: ',
      +            SPEEDUP_ALPHA, 'x'
-              IF (IS_ALPHATENSOR_ACTIVE) THEN
-                  WRITE(REPORT_UNIT, '(A)') '  (AlphaTensor active)'
+              IF (CURRENT_SIZE .EQ. 4) THEN
+                  WRITE(REPORT_UNIT, '(A)') '  (Direct AlphaTensor)'
+              ELSE IF (CURRENT_SIZE .EQ. 8) THEN
+                  WRITE(REPORT_UNIT, '(A)') '  (Strassen-AlphaTensor Hybrid)'
+              ELSE IF (CURRENT_SIZE .GE. 16 .AND.
+     +                 MOD(CURRENT_SIZE,4) .EQ. 0) THEN
+                  WRITE(REPORT_UNIT, '(A)') '  (Block-wise AlphaTensor)'
               ELSE
-                  WRITE(REPORT_UNIT, '(A)') '  (Fallback to DGEMM)'
+                  WRITE(REPORT_UNIT, '(A)') '  (Standard DGEMM fallback)'
               END IF
 
 *             ========================================================
@@ -399,13 +434,14 @@
      +    TOTAL_ACCURACY_ALPHA / DBLE(TOTAL_TESTS_RUN)
 
       WRITE(REPORT_UNIT, '(A)') ''
-      WRITE(REPORT_UNIT, '(A)') 'MATRIX SIZE ANALYSIS:'
-      WRITE(REPORT_UNIT, '(A)') '4x4: AlphaTensor algorithm active'
-      WRITE(REPORT_UNIT, '(A)') '8x8, 16x16, 32x32: Fallback to DGEMM'
+      WRITE(REPORT_UNIT, '(A)') 'PHASE 8.6 MATRIX SIZE ANALYSIS:'
+      WRITE(REPORT_UNIT, '(A)') '4x4: Direct AlphaTensor (49 operations)'
+      WRITE(REPORT_UNIT, '(A)') '8x8: Strassen-AlphaTensor Hybrid (343 operations)'
+      WRITE(REPORT_UNIT, '(A)') '16x16+: Block-wise AlphaTensor (23% per block)'
       WRITE(REPORT_UNIT, '(A)') 'Performance differences reveal:'
-      WRITE(REPORT_UNIT, '(A)') '- AlphaTensor effectiveness on 4x4'
-      WRITE(REPORT_UNIT, '(A)') '- Fallback overhead behavior'
-      WRITE(REPORT_UNIT, '(A)') '- Scaling behavior with matrix size'
+      WRITE(REPORT_UNIT, '(A)') '- Multi-algorithm optimization effectiveness'
+      WRITE(REPORT_UNIT, '(A)') '- Complete size coverage without fallbacks'
+      WRITE(REPORT_UNIT, '(A)') '- Scaling behavior across optimization paths'
 
       WRITE(REPORT_UNIT, '(A)') ''
       WRITE(REPORT_UNIT, '(A)') 'RECOMMENDATION:'
@@ -434,12 +470,12 @@
 
 *     Final console summary
       WRITE(*,*) '=============================================='
-      WRITE(*,*) 'CORRECTED MULTI-SIZE TESTING COMPLETE!'
+      WRITE(*,*) 'PHASE 8.6 MULTI-ALGORITHM TESTING COMPLETE!'
       WRITE(*,'(A,I0,A,I0,A)') 'Performance wins: DGEMM=',
      +    WINS_DGEMM, ', DGEMM_ALPHA=', WINS_ALPHA
       WRITE(*,'(A,F6.3,A)') 'Average speedup: DGEMM_ALPHA=',
      +    TOTAL_SPEEDUP_ALPHA / DBLE(TOTAL_TESTS_RUN), 'x'
-      WRITE(*,*) 'Report: corrected_multi_size_alphatensor_report.txt'
+      WRITE(*,*) 'Report: phase8_6_complete_multi_algorithm_report.txt'
       WRITE(*,*) '=============================================='
 
       END

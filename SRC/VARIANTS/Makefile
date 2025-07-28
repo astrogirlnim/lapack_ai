@@ -22,6 +22,10 @@
 TOPSRCDIR = ../..
 include $(TOPSRCDIR)/make.inc
 
+# OpenCL compilation flags (conditional)
+OPENCL_CFLAGS = $(shell pkg-config --cflags OpenCL 2>/dev/null || echo "-I/System/Library/Frameworks/OpenCL.framework/Headers")
+OPENCL_LIBS = $(shell pkg-config --libs OpenCL 2>/dev/null || echo "-framework OpenCL")
+
 CHOLRL = cholesky/RL/cpotrf.o cholesky/RL/dpotrf.o cholesky/RL/spotrf.o cholesky/RL/zpotrf.o
 
 CHOLTOP = cholesky/TOP/cpotrf.o cholesky/TOP/dpotrf.o cholesky/TOP/spotrf.o cholesky/TOP/zpotrf.o
@@ -38,9 +42,14 @@ LARFTL2 = larft/LL-LVL2/clarft.o larft/LL-LVL2/dlarft.o larft/LL-LVL2/slarft.o l
 
 ALPHATENSOR = alphatensor/dgemm_alpha.o
 
+ALPHATENSOR_HYBRID = alphatensor_hybrid/dgemm_alpha_hybrid.o \
+                     alphatensor_hybrid/opencl_manager.o \
+                     alphatensor_hybrid/gpu_interface.o \
+                     alphatensor/dgemm_alpha.o
+
 
 .PHONY: all
-all: cholrl.a choltop.a lucr.a lull.a lurec.a qrll.a larftl2.a alphatensor.a
+all: cholrl.a choltop.a lucr.a lull.a lurec.a qrll.a larftl2.a alphatensor.a alphatensor_hybrid.a
 
 cholrl.a: $(CHOLRL)
 	$(AR) $(ARFLAGS) $@ $^
@@ -74,9 +83,20 @@ alphatensor.a: $(ALPHATENSOR)
 	$(AR) $(ARFLAGS) $@ $^
 	$(RANLIB) $@
 
+alphatensor_hybrid.a: $(ALPHATENSOR_HYBRID)
+	$(AR) $(ARFLAGS) $@ $^
+	$(RANLIB) $@
+
+# Ensure AlphaTensor CPU implementation is built before hybrid
+alphatensor_hybrid/dgemm_alpha_hybrid.o: alphatensor/dgemm_alpha.o
+
+# C compilation rules for AlphaTensor Hybrid with OpenCL
+alphatensor_hybrid/%.o: alphatensor_hybrid/%.c
+	$(CC) $(CFLAGS) $(OPENCL_CFLAGS) -c $< -o $@
+
 .PHONY: clean cleanobj cleanlib
 clean: cleanobj cleanlib
 cleanobj:
-	rm -f $(CHOLRL) $(CHOLTOP) $(LUCR) $(LULL) $(LUREC) $(QRLL) $(LARFTL2) $(ALPHATENSOR)
+	rm -f $(CHOLRL) $(CHOLTOP) $(LUCR) $(LULL) $(LUREC) $(QRLL) $(LARFTL2) $(ALPHATENSOR) $(ALPHATENSOR_HYBRID)
 cleanlib:
 	rm -f *.a

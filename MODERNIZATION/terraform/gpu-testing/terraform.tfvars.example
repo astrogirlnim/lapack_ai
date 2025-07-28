@@ -1,0 +1,71 @@
+# =================================================================
+# ALPHATENSOR GPU TESTING - TERRAFORM VARIABLES EXAMPLE
+# =================================================================
+#
+# Copy this file to terraform.tfvars and customize for your environment.
+# Most variables have sensible defaults, only customize what you need.
+
+# AWS Configuration
+aws_region = "us-east-1"  # N. Virginia - cheapest spot prices
+
+# Instance Configuration
+instance_type    = "g4dn.xlarge"  # NVIDIA T4 - recommended for cost/performance
+max_spot_price   = "0.30"         # 60% savings vs on-demand ($0.526/hr)
+
+# Repository Settings
+github_repo_url = "https://github.com/YourOrg/lapack_ai.git"
+test_branch     = "more-optimization-and-gpu-testing"
+
+# S3 Configuration (bucket name must be globally unique)
+results_bucket_name = "alphatensor-gpu-test-results-yourname"
+
+# Optional SSH Access for Debugging
+enable_ssh_access = false
+# ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC... your-key-here"
+
+# Timeouts and Safety
+test_timeout_minutes  = 20   # Max time for tests to run
+auto_shutdown_minutes = 30   # Force shutdown after this time
+
+# Monitoring and Notifications
+enable_detailed_monitoring = true
+# notification_email = "your-email@example.com"
+
+# Environment
+environment = "dev"  # dev, staging, or prod
+
+# =================================================================
+# COST OPTIMIZATION TIPS
+# =================================================================
+#
+# 1. Use spot instances (enabled by default) for 60% savings
+# 2. Choose appropriate instance type:
+#    - g4dn.xlarge: $0.526/hr on-demand, ~$0.15/hr spot (recommended)
+#    - g5.xlarge: $1.006/hr on-demand, newer GPU but more expensive
+#    - p3.2xlarge: $3.060/hr on-demand, high performance but costly
+#
+# 3. Set conservative timeouts to avoid runaway costs
+# 4. Use us-east-1 region for lowest prices
+# 5. Monitor spot price trends in AWS console
+
+# =================================================================
+# INSTANCE TYPE COMPARISON
+# =================================================================
+#
+# g4dn.xlarge (RECOMMENDED):
+#   GPU: NVIDIA T4 (16GB memory)
+#   CPU: 4 vCPU, 16GB RAM
+#   Cost: ~$0.15-0.25/hr spot
+#   Best for: Cost-effective testing
+#
+# g5.xlarge:
+#   GPU: NVIDIA A10G (24GB memory)
+#   CPU: 4 vCPU, 16GB RAM
+#   Cost: ~$0.25-0.40/hr spot
+#   Best for: Latest GPU features
+#
+# p3.2xlarge:
+#   GPU: NVIDIA V100 (16GB memory)
+#   CPU: 8 vCPU, 61GB RAM
+#   Cost: ~$0.90-1.50/hr spot
+#   Best for: High performance needs

@@ -51,14 +51,15 @@ else
         echo "[PASS] OpenCL tools available"
         echo "OpenCL platforms:"
         clinfo --list 2>/dev/null || echo "clinfo failed"
-        OPENCL_FLAGS="-lOpenCL"
+        OPENCL_FLAGS="-L/lib/x86_64-linux-gnu -lOpenCL"
         OPENCL_AVAILABLE=true
     else
         echo "[WARNING] clinfo not found - checking for OpenCL libraries"
         if [ -f "/usr/lib/x86_64-linux-gnu/libOpenCL.so" ] || \
-           [ -f "/usr/local/lib/libOpenCL.so" ]; then
+           [ -f "/usr/local/lib/libOpenCL.so" ] || \
+           [ -f "/lib/x86_64-linux-gnu/libOpenCL.so.1" ]; then
             echo "[PASS] OpenCL library found"
-            OPENCL_FLAGS="-lOpenCL"
+            OPENCL_FLAGS="-L/lib/x86_64-linux-gnu -lOpenCL"
             OPENCL_AVAILABLE=true
         else
             echo "[FAIL] OpenCL library not found"
@@ -183,15 +184,24 @@ fi
 
 # Compile test program
 echo "Compiling Phase 9.2 test program..."
+
+# Set platform-specific math libraries
+if [ "$(uname)" = "Darwin" ]; then
+    MATH_FLAGS="-framework Accelerate"
+else
+    # Linux - use BLAS/LAPACK libraries
+    MATH_FLAGS="-lblas -llapack"
+fi
+
 gfortran test_phase_9_2.f dgemm_alpha_cpu.o gpu_interface.o opencl_manager.o \
-         $OPENCL_FLAGS -framework Accelerate -o test_phase_9_2 2>&1
+         $OPENCL_FLAGS $MATH_FLAGS -o test_phase_9_2 2>&1
 if [ $? -eq 0 ]; then
     echo "[PASS] Test program compiled successfully"
 else
     echo "[FAIL] Test program compilation failed"
     echo "Compilation output:"
     gfortran test_phase_9_2.f dgemm_alpha_cpu.o gpu_interface.o opencl_manager.o \
-             $OPENCL_FLAGS -o test_phase_9_2
+             $OPENCL_FLAGS $MATH_FLAGS -o test_phase_9_2
     exit 1
 fi
 

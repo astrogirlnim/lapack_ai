@@ -33,6 +33,26 @@ resource "aws_s3_bucket" "test_results" {
   }
 }
 
+# Upload setup script to S3
+resource "aws_s3_object" "setup_script" {
+  bucket  = aws_s3_bucket.test_results.bucket
+  key     = "scripts/setup_and_test.sh"
+  content = templatefile("${path.module}/setup_and_test.sh", {
+    github_repo          = var.github_repo_url
+    test_branch          = var.test_branch
+    results_bucket       = aws_s3_bucket.test_results.bucket
+    test_timestamp       = "run-${random_id.bucket_suffix.hex}"
+    instance_type        = var.instance_type
+    TEST_TIMEOUT_SECONDS = var.test_timeout_minutes * 60
+  })
+  content_type = "text/plain"
+
+  tags = {
+    Name    = "AlphaTensor Setup Script"
+    Purpose = "Phase-9.2-OpenCL-Validation"
+  }
+}
+
 resource "aws_s3_bucket_versioning" "test_results" {
   bucket = aws_s3_bucket.test_results.id
   versioning_configuration {
@@ -85,6 +105,8 @@ resource "aws_security_group" "gpu_test" {
 
 # Key pair for SSH access (optional)
 resource "aws_key_pair" "gpu_test" {
+  count = var.enable_ssh_access && var.ssh_public_key != "" ? 1 : 0
+
   key_name   = "nataly-alphatensor-gpu-test-key"
   public_key = var.ssh_public_key
 
@@ -143,18 +165,21 @@ resource "aws_instance" "alphatensor_gpu_test" {
   ami           = local.ubuntu_ami_id
   instance_type = var.instance_type
 
-  # Use spot instance for cost savings
-  instance_market_options {
-    market_type = "spot"
-    spot_options {
-      max_price                      = var.max_spot_price
-      spot_instance_type             = "one-time"
-      instance_interruption_behavior = "terminate"
+  # Use spot instance for cost savings (conditional)
+  dynamic "instance_market_options" {
+    for_each = tonumber(var.max_spot_price) > 0 ? [1] : []
+    content {
+      market_type = "spot"
+      spot_options {
+        max_price                      = var.max_spot_price
+        spot_instance_type             = "one-time"
+        instance_interruption_behavior = "terminate"
+      }
     }
   }
 
   vpc_security_group_ids = [aws_security_group.gpu_test.id]
-  key_name              = aws_key_pair.gpu_test.key_name
+  key_name              = var.enable_ssh_access && var.ssh_public_key != "" ? aws_key_pair.gpu_test[0].key_name : null
   iam_instance_profile  = aws_iam_instance_profile.gpu_test_profile.name
 
   # EBS root volume
@@ -164,18 +189,25 @@ resource "aws_instance" "alphatensor_gpu_test" {
     encrypted   = true
   }
 
-  # User data script for automated setup and testing
-  user_data = base64encode(templatefile("${path.module}/setup_and_test.sh", {
-    github_repo          = var.github_repo_url
-    test_branch          = var.test_branch
-    results_bucket       = aws_s3_bucket.test_results.bucket
-    test_timestamp       = formatdate("YYYY-MM-DD_hhmm", timestamp())
-    instance_type        = var.instance_type
-    TEST_TIMEOUT_SECONDS = var.test_timeout_minutes * 60
+  # User data script - minimal version that downloads full script from S3
+  user_data = base64encode(templatefile("${path.module}/user_data_minimal.sh", {
+    results_bucket      = aws_s3_bucket.test_results.bucket
+    setup_script_s3_key = aws_s3_object.setup_script.key
   }))
 
-  # Auto-terminate after testing
-  instance_initiated_shutdown_behavior = "terminate"
+  # Auto-terminate after testing (only for on-demand instances, not spot)
+  instance_initiated_shutdown_behavior = tonumber(var.max_spot_price) > 0 ? null : "terminate"
+
+  # Prevent unnecessary instance replacement
+  user_data_replace_on_change = false
+
+  # Lifecycle rule to prevent replacement on minor changes
+  lifecycle {
+    ignore_changes = [
+      user_data,  # Don't replace instance if user_data changes
+      tags  # Ignore tag changes including timestamps
+    ]
+  }
 
   tags = {
     Name           = "Nataly-AlphaTensor-GPU-Test-${formatdate("YYYY-MM-DD-hhmm", timestamp())}"

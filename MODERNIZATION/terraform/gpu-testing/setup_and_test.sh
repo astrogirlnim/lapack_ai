@@ -39,6 +39,27 @@ log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOG_FILE"
 }
 
+# Upload error logs function
+upload_error_logs() {
+    log "Uploading error logs to S3..."
+    /usr/local/bin/aws s3 cp "$LOG_FILE" "s3://${results_bucket}/${test_timestamp}_error.log" 2>/dev/null || true
+
+    # Upload any available results even on error
+    for file in "$RESULTS_DIR"/*.txt "$RESULTS_DIR"/*.log; do
+        if [ -f "$file" ]; then
+            /usr/local/bin/aws s3 cp "$file" "s3://${results_bucket}/" 2>/dev/null || true
+        fi
+    done
+}
+
+# Shutdown scheduling function
+schedule_shutdown() {
+    local minutes=$${1:-5}
+    log "Scheduling system shutdown in $$minutes minutes..."
+    echo "AlphaTensor GPU testing completed. System will shutdown in $$minutes minutes." | wall
+    shutdown -h +$$minutes
+}
+
 # Error handling function
 handle_error() {
     local exit_code=$?
@@ -92,10 +113,15 @@ apt-get install -y \
     build-essential \
     cmake \
     pkg-config \
-    awscli \
     unzip \
     htop \
     vim
+
+log "Installing AWS CLI v2..."
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip -q awscliv2.zip
+./aws/install
+rm -rf aws awscliv2.zip
 
 # =================================================================
 # NVIDIA GPU DRIVER AND OPENCL SETUP
@@ -321,7 +347,7 @@ upload_results() {
             filename=$$(basename "$$file")
             s3_key="${test_timestamp}_$$filename"
 
-            if aws s3 cp "$$file" "s3://${results_bucket}/$$s3_key"; then
+            if /usr/local/bin/aws s3 cp "$$file" "s3://${results_bucket}/$$s3_key"; then
                 log "Uploaded: $$filename -> s3://${results_bucket}/$$s3_key"
             else
                 log "WARNING: Failed to upload $$filename"
@@ -330,19 +356,7 @@ upload_results() {
     done
 
     # Upload main log file
-    aws s3 cp "$LOG_FILE" "s3://${results_bucket}/${test_timestamp}_execution.log" || true
-}
-
-upload_error_logs() {
-    log "Uploading error logs to S3..."
-    aws s3 cp "$LOG_FILE" "s3://${results_bucket}/${test_timestamp}_error.log" 2>/dev/null || true
-
-    # Upload any available results even on error
-    for file in "$RESULTS_DIR"/*.txt "$RESULTS_DIR"/*.log; do
-        if [ -f "$file" ]; then
-            aws s3 cp "$file" "s3://${results_bucket}/" 2>/dev/null || true
-        fi
-    done
+    /usr/local/bin/aws s3 cp "$LOG_FILE" "s3://${results_bucket}/${test_timestamp}_execution.log" || true
 }
 
 # Upload results
@@ -351,13 +365,6 @@ upload_results
 # =================================================================
 # CLEANUP AND SHUTDOWN
 # =================================================================
-
-schedule_shutdown() {
-    local minutes=$${1:-5}
-    log "Scheduling system shutdown in $$minutes minutes..."
-    echo "AlphaTensor GPU testing completed. System will shutdown in $$minutes minutes." | wall
-    shutdown -h +$$minutes
-}
 
 # Final status report
 TOTAL_DURATION=$(($(date +%s) - START_TIME))

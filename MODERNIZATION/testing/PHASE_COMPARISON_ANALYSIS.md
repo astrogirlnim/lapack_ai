@@ -1,4 +1,4 @@
-# AlphaTensor Phase Comparison Analysis: Performance, Speed & Accuracy Evolution
+# AlphaTensor Phase Comparison Analysis: Performance, Speed and Accuracy Evolution
 
 ## Executive Summary
 
@@ -119,7 +119,7 @@ Win Rate: 0/12 tests (0% success rate)
 #### **16×16+ Block-wise AlphaTensor (New in Phase 8.6)**
 ```
 16×16: 0.073x - 0.090x (11-14x slower)
-20×20: 0.066x - 0.087x (11-15x slower)  
+20×20: 0.066x - 0.087x (11-15x slower)
 32×32: 0.054x - 0.068x (15-18x slower)
 Win Rate: 0/36 tests (0% success rate)
 ```
@@ -171,17 +171,17 @@ Win Rate: 0/36 tests (0% success rate)
 ```fortran
 ! Phase 8.4: Direct to optimized 4×4 path
 IF (IS_4X4) THEN
-    ! Optimized AlphaTensor code
+! Optimized AlphaTensor code
 
 ! Phase 8.6: Complex algorithm selection
 IF (IS_4X4 .AND. ...) THEN
-    ! 4×4 path
-ELSE IF (IS_8X8 .AND. ...) THEN  
-    ! 8×8 Strassen path
+! 4×4 path
+ELSE IF (IS_8X8 .AND. ...) THEN
+! 8×8 Strassen path
 ELSE IF (IS_DIVISIBLE_BY_4 .AND. ...) THEN
-    ! Block-wise path
+! Block-wise path
 ELSE
-    ! Fallback path
+! Fallback path
 ```
 
 **Impact**: Runtime algorithm selection adds latency to every call.
@@ -190,11 +190,11 @@ ELSE
 ```fortran
 ! Phase 8.6 Block-wise: Multiple DGEMM calls
 DO BLOCK_K = 0, MAX_BLOCK_K-1
-    DO BLOCK_I = 0, MAX_BLOCK_I-1
-        DO BLOCK_J = 0, MAX_BLOCK_J-1
-            ! Extract 4×4 block
-            ! Call DGEMM on 4×4 block ← OVERHEAD
-            CALL DGEMM('N','N',4,4,4,...)
+DO BLOCK_I = 0, MAX_BLOCK_I-1
+DO BLOCK_J = 0, MAX_BLOCK_J-1
+! Extract 4×4 block
+! Call DGEMM on 4×4 block ← OVERHEAD
+CALL DGEMM('N','N',4,4,4,...)
 ```
 
 **Problem**: Each 4×4 block requires DGEMM setup/teardown overhead.
@@ -216,7 +216,7 @@ DO BLOCK_K = 0, MAX_BLOCK_K-1
 
 ### Immediate Actions (Phase 8.7+)
 
-#### **🎯 Performance Recovery Strategy:**
+#### **Performance Recovery Strategy:**
 1. **Preserve Phase 8.4's 4×4 Excellence**: Restore 1.04x average performance
 2. **Fix Block-wise Implementation**: Eliminate DGEMM call overhead
 3. **Optimize Strassen Path**: Address matrix partitioning costs
@@ -290,7 +290,7 @@ DO BLOCK_K = 0, MAX_BLOCK_K-1
 
 **Phase 8.6 Challenges:**
 - ❌ **Performance Regression**: 76% average performance degradation
-- ❌ **Production Viability**: No longer suitable for most applications  
+- ❌ **Production Viability**: No longer suitable for most applications
 - ❌ **Implementation Overhead**: Engineering costs exceed algorithmic benefits
 - ❌ **Win Rate Collapse**: 93% reduction in competitive performance
 
@@ -305,7 +305,7 @@ DO BLOCK_K = 0, MAX_BLOCK_K-1
 
 ---
 
-**Generated**: Post-comprehensive Phase 8.6 testing and analysis  
-**Based on**: 60-scenario performance benchmarking + historical phase data  
-**Key Finding**: Algorithmic innovation achieved at significant performance cost  
-**Recommendation**: Hybrid approach leveraging strengths of both phases 
+**Generated**: Post-comprehensive Phase 8.6 testing and analysis
+**Based on**: 60-scenario performance benchmarking + historical phase data
+**Key Finding**: Algorithmic innovation achieved at significant performance cost
+**Recommendation**: Hybrid approach leveraging strengths of both phases

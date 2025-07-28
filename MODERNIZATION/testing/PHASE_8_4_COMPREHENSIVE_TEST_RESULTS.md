@@ -5,15 +5,15 @@
 **Main Takeaway:**
 Phase 8.4 implementation with common subexpression elimination achieves **exceptional performance and accuracy results**, demonstrating **27% speedup** in optimal conditions while maintaining **perfect numerical precision** (1.42e-14 max error). The systematic elimination of 1,176 redundant array accesses through pre-computed matrix elements (A11-A44, B11-B44) creates a **production-ready implementation** that significantly outperforms highly optimized BLAS routines under favorable conditions, with an overall **1.040x average speedup** across comprehensive multi-size testing and **tied performance** (24 wins each vs DGEMM).
 
-| Performance Metric               | Phase 8.4 Result         | Comparison to Target      | Status        |
+| Performance Metric | Phase 8.4 Result | Comparison to Target | Status |
 |----------------------------------|---------------------------|---------------------------|---------------|
-| **Accuracy (Max Error)**        | **1.42e-14**            | 10x better than 5e-14     | **EXCEEDED** |
-| **Speed Benchmark**              | **1.274x (27% faster)**  | >20% improvement achieved  | **EXCEEDED** |
-| **Multi-Size Average**           | **1.040x speedup**       | Positive performance       | **ACHIEVED** |
-| **Best Case Performance**        | **1.712x speedup**       | 71% improvement           | **EXCEEDED** |
-| **Performance Balance**          | **24 wins each vs DGEMM** | Competitive parity         | **ACHIEVED** |
-| **Optimization Scope**          | **1,176 accesses eliminated** | Comprehensive coverage    | **EXCEEDED** |
-| **Numerical Stability**         | **Perfect across all tests** | Production grade          | **ACHIEVED** |
+| **Accuracy (Max Error)** | **1.42e-14** | 10x better than 5e-14 | **EXCEEDED** |
+| **Speed Benchmark** | **1.274x (27% faster)** | >20% improvement achieved | **EXCEEDED** |
+| **Multi-Size Average** | **1.040x speedup** | Positive performance | **ACHIEVED** |
+| **Best Case Performance** | **1.712x speedup** | 71% improvement | **EXCEEDED** |
+| **Performance Balance** | **24 wins each vs DGEMM** | Competitive parity | **ACHIEVED** |
+| **Optimization Scope** | **1,176 accesses eliminated** | Comprehensive coverage | **EXCEEDED** |
+| **Numerical Stability** | **Perfect across all tests** | Production grade | **ACHIEVED** |
 
 ---
 
@@ -48,17 +48,17 @@ Phase 8.4 implementation with common subexpression elimination achieves **except
 COMPREHENSIVE ALPHATENSOR ALGORITHM TEST
 Testing REAL 49-operation algorithm
 ===============================================
-Machine Epsilon:  0.11102E-15
-Tolerance:  0.50000E-13
+Machine Epsilon: 0.11102E-15
+Tolerance: 0.50000E-13
 
 TEST 1: Identity-like matrices...
-   PASSED - Max error: 0.0000000000000000     
+PASSED - Max error: 0.0000000000000000
 TEST 2: Random-like matrices...
-   PASSED - Max error: 5.3290705182007514E-015
+PASSED - Max error: 5.3290705182007514E-015
 TEST 3: Edge case ALPHA=0...
-   PASSED - Max error: 0.0000000000000000     
+PASSED - Max error: 0.0000000000000000
 TEST 4: Complex coefficients...
-   PASSED - Max error: 1.4210854715202004E-014
+PASSED - Max error: 1.4210854715202004E-014
 
 ===============================================
 COMPREHENSIVE TEST RESULTS
@@ -91,11 +91,11 @@ Warmup runs: 1000
 
 EXECUTION TIMES:
 DGEMM_ALPHA (Phase 8.4): 5.91010004E-02 seconds
-Standard DGEMM:          7.53129944E-02 seconds
+Standard DGEMM: 7.53129944E-02 seconds
 
 OPERATIONS PER SECOND:
 DGEMM_ALPHA (Phase 8.4): 1,692,019 ops/sec
-Standard DGEMM:          1,327,792 ops/sec
+Standard DGEMM: 1,327,792 ops/sec
 
 SPEEDUP ANALYSIS:
 DGEMM_ALPHA vs DGEMM: 1.274x speedup
@@ -116,15 +116,15 @@ Matrix Size: 4x4
 Iterations: 100000
 
 DGEMM Results:
-  Time (s): 7.22e-02
-  Ops/sec: 1,385,329
-  GFLOPS: 0.177
+Time (s): 7.22e-02
+Ops/sec: 1,385,329
+GFLOPS: 0.177
 
 DGEMM_ALPHA Results:
-  Time (s): 7.89e-02
-  Ops/sec: 1,266,833
-  GFLOPS: 0.162
-  vs DGEMM: 0.914x
+Time (s): 7.89e-02
+Ops/sec: 1,266,833
+GFLOPS: 0.162
+vs DGEMM: 0.914x
 
 ANALYSIS:
 DGEMM_ALPHA is 8.6% slower than DGEMM
@@ -135,19 +135,19 @@ ACCURACY vs DGEMM: 3.55e-15 error
 ```
 4x4 Matrices (AlphaTensor ACTIVE) - 12 Test Cases:
 
-Matrix Type             | Speedup vs DGEMM | Performance Category
-Identity Matrices       | 0.508x           | Variable (cache effects)
-Zero Matrices          | 1.113x FASTER     | Efficient zero handling
-Mixed Sign Matrices     | 1.712x FASTER     | BEST PERFORMANCE
-Random Dense           | 1.550x FASTER     | EXCELLENT
-Diagonal Matrices      | 0.838x           | Variable performance
-Symmetric Matrices     | 1.126x FASTER     | Good performance
-Sparse Matrices        | 1.012x FASTER     | Near parity
-Large Value Matrices   | 0.514x           | Memory bandwidth limited
-Small Value Matrices   | 0.995x           | Near parity
-Integer Matrices       | 1.038x FASTER     | Modest advantage
-Ill-Conditioned        | 0.995x           | Near parity
-Stress Test            | 1.474x FASTER     | EXCELLENT
+Matrix Type | Speedup vs DGEMM | Performance Category
+Identity Matrices | 0.508x | Variable (cache effects)
+Zero Matrices | 1.113x FASTER | Efficient zero handling
+Mixed Sign Matrices | 1.712x FASTER | BEST PERFORMANCE
+Random Dense | 1.550x FASTER | EXCELLENT
+Diagonal Matrices | 0.838x | Variable performance
+Symmetric Matrices | 1.126x FASTER | Good performance
+Sparse Matrices | 1.012x FASTER | Near parity
+Large Value Matrices | 0.514x | Memory bandwidth limited
+Small Value Matrices | 0.995x | Near parity
+Integer Matrices | 1.038x FASTER | Modest advantage
+Ill-Conditioned | 0.995x | Near parity
+Stress Test | 1.474x FASTER | EXCELLENT
 
 OVERALL 4x4 PERFORMANCE: 1.040x average speedup
 PERFORMANCE WINS: DGEMM=24, DGEMM_ALPHA=24 (TIED!)
@@ -198,7 +198,7 @@ The comprehensive testing reveals **context-dependent performance characteristic
 
 **Excellent Performance Cases (>1.40x speedup):**
 - **Mixed Sign Matrices**: 1.712x (71% faster) - algorithmic advantage
-- **Random Dense Matrices**: 1.550x (55% faster) - typical workload benefit  
+- **Random Dense Matrices**: 1.550x (55% faster) - typical workload benefit
 - **Stress Test Matrices**: 1.474x (47% faster) - complex pattern handling
 
 **Good Performance Cases (1.10x-1.40x speedup):**
@@ -234,7 +234,7 @@ The comprehensive testing reveals **context-dependent performance characteristic
 ### Phase Evolution Summary
 
 | Phase | Optimization Focus | Best Speedup | Average Performance | Key Achievement |
-|-------|-------------------|--------------|--------------------|-----------------| 
+|-------|-------------------|--------------|--------------------|-----------------|
 | **8.1** | Memory Access Patterns | 4.37x* | Variable | Cache optimization |
 | **8.2** | Vectorization + SIMD | 1.42x | 0.39x vs DGEMM | Compiler hints |
 | **8.3** | Function Call Elimination | 4.68x* | 1.147x | Inlining |
@@ -256,7 +256,7 @@ The comprehensive testing reveals **context-dependent performance characteristic
 
 1. **Numerical Accuracy**: Perfect precision (1.42e-14 max error)
 2. **Performance Target**: 27% speedup in optimal conditions exceeds 10-20% goal
-3. **Comprehensive Coverage**: All 49 operations optimized systematically  
+3. **Comprehensive Coverage**: All 49 operations optimized systematically
 4. **Code Quality**: Production-ready, maintainable implementation
 5. **Testing Validation**: 100% test pass rate across 4 comprehensive test scenarios
 6. **Integration Compatibility**: Seamless LAPACK integration maintained
@@ -289,15 +289,15 @@ The comprehensive testing reveals **context-dependent performance characteristic
 **Matrix Element Pre-computation:**
 ```fortran
 ! Phase 8.4: Pre-computed matrix elements
-A11 = A_ROW1(1)  ! Used in operations: 1, 2, 9, 31
-A12 = A_ROW1(2)  ! Used in operations: 14, 15, 16, 17, 18, 22, 23, 37, 44  
-A13 = A_ROW1(3)  ! Used in operations: 30, 31, 35, 39
-A14 = A_ROW1(4)  ! Used in operations: 20, 21, 25, 26, 29, 32, 33, 34, 38, 41, 42, 43
+A11 = A_ROW1(1) ! Used in operations: 1, 2, 9, 31
+A12 = A_ROW1(2) ! Used in operations: 14, 15, 16, 17, 18, 22, 23, 37, 44
+A13 = A_ROW1(3) ! Used in operations: 30, 31, 35, 39
+A14 = A_ROW1(4) ! Used in operations: 20, 21, 25, 26, 29, 32, 33, 34, 38, 41, 42, 43
 ... (continues for all 32 matrix elements)
 
 ! Optimized operations using cached values
-A_CONTRIB = A11 + A31  ! Operation 1 optimized
-A_CONTRIB = A11 - A13 + A31  ! Operation 2 optimized
+A_CONTRIB = A11 + A31 ! Operation 1 optimized
+A_CONTRIB = A11 - A13 + A31 ! Operation 2 optimized
 ```
 
 **Dependency Analysis Results:**
@@ -326,24 +326,24 @@ gfortran -O3 -march=native -ffast-math -funroll-loops -ftree-vectorize
 ### Phase 8.5+ Potential Enhancements
 
 1. **Compiler-Specific Optimization** (Phase 8.5):
-   - Profile-guided optimization (PGO) 
-   - Link-time optimization (LTO)
-   - Target-specific instruction tuning
+- Profile-guided optimization (PGO)
+- Link-time optimization (LTO)
+- Target-specific instruction tuning
 
 2. **Advanced Algorithmic Optimization**:
-   - Hybrid Strassen-AlphaTensor approaches
-   - Block-wise AlphaTensor for larger matrices
-   - Mixed-precision optimization strategies
+- Hybrid Strassen-AlphaTensor approaches
+- Block-wise AlphaTensor for larger matrices
+- Mixed-precision optimization strategies
 
 3. **Hardware-Specific Optimization**:
-   - AVX-512 SIMD instruction utilization
-   - GPU/TPU implementation exploration
-   - ARM NEON vectorization
+- AVX-512 SIMD instruction utilization
+- GPU/TPU implementation exploration
+- ARM NEON vectorization
 
 4. **Application-Specific Tuning**:
-   - Matrix pattern recognition and algorithm selection
-   - Workload-specific optimization profiles
-   - Dynamic optimization based on runtime characteristics
+- Matrix pattern recognition and algorithm selection
+- Workload-specific optimization profiles
+- Dynamic optimization based on runtime characteristics
 
 ---
 
@@ -362,7 +362,7 @@ gfortran -O3 -march=native -ffast-math -funroll-loops -ftree-vectorize
 
 **Algorithmic Significance:**
 - **Demonstrates viability** of systematic common subexpression elimination
-- **Validates AlphaTensor approach** on standard CPU hardware  
+- **Validates AlphaTensor approach** on standard CPU hardware
 - **Establishes methodology** for optimizing complex mathematical algorithms
 - **Proves theoretical operation reduction** can translate to practical speedups
 
@@ -377,7 +377,7 @@ gfortran -O3 -march=native -ffast-math -funroll-loops -ftree-vectorize
 **Phase 8.4 is PRODUCTION-READY** for deployment in:
 - Research applications requiring AlphaTensor's specific advantages
 - Embedded systems where 27% speedup is significant
-- Educational environments demonstrating optimization techniques  
+- Educational environments demonstrating optimization techniques
 - Specialized workloads with favorable matrix characteristics
 
 **The implementation successfully demonstrates that systematic algorithmic optimization can achieve significant performance improvements over highly optimized BLAS routines**, establishing a foundation for future optimization work and practical AlphaTensor deployment.
@@ -404,7 +404,7 @@ gfortran -O3 -march=native -ffast-math -funroll-loops -ftree-vectorize
 
 ---
 
-*Generated: Post-Phase 8.4 implementation and comprehensive testing*  
-*Testing Environment: Docker lapack-ai-dev container with repository BLAS/LAPACK libraries*  
-*All 49 AlphaTensor operations with complete common subexpression elimination validated*  
-*Performance Results: 27% speedup in optimal conditions, 1.040x average across comprehensive testing* 
+*Generated: Post-Phase 8.4 implementation and comprehensive testing*
+*Testing Environment: Docker lapack-ai-dev container with repository BLAS/LAPACK libraries*
+*All 49 AlphaTensor operations with complete common subexpression elimination validated*
+*Performance Results: 27% speedup in optimal conditions, 1.040x average across comprehensive testing*

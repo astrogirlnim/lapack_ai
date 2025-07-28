@@ -107,6 +107,8 @@ variable "environment" {
   }
 }
 
+
+
 # Random ID for unique bucket naming
 resource "random_id" "bucket_suffix" {
   byte_length = 4

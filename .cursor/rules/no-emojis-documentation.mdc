@@ -1,0 +1,198 @@
+---
+description: markdown, documentation, any writing
+alwaysApply: false
+---
+# No Emojis in Documentation Rule
+
+## Overview
+Professional documentation and markdown files should not contain emojis. This ensures clean, professional appearance and maximum compatibility across all platforms and viewing environments.
+
+## Rule: No Emojis in Documentation
+
+### Prohibited Content
+- **Emojis**: ✅ ❌ 🔄 🎉 🚀 📊 📋 🎯 ⚠️ 💻 🛡️ 🗺️ 🧙‍♂️ 🏆 and any other emoji characters
+- **Unicode symbols**: When used decoratively rather than functionally
+- **Emoji substitutes**: Text-based emoji like :) :( :D etc. in formal documentation
+
+### Applies To
+- All `.md` (Markdown) files
+- All `.txt` documentation files  
+- Technical specifications
+- API documentation
+- User guides and manuals
+- README files
+- Implementation plans
+- Test result reports
+- Analysis documents
+- Whitepapers
+- Any file intended for professional or technical communication
+
+### Exceptions
+- Code comments may use ASCII characters for visual separation (e.g., `// ===== SECTION =====`)
+- Mathematical symbols when required for technical accuracy
+- Approved technical notation and symbols
+
+### Professional Alternatives
+
+Instead of emojis, use:
+
+#### Status Indicators
+- **Instead of**: ✅ ❌ 🔄
+- **Use**: `PASSED`, `FAILED`, `IN PROGRESS`, `COMPLETE`, `PENDING`
+
+#### Priority/Importance
+- **Instead of**: 🚀 ⚠️ 🔥  
+- **Use**: `HIGH PRIORITY`, `WARNING`, `CRITICAL`, `IMPORTANT`
+
+#### Categories
+- **Instead of**: 📊 📋 🎯
+- **Use**: `RESULTS`, `TASKS`, `OBJECTIVES`, `DATA`
+
+#### Success/Achievement
+- **Instead of**: 🎉 🏆
+- **Use**: `SUCCESS`, `ACHIEVEMENT`, `COMPLETED`, `ACCOMPLISHED`
+
+### Implementation Examples
+
+#### Before (with emojis):
+```markdown
+## ✅ Test Results
+- 🎯 Target: 90% accuracy achieved  
+- 🚀 Performance: 2.5x speedup
+- ⚠️ Warning: Memory usage increased
+```
+
+#### After (professional):
+```markdown
+## Test Results - PASSED
+- **Target**: 90% accuracy achieved  
+- **Performance**: 2.5x speedup
+- **Warning**: Memory usage increased
+```
+
+### Rationale
+
+1. **Professional Appearance**: Technical documentation should maintain professional standards
+2. **Universal Compatibility**: Emojis may not render consistently across all platforms
+3. **Accessibility**: Screen readers and accessibility tools handle text better than emojis
+4. **Searchability**: Text is more searchable than emoji characters
+5. **Version Control**: Text diffs are cleaner without emoji characters
+6. **International Compatibility**: Text translates better than culture-specific emojis
+7. **Future-Proofing**: Text-based indicators are more stable over time
+
+### Enforcement
+
+- Code reviews should flag emoji usage in documentation
+- Pre-commit hooks may be configured to warn about emoji usage
+- Documentation style guides should reference this rule
+- Automated tools should be used to detect and suggest alternatives
+
+### File Types Covered
+
+- `*.md` - Markdown files
+- `*.txt` - Text documentation  
+- `*.rst` - reStructuredText files
+- `README*` - README files in any format
+- `CHANGELOG*` - Changelog files
+- `*.adoc` - AsciiDoc files
+- Any file in `/docs/` directories
+- Any file clearly intended as documentation
+
+This rule ensures all technical documentation maintains a professional, accessible, and universally compatible standard.
+# No Emojis in Documentation Rule
+
+## Overview
+Professional documentation and markdown files should not contain emojis. This ensures clean, professional appearance and maximum compatibility across all platforms and viewing environments.
+
+## Rule: No Emojis in Documentation
+
+### Prohibited Content
+- **Emojis**: ✅ ❌ 🔄 🎉 🚀 📊 📋 🎯 ⚠️ 💻 🛡️ 🗺️ 🧙‍♂️ 🏆 and any other emoji characters
+- **Unicode symbols**: When used decoratively rather than functionally
+- **Emoji substitutes**: Text-based emoji like :) :( :D etc. in formal documentation
+
+### Applies To
+- All `.md` (Markdown) files
+- All `.txt` documentation files  
+- Technical specifications
+- API documentation
+- User guides and manuals
+- README files
+- Implementation plans
+- Test result reports
+- Analysis documents
+- Whitepapers
+- Any file intended for professional or technical communication
+
+### Exceptions
+- Code comments may use ASCII characters for visual separation (e.g., `// ===== SECTION =====`)
+- Mathematical symbols when required for technical accuracy
+- Approved technical notation and symbols
+
+### Professional Alternatives
+
+Instead of emojis, use:
+
+#### Status Indicators
+- **Instead of**: ✅ ❌ 🔄
+- **Use**: `PASSED`, `FAILED`, `IN PROGRESS`, `COMPLETE`, `PENDING`
+
+#### Priority/Importance
+- **Instead of**: 🚀 ⚠️ 🔥  
+- **Use**: `HIGH PRIORITY`, `WARNING`, `CRITICAL`, `IMPORTANT`
+
+#### Categories
+- **Instead of**: 📊 📋 🎯
+- **Use**: `RESULTS`, `TASKS`, `OBJECTIVES`, `DATA`
+
+#### Success/Achievement
+- **Instead of**: 🎉 🏆
+- **Use**: `SUCCESS`, `ACHIEVEMENT`, `COMPLETED`, `ACCOMPLISHED`
+
+### Implementation Examples
+
+#### Before (with emojis):
+```markdown
+## ✅ Test Results
+- 🎯 Target: 90% accuracy achieved  
+- 🚀 Performance: 2.5x speedup
+- ⚠️ Warning: Memory usage increased
+```
+
+#### After (professional):
+```markdown
+## Test Results - PASSED
+- **Target**: 90% accuracy achieved  
+- **Performance**: 2.5x speedup
+- **Warning**: Memory usage increased
+```
+
+### Rationale
+
+1. **Professional Appearance**: Technical documentation should maintain professional standards
+2. **Universal Compatibility**: Emojis may not render consistently across all platforms
+3. **Accessibility**: Screen readers and accessibility tools handle text better than emojis
+4. **Searchability**: Text is more searchable than emoji characters
+5. **Version Control**: Text diffs are cleaner without emoji characters
+6. **International Compatibility**: Text translates better than culture-specific emojis
+7. **Future-Proofing**: Text-based indicators are more stable over time
+
+### Enforcement
+
+- Code reviews should flag emoji usage in documentation
+- Pre-commit hooks may be configured to warn about emoji usage
+- Documentation style guides should reference this rule
+- Automated tools should be used to detect and suggest alternatives
+
+### File Types Covered
+
+- `*.md` - Markdown files
+- `*.txt` - Text documentation  
+- `*.rst` - reStructuredText files
+- `README*` - README files in any format
+- `CHANGELOG*` - Changelog files
+- `*.adoc` - AsciiDoc files
+- Any file in `/docs/` directories
+- Any file clearly intended as documentation
+
+This rule ensures all technical documentation maintains a professional, accessible, and universally compatible standard.

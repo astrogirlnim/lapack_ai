@@ -1,0 +1,201 @@
+# Docker-Based Development Environment Rule
+
+## Mandatory Development Workflow
+
+**CRITICAL**: ALL development, testing, and validation MUST occur within the containerized environment. Never run builds, tests, or development commands outside the container.
+
+### Rule Overview
+
+This project uses a fully containerized development approach to ensure:
+- **Consistent Environment**: All developers work with identical dependencies, compilers, and system configurations
+- **LAPACK Integration**: Proper linking to LAPACK/LAPACKE libraries pre-installed in container  
+- **GPU Support**: OpenCL runtime and development tools available
+- **Reproducible Builds**: Eliminates "works on my machine" issues
+- **Enterprise Compliance**: Audit trail of exact build environment used
+
+### Container Architecture
+
+```
+┌─────────────────────────────────────────────┐
+│           Host Development Machine          │
+├─────────────────────────────────────────────┤
+│  Docker Container: lapack-ai-dev:latest     │
+│  ├── Python 3.11 + Scientific Stack       │
+│  ├── GCC/GFortran + CMake Build Tools      │
+│  ├── OpenBLAS/LAPACK Libraries            │
+│  ├── OpenCL Runtime + Headers             │
+│  ├── pybind11 + NumPy Development         │
+│  └── Enterprise Development Tools         │
+├─────────────────────────────────────────────┤
+│  Volume Mount: /opt/lapack-ai               │
+│  └── Live sync with host workspace         │
+└─────────────────────────────────────────────┘
+```
+
+### Mandatory Commands
+
+#### 1. Enter Development Environment
+```bash
+# ALWAYS use this command to start development session
+docker run -it --rm -v $(pwd):/opt/lapack-ai --entrypoint /bin/bash lapack-ai-dev:latest
+
+# Container prompt will show: lapack@[container-id]:/opt/lapack-ai$
+```
+
+#### 2. Build Commands (Container Only)
+```bash
+# Inside container - build LAPACK libraries
+mkdir -p build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release -DLAPACKE=ON -DCBLAS=ON
+make -j$(nproc)
+
+# Inside container - build Python bindings  
+cd bindings && mkdir -p build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Debug
+make -j$(nproc)
+```
+
+#### 3. Testing Commands (Container Only)
+```bash
+# Inside container - test Python integration
+python test_integration.py
+
+# Inside container - test LAPACK C interface
+cd build/TESTING && ctest -j$(nproc)
+
+# Inside container - validate pybind11 module
+python -c "import sys; sys.path.append('SRC'); import lapack_ai; print('✅ Success')"
+```
+
+#### 4. Development Commands (Container Only)
+```bash
+# Inside container - install development dependencies
+pip install -e .
+
+# Inside container - run code quality checks  
+pre-commit run --all-files
+
+# Inside container - interactive Python development
+python -c "
+import sys
+sys.path.append('SRC')
+import lapack_ai as lai
+import numpy as np
+# Development and testing...
+"
+```
+
+### What's Available in Container
+
+#### Pre-installed LAPACK Stack
+- **OpenBLAS**: High-performance BLAS implementation
+- **LAPACK**: Complete linear algebra library (`liblapack.so`)
+- **LAPACKE**: C interface to LAPACK (`liblapacke.so`) 
+- **CBLAS**: C interface to BLAS (`libcblas.so`)
+
+#### Development Tools
+- **Compilers**: GCC 11+, GFortran, CMake 3.18+
+- **Python**: Python 3.11 + NumPy, SciPy, pybind11
+- **GPU**: OpenCL headers, runtime, `clinfo` debugging
+- **Quality**: Pre-commit, pytest, black, isort
+- **Debug**: GDB, Valgrind for memory debugging
+
+#### Container Environment Variables
+```bash
+# Automatically set in container:
+CC=gcc
+CXX=g++  
+FC=gfortran
+CMAKE_BUILD_TYPE=Debug
+PYTHONPATH=/opt/lapack-ai/SRC
+OCL_ENABLE_DEBUG=1
+```
+
+### NEVER Do These Outside Container
+
+❌ **Forbidden Actions** (Host Machine):
+```bash
+# NEVER run these on host - always fails with missing dependencies
+python test_integration.py          # Missing LAPACKE  
+cmake .. && make                     # Missing gfortran
+pip install -e .                     # Missing system libraries
+python -c "import lapack_ai"         # Missing compiled bindings
+```
+
+### Container Session Management
+
+#### Start Long-running Session
+```bash
+# Start persistent development session
+docker run -it --name lapack-dev -v $(pwd):/opt/lapack-ai --entrypoint /bin/bash lapack-ai-dev:latest
+
+# Attach to existing session (different terminal)
+docker exec -it lapack-dev bash
+```
+
+#### Exit and Cleanup
+```bash
+# Inside container - commit your changes first
+git add . && git commit -m "Development checkpoint"
+
+# Exit container (automatically removes with --rm)
+exit
+
+# Or stop persistent container
+docker stop lapack-dev && docker rm lapack-dev
+```
+
+### Troubleshooting Container Issues
+
+#### Common Problems & Solutions
+
+**Problem**: "Cannot find LAPACKE headers"
+```bash
+# Solution: Verify container libraries
+find /usr -name "*lapack*" 2>/dev/null
+ls -la /opt/lapack-ai/build/lib/
+```
+
+**Problem**: "pybind11 module won't load"  
+```bash
+# Solution: Check library linking
+ldd bindings/build/_lapack_core*.so
+# Should show liblapacke.so, liblapack.so, etc.
+```
+
+**Problem**: "OpenCL not found"
+```bash  
+# Solution: Verify OpenCL in container
+clinfo
+# Should show available OpenCL platforms
+```
+
+**Problem**: "CMake configuration fails"
+```bash
+# Solution: Clean build and reconfigure
+rm -rf build/* bindings/build/*
+# Then retry build commands
+```
+
+### Why This Rule Exists
+
+1. **LAPACK Complexity**: Building LAPACK requires specific Fortran compilers, BLAS libraries, and system configurations that vary significantly across host machines
+2. **Dependency Hell**: NumPy, pybind11, OpenCL, and LAPACKE have complex interdependencies that container resolves
+3. **Reproducible Builds**: Container ensures identical build environment for all developers and CI/CD
+4. **GPU Development**: OpenCL development requires specific headers and runtime that container provides  
+5. **Enterprise Compliance**: Audit trail requires exact build environment specification
+
+### Integration with Phase 2A
+
+All Phase 2A implementation and testing MUST use container:
+- ✅ pybind11 compilation with LAPACKE linking
+- ✅ NumPy array compatibility testing  
+- ✅ Enterprise feature validation
+- ✅ Performance benchmarking
+- ✅ OpenCL GPU acceleration testing
+
+**Remember**: The container IS your development environment. Host machine is only for code editing and git operations.
+description:
+globs:
+alwaysApply: false
+---

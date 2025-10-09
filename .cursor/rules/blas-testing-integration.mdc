@@ -1,0 +1,190 @@
+---
+description: Patterns for integrating new BLAS routines with LAPACK's systematic testing framework (dblat3, DCHK, DCHKE)
+globs: "**/{BLAS,TESTING}/**/*.{f,f90,in}"
+---
+
+# BLAS Testing Integration Patterns
+
+// Description: Rules for integrating new BLAS routines with LAPACK's testing framework
+// Based on successful AlphaTensor DGEMM_ALPHA integration achieving 17,496 passing test calls
+// Recommended Globs: **/{BLAS,TESTING}/**/*.{f,f90,in}
+
+## Overview
+Rules for integrating new BLAS routines with LAPACK's testing framework. Based on successful AlphaTensor DGEMM_ALPHA integration.
+
+## BLAS Level 3 Testing Framework
+
+### Core Integration Pattern
+LAPACK uses systematic testing via `BLAS/TESTING/dblat3.f` with these components:
+- **SNAMES array**: Routine names for testing dispatch
+- **DCHK routines**: Computational testing with parameter sweeps
+- **DCHKE routine**: Error-exit testing with XERBLA validation
+- **Input files**: `.in` files specify test parameters
+
+### Required Modifications
+
+#### 1. SNAMES Array Registration
+```fortran
+# In BLAS/TESTING/dblat3.f
+DATA SNAMES/'DGEMM ', 'DSYMM ', 'DTRMM ', 'DTRSM ',
+$           'DSYRK ', 'DSYR2K', 'DGEMMTR', 'DGMMALP'/
+           
+# Must update NSUBS parameter
+PARAMETER ( NSUBS = 8 )  # Increment from 7 to 8
+```
+
+#### 2. Dispatch Logic Extension
+```fortran
+# Add case to GO TO statement
+GO TO ( 140, 150, 160, 160, 170, 180, 185, 195 )ISNUM
+
+# Add dispatch case
+195 CALL DCHK8( SNAMES( ISNUM ), EPS, THRESH, NOUT, NTRA, TRACE,
+$              REWI, FATAL, NIDIM, IDIM, NALF, ALF, NBET, BET,
+$              NMAX, AB, AA, AS, AB( 1, NMAX + 1 ), BB, BS, C,
+$              CC, CS, CT, G )
+```
+
+#### 3. Input File Configuration
+```
+# In BLAS/TESTING/dblat3.in
+DGMMALP T PUT F FOR NO TEST. SAME COLUMNS.
+```
+
+## DCHK Routine Implementation
+
+### Naming Convention
+- **DCHK1**: DGEMM testing (template to follow)
+- **DCHK8**: New routine testing (use available number)
+- **Pattern**: Copy DCHK1 structure, modify for new routine
+
+### Required Structure
+```fortran
+SUBROUTINE DCHK8( SNAME, EPS, THRESH, NOUT, NTRA, TRACE, REWI,
+$                 FATAL, NIDIM, IDIM, NALF, ALF, NBET, BET, NMAX,
+$                 A, AA, AS, B, BB, BS, C, CC, CS, CT, G )
+*
+*  Tests DGEMM_ALPHA (AlphaTensor-optimized matrix multiplication).
+*
+*  Auxiliary routine for test program for Level 3 Blas.
+```
+
+### Parameter Sweep Testing
+```fortran
+DO 110 IM = 1, NIDIM
+   M = IDIM( IM )
+   DO 100 IN = 1, NIDIM
+      N = IDIM( IN )
+      DO 90 IK = 1, NIDIM
+         K = IDIM( IK )
+         DO 80 ICA = 1, 3
+            TRANSA = ICH( ICA: ICA )
+            DO 70 ICB = 1, 3
+               TRANSB = ICH( ICB: ICB )
+               DO 60 IA = 1, NALF
+                  ALPHA = ALF( IA )
+                  DO 50 IB = 1, NBET
+                     BETA = BET( IB )
+                     # Your routine call here
+```
+
+### Critical Implementation Details
+- **Parameter preservation**: Save all input parameters before routine call
+- **Data validation**: Use ISAME array to check parameter corruption
+- **Result verification**: Use DMMCH for computational accuracy checking
+- **Format labels**: Use unique range (8xxx) to avoid conflicts
+
+## Error-Exit Testing (DCHKE)
+
+### Integration Pattern
+```fortran
+# Add to EXTERNAL statement
+EXTERNAL CHKXER, DGEMM, DSYMM, DSYR2K, DSYRK, DTRMM,
+$        DTRSM, DGEMMTR, DGEMM_ALPHA
+
+# Extend GO TO dispatch
+GO TO ( 10, 20, 30, 40, 50, 60, 70, 80 )ISNUM
+
+# Add comprehensive error testing case
+80 INFOT = 1
+   CALL DGEMM_ALPHA( '/', 'N', 0, 0, 0, ALPHA, A, 1, B, 1, BETA, C, 1 )
+   CALL CHKXER( SRNAMT, INFOT, NOUT, LERR, OK )
+```
+
+### XERBLA Name Matching Critical Rule
+**CRITICAL**: XERBLA routine name MUST match SNAMES entry, not actual subroutine name!
+
+```fortran
+# WRONG (causes test failure):
+CALL XERBLA('DGEMM_ALPHA ', INFO)  # Truncated to 'DGEMM_A'
+
+# CORRECT (test passes):
+CALL XERBLA('DGMMALP ', INFO)      # Matches SNAMES entry
+```
+
+### Error Test Coverage
+Test ALL parameter positions with invalid values:
+- Characters: Invalid transpose flags ('/')
+- Integers: Negative dimensions (-1)
+- Leading dimensions: Insufficient values (< required)
+
+## Fortran Format Best Practices
+
+### Format Label Ranges
+- **9xxx**: Used by existing routines (avoid conflicts)
+- **8xxx**: Safe range for new routine formats
+- **Uniqueness**: Check entire file for label conflicts
+
+### Format Error Debugging
+```
+Error: Insufficient data descriptors in format after reversion
+```
+**Cause**: Format string doesn't match WRITE arguments
+**Fix**: Ensure format expects correct number/type of arguments
+
+```fortran
+# Wrong: Format expects no arguments, but SNAME provided
+WRITE( NOUT, FMT = 8999 )SNAME
+8999 FORMAT( ' TESTING ALPHATENSOR IMPLEMENTATION' )
+
+# Correct: Format expects A7 argument
+WRITE( NOUT, FMT = 8999 )SNAME  
+8999 FORMAT( ' TESTING ALPHATENSOR ', A7, ' IMPLEMENTATION' )
+```
+
+## Integration Success Criteria
+
+### Computational Testing Success
+```
+DGMMALP PASSED THE COMPUTATIONAL TESTS (17496 CALLS)
+```
+
+### Error-Exit Testing Success  
+```
+DGMMALP PASSED THE TESTS OF ERROR-EXITS
+```
+
+### What Gets Tested
+- **Parameter validation**: All invalid parameter combinations
+- **Matrix operations**: Systematic sweeps of M, N, K dimensions
+- **Coefficient testing**: Various ALPHA and BETA values
+- **Transpose operations**: All TRANSA/TRANSB combinations
+- **Memory layout**: Different leading dimension values
+
+## Anti-Patterns to Avoid
+
+### ❌ Common Mistakes
+- **Duplicate format labels**: Causes compilation/runtime errors
+- **Wrong XERBLA names**: Causes error-exit test failures  
+- **Missing EXTERNAL declarations**: Causes linking errors
+- **Insufficient error coverage**: Some INFOT values not tested
+- **Parameter corruption**: Not preserving input values correctly
+
+### ✅ Success Patterns
+- **Follow DCHK1 exactly**: Proven pattern for systematic testing
+- **Use unique format labels**: 8xxx range for new routines
+- **Match SNAMES entries**: XERBLA names must match exactly
+- **Complete error coverage**: Test all parameter positions
+- **Comprehensive logging**: Debug output for development
+
+This pattern enabled AlphaTensor integration with 100% test success rate.

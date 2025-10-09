@@ -1,0 +1,87 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Direct FORTRAN Implementation Rule
+
+## Core Principle
+**Write FORTRAN code directly rather than creating Python generation scripts**
+
+## Why Direct Implementation is Better
+
+### Speed and Efficiency
+- **Immediate Results**: Direct FORTRAN → compile → test cycle
+- **No Intermediate Bugs**: Avoid script generation errors
+- **Clear Debugging**: Errors are in the actual code, not generation logic
+- **Faster Iteration**: Edit code directly rather than debug scripts
+
+### Reliability
+- **No Translation Errors**: No Python→FORTRAN conversion mistakes
+- **Visual Verification**: Can see exactly what the algorithm does
+- **Simpler Debugging**: Standard FORTRAN debugging techniques apply
+- **Fewer Moving Parts**: Less complexity, fewer failure points
+
+### Maintainability  
+- **Readable Code**: FORTRAN code is self-documenting
+- **Direct Editing**: Can modify algorithm logic directly
+- **No Script Dependencies**: Code doesn't depend on generation tools
+- **Version Control**: Clean diffs of actual implementation changes
+
+## When Generation Scripts Become Traps
+
+### Common Pitfalls
+- **Data Corruption**: Scripts can corrupt coefficients during processing
+- **Algorithm Translation**: Math → Code translation introduces errors
+- **Debugging Complexity**: Hard to tell if error is in script or algorithm
+- **Time Waste**: Debugging generation is slower than writing FORTRAN
+
+### Warning Signs
+- Spending more time debugging the generator than writing code
+- Multiple failed generation attempts
+- Script complexity approaching hand-written code complexity
+- Generation errors that would be obvious in direct implementation
+
+## Direct Implementation Strategy
+
+### For Complex Algorithms
+1. **Start Simple**: Implement a few operations by hand
+2. **Verify Approach**: Test framework and structure first
+3. **Complete Systematically**: Add remaining operations methodically
+4. **Test Incrementally**: Verify each section as you build
+
+### For Coefficient-Heavy Code
+- **Copy-Paste Pattern**: Establish pattern, then duplicate and modify
+- **Systematic Naming**: Use consistent variable naming for easy editing
+- **Block Comments**: Document each operation group clearly
+- **Incremental Testing**: Test subsets of operations
+
+## Success Pattern: AlphaTensor Example
+
+```fortran
+! ✅ CORRECT: Direct implementation
+LEFT_COMBO = A_FLAT(1) + A_FLAT(9)
+RIGHT_COMBO = B_FLAT(1) + B_FLAT(9)  
+SCALAR_RESULT = LEFT_COMBO * RIGHT_COMBO
+TEMP_RESULT(1,1) = TEMP_RESULT(1,1) + SCALAR_RESULT
+
+! ❌ WRONG: Generated from corrupted Python script
+H(1) = A(1,1)*B(1,1) + A(1,1)*B(3,1) + A(3,1)*B(1,1) + A(3,1)*B(3,1)
+```
+
+## Application Guidelines
+
+### When to Use Direct Implementation
+- **Algorithm with known structure** (like AlphaTensor linear combinations)
+- **Coefficient-heavy implementations** (avoid script corruption)
+- **Performance-critical code** (need to see exact operations)
+- **Debugging existing implementations** (direct inspection needed)
+
+### When Generation Might Be Acceptable
+- **Truly repetitive boilerplate** (identical patterns, no math)
+- **Simple template expansion** (no complex logic)
+- **Proven, tested generators** (with extensive validation)
+- **Data format conversion** (not algorithm logic)
+
+## Key Takeaway
+**Time spent writing clear, direct FORTRAN is almost always less than time spent debugging Python generation scripts that produce incorrect FORTRAN.**

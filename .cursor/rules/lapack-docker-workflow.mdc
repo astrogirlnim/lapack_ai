@@ -1,0 +1,160 @@
+---
+description: LAPACK Docker container development workflow and best practices for containerized BLAS/LAPACK development
+globs: 
+alwaysApply: true
+---
+
+# LAPACK Docker Container Workflow
+
+// Description: Rules for developing and testing LAPACK implementations using the containerized environment
+// Based on successful AlphaTensor implementation experience with 17,496 passing test calls
+// Recommended Globs: **/*.{f,f90,c,h,cmake,makefile,Makefile,sh}
+
+## Overview
+Rules for developing and testing LAPACK implementations using the containerized environment. Based on successful AlphaTensor implementation experience.
+
+## Container Usage Patterns
+
+### Non-Interactive Command Workflow (PREFERRED)
+```bash
+# Use non-interactive commands that auto-return for continuous development
+docker run -it --rm --entrypoint="" -v $(pwd):/workspace -w /workspace lapack-ai-dev:latest bash -c "
+export LD_LIBRARY_PATH=/workspace/build/lib:\$LD_LIBRARY_PATH && 
+cd /workspace/SRC/VARIANTS/alphatensor && 
+gfortran -o comprehensive_test comprehensive_test.f dgemm_alpha_fixed.f -L/workspace/build/lib -lblas -llapack &&
+./comprehensive_test"
+```
+
+### Interactive Development Workflow (When Manual Control Needed)
+```bash
+# Use interactive mode only when manual debugging/exploration is required
+# NOTE: Interactive mode doesn't auto-return - user will cancel and continue with non-interactive
+docker run -it --rm --entrypoint="" -v $(pwd):/workspace -w /workspace lapack-ai-dev:latest bash
+
+# Inside container:
+export LD_LIBRARY_PATH=/workspace/build/lib:$LD_LIBRARY_PATH
+```
+
+### Key Workflow Rules
+- **Default to non-interactive**: Commands that auto-return for continuous development
+- **Interactive for manual work**: Only when user needs direct container access
+- **Always include environment setup**: LD_LIBRARY_PATH and proper working directory
+- **Chain commands properly**: Use && to ensure proper sequencing
+- **CRITICAL: Exit Docker for git/file operations**: Always exit container before using git commands or modifying files
+
+### Container Exit Pattern
+```bash
+# ALWAYS exit Docker before git operations or file modifications
+exit  # Exit the container
+
+# Then perform git/file operations on host:
+git log --oneline
+git show commit_hash
+vim file.f
+# etc.
+
+# Re-enter container for compilation/testing:
+docker run -it --rm --entrypoint="" -v $(pwd):/workspace -w /workspace lapack-ai-dev:latest bash -c "commands"
+```
+
+### Why Exit Container for Git/Files
+- **File Changes**: Must be made on host filesystem for persistence
+- **Git Operations**: Repository is on host, not container
+- **Version Control**: Commit history and file modifications happen on host
+- **Development Workflow**: Edit on host, test in container
+
+### Why Repository Libraries Matter
+- **System libraries missing routines**: OpenBLAS doesn't include DGEMMTR and other newer BLAS routines
+- **Repository libraries complete**: `build/lib/libblas.so` includes all current LAPACK/BLAS routines
+- **Runtime linking issues**: Must set `LD_LIBRARY_PATH` or get "undefined symbol" errors
+
+### Compilation Workflow
+```bash
+# Step 1: Compile components separately
+gfortran -c SRC/VARIANTS/yourmodule/implementation.f -o /tmp/impl.o
+gfortran -c BLAS/TESTING/modified_test.f -o /tmp/test.o
+
+# Step 2: Link with repository libraries (not system ones)
+gfortran /tmp/impl.o /tmp/test.o -L./build/lib -lblas -llapack -lcblas -o /tmp/executable
+
+# Step 3: Run with proper library path
+export LD_LIBRARY_PATH=/workspace/build/lib:$LD_LIBRARY_PATH
+cd BLAS/TESTING && /tmp/executable < input.in
+```
+
+## Testing Best Practices
+
+### Container Session Management
+- **Exit container to edit files**: Volume mount allows host-side editing
+- **Re-enter for compilation/testing**: Fresh environment each time
+- **Don't modify files inside container**: Changes won't persist
+
+### Library Path Management
+- **Always set LD_LIBRARY_PATH**: Before running any compiled LAPACK/BLAS executables
+- **Use repository libraries**: Never rely on system OpenBLAS for testing
+- **Check available libraries**: `find ./build -name "*.so"` to see what's built
+
+### Debugging Compilation Issues
+- **Link-time vs Runtime errors**: Different causes, different solutions
+- **Missing symbols at link**: Add missing libraries (-llapack, -lblas, -lcblas)
+- **Missing symbols at runtime**: Fix LD_LIBRARY_PATH
+- **Format errors**: Check Fortran format labels for uniqueness
+
+## Anti-Patterns to Avoid
+
+### ❌ Don't Do This
+```bash
+# Wrong: Using system libraries
+gfortran impl.o test.o -lopenblas -llapack
+
+# Wrong: Forgetting library path
+./executable < input.in
+
+# Wrong: Editing files inside container
+vim /workspace/file.f  # Changes won't persist!
+```
+
+### ✅ Do This Instead
+```bash
+# Correct: Use repository libraries
+gfortran impl.o test.o -L./build/lib -lblas -llapack -lcblas
+
+# Correct: Set library path
+export LD_LIBRARY_PATH=/workspace/build/lib:$LD_LIBRARY_PATH && ./executable < input.in
+
+# Correct: Edit on host, test in container
+# Host: vim SRC/file.f
+# Container: gfortran -c SRC/file.f
+```
+
+## Success Patterns from AlphaTensor Implementation
+
+### Development Cycle
+1. **Research/Plan** (host): Understand integration points
+2. **Implement** (host): Create/modify source files
+3. **Compile** (container): Build with repository libraries
+4. **Test** (container): Run with proper library paths
+5. **Debug** (host + container): Fix issues and repeat
+
+### Integration Testing
+- **Use existing test frameworks**: BLAS/TESTING/dblat3.f patterns
+- **Follow naming conventions**: SNAMES array, DCHK/DCHKE patterns
+- **Validate both computational and error-exit**: Complete LAPACK compliance
+
+## Container Environment Details
+
+### Available Tools
+- **gfortran**: Fortran 77/90/95 compiler
+- **Repository Libraries**: Complete BLAS/LAPACK with latest routines
+- **Development Tools**: Standard Unix utilities, debugging tools
+
+### File System Layout
+- **Workspace Mount**: `/workspace` maps to host repository root
+- **Build Directory**: `/workspace/build/` contains compiled libraries
+- **Temporary Files**: Use `/tmp/` for object files and executables
+
+This workflow enabled successful implementation and integration of AlphaTensor with 17,496 passing test calls.
+
+- **Temporary Files**: Use `/tmp/` for object files and executables
+
+This workflow enabled successful implementation and integration of AlphaTensor with 17,496 passing test calls.

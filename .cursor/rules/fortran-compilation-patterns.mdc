@@ -1,0 +1,246 @@
+---
+alwaysApply: true
+---
+# Fortran Compilation Patterns for LAPACK
+
+// Description: Fortran compilation best practices for LAPACK development
+// Based on AlphaTensor implementation experience resolving all compilation and linking issues
+// Recommended Globs: **/*.{f,f90,F}
+
+## Overview
+Fortran compilation best practices for LAPACK development. Based on AlphaTensor implementation experience with complex multi-file projects.
+
+## Compilation Strategy
+
+### Separate Compilation Pattern
+**Always compile components separately before linking**
+
+```bash
+# Step 1: Compile implementation
+gfortran -c SRC/VARIANTS/module/implementation.f -o /tmp/impl.o
+
+# Step 2: Compile modified testing framework  
+gfortran -c BLAS/TESTING/modified_test.f -o /tmp/test.o
+
+# Step 3: Link with specific library order
+gfortran /tmp/impl.o /tmp/test.o -L./build/lib -lblas -llapack -lcblas -o executable
+```
+
+### Why Separate Compilation?
+- **Faster debugging**: Only recompile changed components
+- **Clearer error isolation**: Know exactly which file has issues
+- **Library dependency control**: Explicit control over linking order
+- **Container efficiency**: Minimize recompilation in container sessions
+
+## Fortran 77 Compliance Rules
+
+### Line Length Restrictions
+**Maximum 72 characters per line** - strictly enforced by gfortran
+
+```fortran
+# WRONG: Line too long (>72 chars)
+CALL DGEMM_ALPHA(TRANSA,TRANSB,M,N,K,ALPHA,A,LDA,B,LDB,BETA,C,LDC)
+
+# CORRECT: Use continuation lines
+CALL DGEMM_ALPHA(TRANSA, TRANSB, M, N, K, ALPHA, A, LDA, B, LDB,
+$                 BETA, C, LDC)
+```
+
+### Continuation Line Format
+```fortran
+# Column 6 must contain continuation character
+      CALL ROUTINE(ARG1, ARG2, ARG3,
+$                 ARG4, ARG5, ARG6)
+#     ^-- Column 6: $ for continuation
+
+# String literals need special handling
+WRITE(*,*) 'This is a very long string that needs to be',
+$          ' broken across multiple lines'
+```
+
+### Format Label Management
+**Critical**: Format labels must be unique across entire file
+
+```fortran
+# Problematic: Multiple 9999 labels in same file
+SUBROUTINE A
+  WRITE(*,9999) VALUE
+9999 FORMAT(I6)
+END
+
+SUBROUTINE B  
+  WRITE(*,9999) VALUE  # ERROR: Duplicate label
+9999 FORMAT(F8.2)      # Same file, different subroutine
+END
+
+# Solution: Use unique ranges per routine
+SUBROUTINE A
+  WRITE(*,9999) VALUE
+9999 FORMAT(I6)
+END
+
+SUBROUTINE B
+  WRITE(*,8999) VALUE  # Different range
+8999 FORMAT(F8.2)
+END
+```
+
+## Error Patterns and Solutions
+
+### Common Compilation Errors
+
+#### 1. Format Label Conflicts
+```
+Error: FORMAT label 9999 at (1) not defined
+```
+**Cause**: Duplicate or missing format labels
+**Solution**: Use unique label ranges (8xxx for new routines)
+
+#### 2. Line Length Errors  
+```
+Error: Unterminated character constant beginning at (1)
+```
+**Cause**: String literal or statement exceeds 72 characters
+**Solution**: Break into continuation lines
+
+#### 3. Continuation Syntax Errors
+```
+Error: Syntax error in argument list at (1)
+```
+**Cause**: Improper continuation line formatting
+**Solution**: Ensure column 6 has continuation character ($)
+
+### Parameter Declaration Patterns
+
+#### FORTRAN 77 Style (Required)
+```fortran
+# Correct parameter declarations
+SUBROUTINE ROUTINE(M, N, K, ALPHA, A, LDA, B, LDB, BETA, C, LDC)
+INTEGER            M, N, K, LDA, LDB, LDC
+DOUBLE PRECISION   ALPHA, BETA
+DOUBLE PRECISION   A(LDA,*), B(LDB,*), C(LDC,*)
+```
+
+#### Array Size Specifications
+```fortran
+# For known dimensions (like 4x4 matrices)
+DOUBLE PRECISION   A(LDA,4), B(LDB,4), C(LDC,4)
+
+# For general dimensions (assumed-size arrays)
+DOUBLE PRECISION   A(LDA,*), B(LDB,*), C(LDC,*)
+```
+
+## Library Linking Best Practices
+
+### Library Order Dependency
+**Order matters** for static library linking
+
+```bash
+# Correct order: Most specific to most general
+gfortran objects.o -L./build/lib -lblas -llapack -lcblas
+
+# Dependencies: 
+# - Your code depends on BLAS routines
+# - LAPACK depends on BLAS  
+# - CBLAS provides C interface to BLAS
+```
+
+### Repository vs System Libraries
+```bash
+# WRONG: Using system libraries (incomplete)
+gfortran objects.o -lopenblas -llapack
+
+# CORRECT: Using repository libraries (complete)  
+gfortran objects.o -L./build/lib -lblas -llapack -lcblas
+```
+
+### Runtime Library Path
+```bash
+# Required for runtime linking with repository libraries
+export LD_LIBRARY_PATH=/workspace/build/lib:$LD_LIBRARY_PATH
+
+# Why needed: System loader looks in standard paths first
+# Repository libraries not in standard locations
+```
+
+## LAPACK Integration Patterns
+
+### External Function Declarations
+```fortran
+# Required for calling BLAS/LAPACK routines
+EXTERNAL           DGEMM, LSAME, XERBLA
+
+# Required for testing routines
+EXTERNAL           DMAKE, DMMCH, CHKXER
+```
+
+### Standard LAPACK Function Calls
+```fortran
+# Parameter validation using LSAME
+NOTA = LSAME(TRANSA,'N')
+NOTB = LSAME(TRANSB,'N')
+
+# Error reporting using XERBLA  
+IF (INFO.NE.0) THEN
+    CALL XERBLA('DGMMALP ', INFO)
+    RETURN
+END IF
+
+# Standard BLAS calls for fallback
+CALL DGEMM(TRANSA,TRANSB,M,N,K,ALPHA,A,LDA,B,LDB,BETA,C,LDC)
+```
+
+### Logging and Debugging
+```fortran
+# Extensive logging for development
+INTEGER LOG_UNIT
+PARAMETER (LOG_UNIT = 6)
+
+WRITE(LOG_UNIT,*) 'ROUTINE: Entry with M=',M,' N=',N,' K=',K
+WRITE(LOG_UNIT,*) 'ROUTINE: ALPHA=',ALPHA,' BETA=',BETA
+```
+
+## Build System Integration
+
+### Container Compilation Workflow
+```bash
+# 1. Enter container
+docker run -it --rm --entrypoint="" -v $(pwd):/workspace -w /workspace lapack-ai-dev:latest bash
+
+# 2. Set environment
+export LD_LIBRARY_PATH=/workspace/build/lib:$LD_LIBRARY_PATH
+
+# 3. Compile incrementally
+gfortran -c SRC/new_routine.f -o /tmp/new.o
+gfortran -c TESTING/modified_test.f -o /tmp/test.o  
+
+# 4. Link and test
+gfortran /tmp/new.o /tmp/test.o -L./build/lib -lblas -llapack -lcblas -o /tmp/test_exe
+cd TESTING && /tmp/test_exe < input.in
+```
+
+### Error Debugging Workflow
+1. **Compilation errors**: Fix Fortran syntax issues (line length, format labels)
+2. **Link-time errors**: Add missing library dependencies
+3. **Runtime errors**: Set LD_LIBRARY_PATH, check symbol names
+4. **Logic errors**: Add extensive logging, compare with reference implementation
+
+## Success Metrics
+
+### Compilation Success
+- No syntax errors from gfortran
+- Clean linking with all symbols resolved
+- Executable creation without warnings
+
+### Integration Success  
+- Routine callable from testing framework
+- Parameter validation working correctly
+- Computational results matching reference implementation
+
+### Testing Success
+```
+ROUTINE PASSED THE COMPUTATIONAL TESTS (N CALLS)
+ROUTINE PASSED THE TESTS OF ERROR-EXITS
+```
+
+This compilation strategy enabled successful AlphaTensor implementation with 17,496 passing test calls and full LAPACK integration.

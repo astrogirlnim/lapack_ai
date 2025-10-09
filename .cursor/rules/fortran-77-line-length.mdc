@@ -1,0 +1,125 @@
+---
+description: Fortran line length and correct syntax
+---
+# Fortran 77 Line Length Management
+
+## Core Principle
+**Fortran 77 enforces a strict 72-character line limit that causes compilation errors if exceeded.**
+
+## Common Violations and Solutions
+
+### 1. Long Function Calls
+```fortran
+❌ WRONG: Line too long (>72 chars)
+CALL DGEMM_ALPHA('N','N',LDIM16,LDIM16,LDIM16,ALPHA,A16,LDIM16,B16,LDIM16,BETA,C16_ALPHA,LDIM16)
+
+✅ CORRECT: Break at logical points
+CALL DGEMM_ALPHA('N','N',LDIM16,LDIM16,LDIM16,ALPHA,A16,LDIM16,
++                 B16,LDIM16,BETA,C16_ALPHA,LDIM16)
+```
+
+### 2. Variable Declarations
+```fortran
+❌ WRONG: Too many variables on one line
+DOUBLE PRECISION C16_ALPHA(LDIM16,LDIM16), C16_STANDARD(LDIM16,LDIM16)
+
+✅ CORRECT: Split declarations
+DOUBLE PRECISION C16A(LDIM16,LDIM16), C16S(LDIM16,LDIM16)
+# OR split across lines:
+DOUBLE PRECISION C16_ALPHA(LDIM16,LDIM16)
+DOUBLE PRECISION C16_STANDARD(LDIM16,LDIM16)
+```
+
+### 3. WRITE Statements with Long Strings
+```fortran
+❌ WRONG: String literal exceeds 72 characters
+WRITE(*,*) 'This is a very long descriptive message that exceeds the limit'
+
+✅ CORRECT: Shorten or concatenate
+WRITE(*,*) 'Long descriptive message (shortened)'
+# OR use continuation:
+WRITE(*,*) 'This is a very long descriptive message',
++          ' that continues on next line'
+```
+
+### 4. Continuation Line Rules
+- **Column 6**: Must contain continuation character (`+`, `&`, or any non-blank/non-zero character)
+- **Column 1-5**: Must be blank for continuation lines
+- **Column 73+**: Ignored by compiler (comments allowed)
+
+```fortran
+✅ CORRECT continuation format:
+      CALL ROUTINE(ARG1, ARG2, ARG3,
++                  ARG4, ARG5, ARG6)
+#     ^-- Column 6: continuation character
+```
+
+### 5. Parameter Placement Strategy
+Break function calls at logical parameter boundaries:
+
+```fortran
+✅ BEST PRACTICE: Group related parameters
+CALL DGEMM_ALPHA('N','N',M,N,K,ALPHA,A,LDA,
++                 B,LDB,BETA,C,LDC)
+# Group 1: transpose + dimensions
+# Group 2: arrays + scaling
+```
+
+## Quick Fixes for Common Patterns
+
+### Function Calls
+- Break after dimensions: `M,N,K,ALPHA,A,LDA,`
+- Break before arrays: `B,LDB,BETA,C,LDC`
+- Keep related parameters together
+
+### Variable Names
+- Use shorter names: `C16_ALPHA` → `C16A`
+- Avoid descriptive suffixes: `C16_STANDARD` → `C16S`
+
+### String Literals
+- Abbreviate messages: `'Maximum error'` instead of `'Maximum error found'`
+- Remove unnecessary words: `'Test 1:'` instead of `'Test 1 Description:'`
+
+## Error Prevention
+
+### 1. Visual Check
+Count characters in critical lines during development:
+```
+      CALL DGEMM_ALPHA('N','N',LDIM4,LDIM4,LDIM4,ALPHA,A4,LDIM4,B4,LDIM4,
+#     123456789012345678901234567890123456789012345678901234567890123456789012
+#                   10        20        30        40        50        60        70
+```
+
+### 2. Compiler Symptoms
+Watch for these gfortran error patterns:
+- `Error: Missing ')' in statement`
+- `Error: Symbol 'variablename' at (1) has no IMPLICIT type`
+- `Error: Unterminated character constant`
+
+These often indicate line length violations rather than syntax errors.
+
+### 3. Common Mistake: Hidden Line Length
+```fortran
+❌ PROBLEMATIC: Looks short but continuation causes issues
+CALL ROUTINE(A,B,C,
++            VERYLONGVARIABLENAME,D,E,F,G,H,I,J,K)
+```
+
+The second line might exceed 72 characters with indentation.
+
+## Best Practices
+
+1. **Plan Breaks**: Design function calls with line breaks in mind
+2. **Consistent Style**: Always break at the same logical points
+3. **Readable Indentation**: Align continuation parameters
+4. **Short Names**: Use concise but clear variable names
+5. **Test Compilation**: Frequently compile during development
+
+## Integration with Modern Tools
+
+While Fortran 77 is restrictive, maintain compatibility:
+- Use modern editors with column guides (72-character ruler)
+- Set up linting rules for line length checking
+- Consider Fortran 90+ for new development when possible
+
+This rule helps maintain LAPACK compatibility while avoiding frustrating compilation errors.
